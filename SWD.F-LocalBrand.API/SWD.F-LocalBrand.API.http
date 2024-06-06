@@ -1,0 +1,6 @@
+@SWD.F_LocalBrand.API_HostAddress = http://localhost:5049
+
+GET {{SWD.F_LocalBrand.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
