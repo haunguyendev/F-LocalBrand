@@ -14,5 +14,6 @@ namespace SWD.F_LocalBrand.Data.Repositories
         public UserRepository(SwdFlocalBrandContext dbContext) : base(dbContext)
         {
         }
+       
     }
 }
