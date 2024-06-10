@@ -2,12 +2,14 @@
 
 using System.IdentityModel.Tokens.Jwt;
 using F_LocalBrand.Services;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Common.Payloads.Requests;
 using SWD.F_LocalBrand.API.Common.Payloads.Responses;
 using SWD.F_LocalBrand.API.Exceptions;
+using SWD.F_LocalBrand.API.Validation;
 using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers;
@@ -18,53 +20,101 @@ public class AuthController : ControllerBase
 {
     private readonly IdentityService _identityService;
     private readonly UserService _userService;
+    private readonly IValidator<SignupRequest> _signupValidator;
+    private readonly IValidator<LoginRequest> _loginValidator;
 
-    public AuthController(IdentityService identityService, UserService userService)
+    public AuthController(IdentityService identityService, UserService userService, IValidator<SignupRequest> signupValidator, IValidator<LoginRequest> loginValidator)
     {
         _identityService = identityService;
-        _userService = userService; 
+        _userService = userService;
+        _signupValidator = signupValidator;
+        _loginValidator = loginValidator;
     }
 
     [AllowAnonymous]
     [HttpPost]
     public async Task<IActionResult> Signup([FromBody] SignupRequest req)
     {
-        var handler = new JwtSecurityTokenHandler();
-        var res = await _identityService.Signup(req);
-        if (!res.Authenticated)
+        var validationResult = _signupValidator.Validate(req);
+        if(validationResult.IsValid)
         {
-            var resultFail = new SignupResponse
+            var handler = new JwtSecurityTokenHandler();
+            var res = await _identityService.Signup(req);
+            if (!res.Authenticated)
             {
-                AccessToken = "Sign up fail"
+                //var resultFail = new SignupResponse
+                //{
+                //    //AccessToken = "Sign up fail",
+                //    AccessToken = "Sign up fail"
+                //};
+                //return BadRequest(ApiResult<SignupResponse>.Succeed(resultFail));
+                var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Sign up fail"));
+                return BadRequest(resultFail);
+            }
+            var result = new SignupResponse
+            {
+                AccessToken = handler.WriteToken(res.Token),
+                RefreshToken = handler.WriteToken(res.RefreshToken)
             };
-            return BadRequest(ApiResult<SignupResponse>.Succeed(resultFail));
-        }
-        var result = new SignupResponse
-        {
-            AccessToken = handler.WriteToken(res.Token)
-        };
 
-        return Ok(ApiResult<SignupResponse>.Succeed(result));
+            return Ok(ApiResult<SignupResponse>.Succeed(result));
+        }
+        else
+        {
+            var problemDetails = validationResult.ToProblemDetails();
+            return BadRequest(problemDetails);
+        }
+        
     }
 
     [AllowAnonymous]
     [HttpPost]
     public IActionResult Login([FromBody] LoginRequest req)
     {
-        var loginResult = _identityService.Login(req.Email, req.Password);
-        if (!loginResult.Authenticated)
+        var validationResult = _loginValidator.Validate(req);
+        if (validationResult.IsValid)
         {
-            var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Username or password is invalid"));
-            return BadRequest(result);
-        }
+            var loginResult = _identityService.Login(req.Username, req.Password);
+            if (!loginResult.Authenticated)
+            {
+                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Username or password is invalid"));
+                return BadRequest(result);
+            }
 
+            var handler = new JwtSecurityTokenHandler();
+            var res = new LoginResponse
+            {
+                AccessToken = handler.WriteToken(loginResult.Token),
+                RefreshToken = handler.WriteToken(loginResult.RefreshToken)
+            };
+            return Ok(ApiResult<LoginResponse>.Succeed(res));
+            
+        }
+        else
+        {
+            var problemDetails = validationResult.ToProblemDetails();
+            return BadRequest(problemDetails);
+        }
+        
+    }
+    //Recive refresh token and return new access token
+    [AllowAnonymous]
+    [HttpPost]
+    public IActionResult RefreshToken([FromBody] RefreshTokenRequest req)
+    {
         var handler = new JwtSecurityTokenHandler();
+        var token = handler.ReadJwtToken(req.RefreshToken);
+        
+        var newToken = _identityService.CreateNewToken(token);
         var res = new LoginResponse
         {
-            AccessToken = handler.WriteToken(loginResult.Token),
+            AccessToken = handler.WriteToken(newToken),
+            RefreshToken = req.RefreshToken
         };
         return Ok(ApiResult<LoginResponse>.Succeed(res));
     }
+
+    // Check if the token is valid
     [Authorize]
     [HttpGet]
     public async Task<IActionResult> CheckToken()
