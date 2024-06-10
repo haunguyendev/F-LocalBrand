@@ -1,9 +1,14 @@
 ﻿using F_LocalBrand.Services;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SWD.F_LocalBrand.API.Common.Payloads.Requests;
 using SWD.F_LocalBrand.API.Settings;
+using SWD.F_LocalBrand.API.Validation;
+using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.Mapper;
 using SWD.F_LocalBrand.Business.Services;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
@@ -129,7 +134,14 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddTransient<IUnitOfWork, UnitOfWork>()
                 .AddScoped<IdentityService>()
                 .AddScoped<UserService>()
-                .AddScoped<JwtSettings>();
+                .AddScoped<JwtSettings>()
+
+                //Add Validation
+
+                .AddScoped<IValidator<LoginRequest>, LoginValidation>()
+                .AddScoped<IValidator<SignupRequest>, SignupValidation>();
+
+
 
 
         }
