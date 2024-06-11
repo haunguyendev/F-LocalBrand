@@ -32,6 +32,7 @@ namespace SWD.F_LocalBrand.API.Extentions
             services.AddScoped<ExceptionMiddleware>();
             services.AddControllers();
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+            services.AddMemoryCache();
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddSignalR();
@@ -182,6 +183,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<UserService>()
                 .AddScoped<JwtSettings>()
                 .AddScoped<EmailService>()
+                .AddScoped<CustomerService>()
 
                 // Register ResponseCacheService
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()
