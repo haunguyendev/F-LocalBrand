@@ -19,6 +19,7 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         //IPaymentRepository Payments { get; }
         //IRoleRepository Roles { get; }
         IUserRepository Users { get; }
+        ICustomerRepository Customers { get; }
         
         Task<int> CommitAsync();
     }

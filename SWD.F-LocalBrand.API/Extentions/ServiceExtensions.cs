@@ -178,6 +178,7 @@ namespace SWD.F_LocalBrand.API.Extentions
         {
             return services.AddTransient(typeof(IRepositoryBaseAsync<>), typeof(RepositoryBaseAsync<>))
                 .AddTransient<IUserRepository, UserRepository>()
+                .AddTransient<ICustomerRepository, CustomerRepository>()
                 .AddTransient<IUnitOfWork, UnitOfWork>()
                 .AddScoped<IdentityService>()
                 .AddScoped<UserService>()

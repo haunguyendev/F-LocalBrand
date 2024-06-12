@@ -19,10 +19,6 @@ public partial class Customer : EntityBase
     [StringLength(255)]
     public string? Password { get; set; }
 
-    [Column("customerName")]
-    [StringLength(255)]
-    public string? CustomerName { get; set; }
-
     [Column("email")]
     [StringLength(255)]
     public string? Email { get; set; }
@@ -40,6 +36,9 @@ public partial class Customer : EntityBase
 
     [Column("registrationDate")]
     public DateOnly? RegistrationDate { get; set; }
+
+    [Column("OTP")]
+    public int? Otp { get; set; }
 
 
     [InverseProperty("Customer")]
