@@ -11,6 +11,7 @@
             }
 
             app.UseHttpsRedirection();
+            app.UseCookiePolicy();
 
             app.UseAuthorization();
 
