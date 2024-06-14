@@ -52,6 +52,21 @@ namespace SWD.F_LocalBrand.API.Extentions
                 val.Key = jwtSettings.Key;
             });
 
+            var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
+            var clientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET");
+            if (string.IsNullOrEmpty(clientId))
+            {
+                throw new InvalidOperationException("ClientID is not configured.");
+            }
+            if (string.IsNullOrEmpty(clientSecret))
+            {
+                throw new InvalidOperationException("clientSecret is not configured.");
+            }
+            services.Configure<GoogleAuthSettings>(val =>
+            {
+                val.ClientId = clientId;
+                val.ClientSecret = clientSecret;
+            });
             //services.Configure<MailSettings>(configuration.GetSection(nameof(MailSettings)));
 
             //services.Configure<CloundSettings>(configuration.GetSection(nameof(CloundSettings)));
@@ -75,7 +90,18 @@ namespace SWD.F_LocalBrand.API.Extentions
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true
                     };
+                }).AddCookie()
+                .AddGoogle(options =>
+                {
+                    options.ClientId = clientId;
+                    options.ClientSecret = clientSecret;
                 });
+
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
             services.ConfigureDbContext(configuration);
 
             //Get config mail form environment
@@ -181,10 +207,14 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<IdentityService>()
                 .AddScoped<UserService>()
                 .AddScoped<JwtSettings>()
+
+                .AddScoped<GoogleAuthSettings>()
+
                 .AddScoped<EmailService>()
 
                 // Register ResponseCacheService
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()
+
 
                 //Add Validation
 

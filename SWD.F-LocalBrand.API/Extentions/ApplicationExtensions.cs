@@ -34,6 +34,7 @@ namespace SWD.F_LocalBrand.API.Extentions
             app.UseCors("CORS");
 
             app.UseHttpsRedirection();
+            app.UseCookiePolicy();
 
             app.UseMiddleware<ExceptionMiddleware>();
 
