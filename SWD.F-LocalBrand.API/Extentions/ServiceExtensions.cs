@@ -5,10 +5,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
+using SWD.F_LocalBrand.API.Attributes;
 using SWD.F_LocalBrand.API.Common.Payloads.Requests;
+using SWD.F_LocalBrand.API.Hubs;
+using SWD.F_LocalBrand.API.Middlewares;
 using SWD.F_LocalBrand.API.Settings;
 using SWD.F_LocalBrand.API.Validation;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Mapper;
 using SWD.F_LocalBrand.Business.Services;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
@@ -24,11 +29,15 @@ namespace SWD.F_LocalBrand.API.Extentions
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
 
-
+            services.AddScoped<ExceptionMiddleware>();
             services.AddControllers();
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
             services.AddEndpointsApiExplorer();
-            
+            services.AddSwaggerGen();
+            services.AddSignalR();
+
+
+
             var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
             if (string.IsNullOrEmpty(secretKey))
             {
@@ -94,6 +103,43 @@ namespace SWD.F_LocalBrand.API.Extentions
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
             services.ConfigureDbContext(configuration);
+
+            //Get config mail form environment
+            services.Configure<MailSettings>(options =>
+            {
+                options.Server = Environment.GetEnvironmentVariable("MailSettings__Server");
+                options.Port = int.Parse(Environment.GetEnvironmentVariable("MailSettings__Port") ?? "0");
+                options.SenderName = Environment.GetEnvironmentVariable("MailSettings__SenderName");
+                options.SenderEmail = Environment.GetEnvironmentVariable("MailSettings__SenderEmail");
+                options.UserName = Environment.GetEnvironmentVariable("MailSettings__UserName");
+                options.Password = Environment.GetEnvironmentVariable("MailSettings__Password");
+            });
+            var redisConnection = new RedisConnection();
+            configuration.GetSection("RedisConnection").Bind(redisConnection);
+
+            // Register RedisConfiguration as a singleton
+            services.AddSingleton(redisConnection);
+
+            // Configure Redis connection
+            services.AddSingleton<IConnectionMultiplexer>(option =>
+               ConnectionMultiplexer.Connect(new ConfigurationOptions
+               {
+
+                   EndPoints = { $"{redisConnection.Host}:{redisConnection.Port}" },
+                   //Ssl = redisConnection.IsSSL,
+                   //Password = redisConnection.Password
+
+
+               }));
+            services.AddSingleton<MessageHub>();
+
+            // Add StackExchangeRedisCache as the IDistributedCache implementation
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = $"{redisConnection.Host}:{redisConnection.Port}";
+            });
+
+            
 
             services.AddInfrastructureServices();
             // Add Mapper Services to Container injection
@@ -161,7 +207,15 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<IdentityService>()
                 .AddScoped<UserService>()
                 .AddScoped<JwtSettings>()
+
                 .AddScoped<GoogleAuthSettings>()
+
+                .AddScoped<EmailService>()
+
+                // Register ResponseCacheService
+                .AddSingleton<IResponseCacheService, ResponseCacheService>()
+
+
                 //Add Validation
 
                 .AddScoped<IValidator<LoginRequest>, LoginValidation>()

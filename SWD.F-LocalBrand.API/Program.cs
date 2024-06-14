@@ -9,12 +9,12 @@ DotNetEnv.Env.Load();
 
 try
 {
-    Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
-    .Enrich.FromLogContext()
-    .ReadFrom.Configuration(builder.Configuration)
-    .CreateLogger();
-    Log.Information("Start F-LocalBrand API up");
+    // Log.Logger = new LoggerConfiguration()
+    // .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+    // .Enrich.FromLogContext()
+    // .ReadFrom.Configuration(builder.Configuration)
+    // .CreateLogger();
+    // Log.Information("Start F-LocalBrand API up");
 
 
     
