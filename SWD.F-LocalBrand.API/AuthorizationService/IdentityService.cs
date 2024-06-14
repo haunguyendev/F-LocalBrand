@@ -16,6 +16,11 @@ using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.Business.DTO.Auth;
 using SWD.F_LocalBrand.Business.DTO;
 using AutoMapper;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Oauth2.v2.Data;
+using Google.Apis.Oauth2.v2;
+using Google.Apis.Services;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace F_LocalBrand.Services;
@@ -250,6 +255,54 @@ public class IdentityService
 
         return token;
     }
+    public async Task<LoginResult> LoginGoolge(string token)
+    {
+        try
+        {
+            var credential = GoogleCredential.FromAccessToken(token);
+            var oauth2Service = new Oauth2Service(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "F-LocalBrand",
+            });
+            Userinfo userInfo = await oauth2Service.Userinfo.Get().ExecuteAsync();
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == userInfo.Email);
+            if (user == null)
+            {
+                user = new User()
+                {
+                    Email = userInfo.Email,
+                    UserName = userInfo.Name,
+                    RoleId = 1,
+                    RegistrationDate = DateOnly.FromDateTime(DateTime.Now)
 
-    
+
+                };
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+            }
+
+            var tokenResponse = CreateJwtToken(user);
+            var tokenRefreshResponse = CreateJwtRefreshToken(user);
+            return new LoginResult
+            {
+                Authenticated = true,
+                Token = tokenResponse,
+                RefreshToken = tokenRefreshResponse
+            };
+        }
+        catch (Exception ex)
+        {
+            return new LoginResult
+            {
+                Authenticated = false,
+                Token = null,
+                RefreshToken = null
+            };
+        }
+
+
+    }
+
+
 }
