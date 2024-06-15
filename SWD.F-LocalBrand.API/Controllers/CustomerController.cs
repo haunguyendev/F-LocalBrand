@@ -114,5 +114,12 @@ namespace SWD.F_LocalBrand.API.Controllers
             return NotFound(ApiResult<Dictionary<string, string[]>>.Fail(new Exception("User is not found")));
         }
 
+        [HttpGet("{customerId}/orders/{orderId}/histories")]
+        public async Task<IActionResult> GetOrderHistories(int customerId, int orderId)
+        {
+            var orderHistories = await _customerService.GetOrderHistoryByCustomerId(customerId, orderId);
+            return Ok(orderHistories);
+        }
+
     }
 }

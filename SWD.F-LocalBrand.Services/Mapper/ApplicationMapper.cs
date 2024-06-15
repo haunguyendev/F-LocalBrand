@@ -25,6 +25,10 @@ namespace SWD.F_LocalBrand.Business.Mapper
             .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.CollectionProducts.Select(cp => cp.Product)));
             CreateMap<Campaign, CampaignModel>()
                 .ForMember(dest => dest.Collections, opt => opt.MapFrom(src => src.Collections));
+
+            CreateMap<OrderHistory, OrderHistoryModel>();
+            CreateMap<Order, OrderModel>()
+                .ForMember(dest => dest.OrderHistories, opt => opt.MapFrom(src => src.OrderHistories));
         }
     }
 }

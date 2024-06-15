@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.UnitOfWorks;
@@ -61,6 +62,21 @@ namespace SWD.F_LocalBrand.Business.Services
             {
                 return false;
             }
+        }
+
+        //Get order history of customer by customer id and order id
+        public async Task<OrderModel> GetOrderHistoryByCustomerId(int customerId, int orderId)
+        {
+            var orders = await _unitOfWork.Orders.FindByCondition(
+                o => o.CustomerId == customerId,
+                trackChanges: false, includeProperties: o => o.OrderDetails)
+                .FirstOrDefaultAsync();
+
+            var orderWithHistories = await _unitOfWork.Orders
+            .FindByCondition(o => o.Id == orderId, false, o => o.OrderHistories)
+            .FirstOrDefaultAsync();
+            var orderModels = _mapper.Map<OrderModel>(orderWithHistories);
+            return orderModels;
         }
     }
 }

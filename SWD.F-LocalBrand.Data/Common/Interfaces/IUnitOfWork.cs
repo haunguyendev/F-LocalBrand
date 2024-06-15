@@ -13,7 +13,7 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         ICollectionRepository Collections { get; }
         //IOrderDetailRepository OrderDetails { get; }
         //IOrderHistoryRepository OrderHistories { get; }
-        //IOrderRepository Orders { get; }
+        IOrderRepository Orders { get; }
         //IPaymentRepository Payments { get; }
         //IRoleRepository Roles { get; }
         IUserRepository Users { get; }
