@@ -14,6 +14,9 @@ public partial class Customer : EntityBase
     [Column("userName")]
     [StringLength(255)]
     public string? UserName { get; set; }
+    [Column("fullName")]
+    [StringLength(255)]
+    public string? FullName { get; set; }
 
     [Column("password")]
     [StringLength(255)]
@@ -37,8 +40,7 @@ public partial class Customer : EntityBase
     [Column("registrationDate")]
     public DateOnly? RegistrationDate { get; set; }
 
-    [Column("OTP")]
-    public int? Otp { get; set; }
+    
 
     [InverseProperty("Customer")]
     public virtual ICollection<CustomerProduct> CustomerProducts { get; set; } = new List<CustomerProduct>();
