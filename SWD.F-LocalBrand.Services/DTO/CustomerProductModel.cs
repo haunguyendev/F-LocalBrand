@@ -17,5 +17,7 @@ namespace SWD.F_LocalBrand.Business.DTO
         public DateOnly BuyDate { get; set; }
 
         public string Status { get; set; } = null!;
+
+        public ProductModel? Product { get; set; }
     }
 }

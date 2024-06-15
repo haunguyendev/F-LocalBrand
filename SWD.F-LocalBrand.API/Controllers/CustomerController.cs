@@ -128,5 +128,15 @@ namespace SWD.F_LocalBrand.API.Controllers
             var customer = await _customerService.GetCustomerProductByCustomerId(customerId);
             return Ok(customer);
         }
+
+        //Get customer product by customer id (see product recommended of products)
+        [HttpGet("customer-product/{customerId}/recommended")]
+        public async Task<IActionResult> GetCustomerProductRecommended(int customerId)
+        {
+            var customer = await _customerService.GetCustomerProductAndProductRecommendByCustomerId(customerId);
+            return Ok(customer);
+        }
+
+
     }
 }

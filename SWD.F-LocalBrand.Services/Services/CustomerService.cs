@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
+using SWD.F_LocalBrand.Data.Models;
 using SWD.F_LocalBrand.Data.UnitOfWorks;
 using System;
 using System.Collections.Generic;
@@ -17,11 +18,13 @@ namespace SWD.F_LocalBrand.Business.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ProductService _productService;
 
-        public CustomerService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CustomerService(IUnitOfWork unitOfWork, IMapper mapper, ProductService productService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _productService = productService;
         }
 
 
@@ -86,6 +89,29 @@ namespace SWD.F_LocalBrand.Business.Services
             var customer = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).ToListAsync();
             var customerModel = _mapper.Map<List<CustomerProductModel>>(customer);
             return customerModel;
+        }
+
+        //Get customer product by customer id (see product recommended of products)
+        public async Task<List<CustomerProductModel>> GetCustomerProductAndProductRecommendByCustomerId(int customerId)
+        {
+            var customerProducts = await _unitOfWork.CustomerProducts
+            .FindByCondition(cp => cp.CustomerId == customerId, false, cp => cp.Product)
+            .ToListAsync();
+            var customerProductDtos = _mapper.Map<IEnumerable<CustomerProductModel>>(customerProducts);
+
+            foreach (var customerProductDto in customerProductDtos)
+            {
+                if (customerProductDto.Product != null)
+                {
+                    var productWithRecommendations = await _productService.GetProductWithRecommendationsAsync(customerProductDto.Product.Id);
+
+                    if (productWithRecommendations != null)
+                    {
+                        customerProductDto.Product = productWithRecommendations;
+                    }
+                }
+            }
+            return customerProductDtos.ToList();
         }
     }
 }
