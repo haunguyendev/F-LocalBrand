@@ -121,5 +121,12 @@ namespace SWD.F_LocalBrand.API.Controllers
             return Ok(orderHistories);
         }
 
+        //Get customer by id with customer products
+        [HttpGet("customer-product/{customerId}")]
+        public async Task<IActionResult> GetCustomerProductByCustomerId(int customerId)
+        {
+            var customer = await _customerService.GetCustomerProductByCustomerId(customerId);
+            return Ok(customer);
+        }
     }
 }

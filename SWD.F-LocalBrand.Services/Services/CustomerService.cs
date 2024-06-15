@@ -78,5 +78,14 @@ namespace SWD.F_LocalBrand.Business.Services
             var orderModels = _mapper.Map<OrderModel>(orderWithHistories);
             return orderModels;
         }
+
+
+        //Get customer by id with customer products
+        public async Task<List<CustomerProductModel>> GetCustomerProductByCustomerId(int id)
+        {
+            var customer = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).ToListAsync();
+            var customerModel = _mapper.Map<List<CustomerProductModel>>(customer);
+            return customerModel;
+        }
     }
 }

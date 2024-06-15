@@ -19,6 +19,8 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         IUserRepository Users { get; }
         ICustomerRepository Customers { get; }
         IProductRepository Products { get; }
+
+        ICustomerProductRepository CustomerProducts { get; }
         
         Task<int> CommitAsync();
     }

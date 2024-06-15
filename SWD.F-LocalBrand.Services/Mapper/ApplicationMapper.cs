@@ -29,6 +29,11 @@ namespace SWD.F_LocalBrand.Business.Mapper
             CreateMap<OrderHistory, OrderHistoryModel>();
             CreateMap<Order, OrderModel>()
                 .ForMember(dest => dest.OrderHistories, opt => opt.MapFrom(src => src.OrderHistories));
+
+            //CreateMap<Customer, CustomerModel>()
+            //    .ForMember(dest => dest.CustomerProducts, opt => opt.MapFrom(src => src.CustomerProducts));
+
+            CreateMap<CustomerProduct, CustomerProductModel>().ReverseMap();
         }
     }
 }
