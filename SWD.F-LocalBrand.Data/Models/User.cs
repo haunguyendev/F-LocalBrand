@@ -34,8 +34,8 @@ public partial class User : EntityBase
     [Column("registrationDate")]
     public DateOnly? RegistrationDate { get; set; }
 
-    [Column("OTP")]
-    public int? Otp { get; set; }
+    [Column("image")]
+    public string? Image { get; set; }
 
     [Column("role_id")]
     public int? RoleId { get; set; }
