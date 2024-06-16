@@ -30,24 +30,46 @@ namespace SWD.F_LocalBrand.Business.Services
         public async Task<List<ProductModel>> GetAllProductsAsync()
         {
             var listProducts = await _unitOfWork.Products.FindAll().ToListAsync();
-            var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
+            if(listProducts != null)
+            {
+                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
                 return listProductModel;
+            }
+            else
+            {
+                return null;
+            }
+            
         }
 
         //get prodcut by category id
         public async Task<List<ProductModel>> GetProductsByCategoryIdAsync(int categoryId)
         {
             var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId).ToListAsync();
-            var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
-            return listProductModel;
+            if(listProducts != null)
+            {
+                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
+                return listProductModel;
+            }
+            else
+            {
+                return null;
+            }            
         }
 
         //get product by category id and have paging
         public async Task<List<ProductModel>> GetProductsByCategoryIdPagingAsync(int categoryId, int pageIndex, int pageSize)
         {
             var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-            var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
-            return listProductModel;
+            if(listProducts != null)
+            {
+                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
+                return listProductModel;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         #region Get product by id and compapility of them ( only get product by id and recommend of them, do not have reverse)

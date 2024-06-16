@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SWD.F_LocalBrand.API.Common;
+using SWD.F_LocalBrand.API.Common.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
@@ -22,11 +24,14 @@ namespace SWD.F_LocalBrand.API.Controllers
             var collection = await _collectionService.GetCollectionById(id);
             if (collection != null)
             {
-                return Ok(collection);
+                return Ok(ApiResult<CollectionResponse>.Succeed(new CollectionResponse
+                {
+                    Collection = collection
+                }));
             }
             else
             {
-                return NotFound();
+                return NotFound(ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Collection does not exist")));
             }
         }
     }

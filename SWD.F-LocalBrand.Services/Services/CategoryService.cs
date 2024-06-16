@@ -22,7 +22,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         //Get categories with all product of them
-        public List<CategoryModel> GetAll()
+        public List<CategoryModel> GetAllProductsWithCategories()
         {
             // Lấy danh sách Category kèm theo Products
             var categories =  _unitOfWork.Categories
@@ -38,9 +38,25 @@ namespace SWD.F_LocalBrand.Business.Services
         public List<CategoryModel> GetAllCategories()
         {
             var categories = _unitOfWork.Categories.FindAll().ToList();
+            if (categories == null)
+            {
+                return null;
+            }
             var categoryModels = _mapper.Map<List<CategoryModel>>(categories);
             return categoryModels;
         }
-        
+
+        //get category with categpry id with products of them 
+        public CategoryModel GetCategoryWithProducts(int categoryId)
+        {
+            var category = _unitOfWork.Categories.FindByCondition(c => c.Id == categoryId, trackChanges: false, includeProperties: c => c.Products).FirstOrDefault();
+            if (category == null)
+            {
+                return null;
+            }
+            var categoryModel = _mapper.Map<CategoryModel>(category);
+            return categoryModel;
+        }
+
     }
 }
