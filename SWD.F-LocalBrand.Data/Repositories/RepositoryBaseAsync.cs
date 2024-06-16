@@ -46,6 +46,7 @@ namespace SWD.F_LocalBrand.Data.Repositories
             items = includeProperties.Aggregate(items, (current, includeProperty) => current.Include(includeProperty));
             return items;
         }
+
         public async Task<T?> GetByIdAsync(int id)
         {
             return await FindByCondition(T => T.Id.Equals(id)).FirstOrDefaultAsync();

@@ -42,6 +42,7 @@ public partial class Customer : EntityBase
 
     
 
+
     [InverseProperty("Customer")]
     public virtual ICollection<CustomerProduct> CustomerProducts { get; set; } = new List<CustomerProduct>();
 
