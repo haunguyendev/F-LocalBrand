@@ -68,7 +68,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         //Get order history of customer by customer id and order id
-        public async Task<OrderModel> GetOrderHistoryByCustomerId(int customerId, int orderId)
+        public async Task<OrderModel?> GetOrderHistoryByCustomerId(int customerId, int orderId)
         {
             var customer = await _unitOfWork.Customers.GetByIdAsync(customerId);
             if (customer != null)
@@ -88,15 +88,12 @@ namespace SWD.F_LocalBrand.Business.Services
                 }
                 throw new Exception("Order not found for the given customer");
             }
-            return null;
-            
-
-            
+            return null; 
         }
 
 
         //Get customer by id with customer products
-        public async Task<List<CustomerProductModel>> GetCustomerProductByCustomerId(int id)
+        public async Task<List<CustomerProductModel>?> GetCustomerProductByCustomerId(int id)
         {
             var customer = await _unitOfWork.Customers.GetByIdAsync(id);
             var customerProduct = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).ToListAsync();
@@ -109,7 +106,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         //Get customer product by customer id (see product recommended of products)
-        public async Task<List<CustomerProductModel>> GetCustomerProductAndProductRecommendByCustomerId(int customerId)
+        public async Task<List<CustomerProductModel>?> GetCustomerProductAndProductRecommendByCustomerId(int customerId)
         {
             var customer = await _unitOfWork.Customers.GetByIdAsync(customerId);
 

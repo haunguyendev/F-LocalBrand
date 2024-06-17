@@ -117,16 +117,24 @@ namespace SWD.F_LocalBrand.API.Controllers
         [HttpGet("{customerId}/orders/{orderId}/histories")]
         public async Task<IActionResult> GetOrderHistories(int customerId, int orderId)
         {
-            var orderHistories = await _customerService.GetOrderHistoryByCustomerId(customerId, orderId);
-            if (orderHistories == null)
+            try
             {
-                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Customer not found"));
-                return BadRequest(result);
+                var orderHistories = await _customerService.GetOrderHistoryByCustomerId(customerId, orderId);
+                if (orderHistories == null)
+                {
+                    var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Customer not found"));
+                    return NotFound(result);
+                }
+                return Ok(ApiResult<OrderResponse>.Succeed(new OrderResponse
+                {
+                    Order = orderHistories
+                }));
             }
-            return Ok(ApiResult<OrderResponse>.Succeed(new OrderResponse
+            catch (Exception ex)
             {
-                Order = orderHistories
-            }));
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Fail(ex));
+            }
+            
         }
 
         //Get customer by id with customer products
