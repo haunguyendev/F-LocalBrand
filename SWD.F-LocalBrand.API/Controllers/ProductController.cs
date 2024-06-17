@@ -34,6 +34,21 @@ namespace SWD.F_LocalBrand.API.Controllers
             }));
         }
 
+        [HttpGet("/list-product-page")]
+        public async Task<IActionResult> GetAllProduct([FromQuery]int pageSize,[FromQuery]int pageNumber)
+        {
+            var listProduct = await productService.GetAllProductsAsync(pageNumber, pageSize);
+            if (listProduct == null)
+            {
+                var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product!"));
+                return NotFound(resultFail);
+            }
+            return Ok(ApiResult<ListProductWithPageAndIncludeRelatedReponse>.Succeed(new ListProductWithPageAndIncludeRelatedReponse
+            {
+                Products = listProduct
+            }));
+        }
+
         //get product by category id
         [HttpGet("category-with-products/{categoryId}")]
         public async Task<IActionResult> GetProductByCategoryId(int categoryId)

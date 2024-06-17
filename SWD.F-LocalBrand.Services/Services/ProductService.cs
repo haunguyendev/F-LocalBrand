@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.Campaign;
+using SWD.F_LocalBrand.Business.DTO.Category;
+using SWD.F_LocalBrand.Business.DTO.Product;
+using SWD.F_LocalBrand.Business.Utils;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 using SWD.F_LocalBrand.Data.Repositories;
@@ -24,7 +28,43 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
 
+        #region Get all products have paging and include all table related
 
+        public async Task<List<ProductWithAllRelatedModel>> GetAllProductsAsync(int pageNumber, int pageSize)
+        {
+
+            var listProducts = await _unitOfWork.Products
+                                                .FindAll(true)
+                                                .Include(x => x.Category)
+                                                .Include(x => x.Campaign)
+                                                .Include(x => x.CollectionProducts)
+                                                
+                                                .Include(x => x.CompapilityProducts)                                              
+                                                .ToListAsync();
+            var listProductsPage =(List<Product>) PaginationUtils.Paginate(listProducts, pageNumber,pageSize);
+            var listProductReturn= _mapper.Map<List<ProductWithAllRelatedModel>>(listProductsPage);
+            for(int i = 0; i < listProductReturn.Count; i++)
+            {
+                var product = listProductsPage[i];
+                var campaginReturn = _mapper.Map<CampaignWithInfoModel>(product.Campaign);
+                var categoryReturn = _mapper.Map<CategoryWithInfoModel>(product.Category);
+                var listProductRecommendationsReturn = _mapper.Map <List<ProductWithInfoModel>>(product.CompapilityProducts.Select(x=>x.RecommendedProduct));
+
+                listProductReturn[i].Campaign=campaginReturn;
+                listProductReturn[i].Category = categoryReturn;
+                listProductReturn[i].ProductsRecommendation = listProductRecommendationsReturn;
+
+
+
+            }
+
+            return listProductReturn;
+
+
+
+        }
+
+        #endregion
 
         //get all product with entities relate
         public async Task<List<ProductModel>> GetAllProductsAsync()

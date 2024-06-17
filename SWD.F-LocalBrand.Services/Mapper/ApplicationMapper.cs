@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.Campaign;
+using SWD.F_LocalBrand.Business.DTO.Category;
+using SWD.F_LocalBrand.Business.DTO.Product;
 using SWD.F_LocalBrand.Data.Models;
 
 
@@ -26,6 +29,19 @@ namespace SWD.F_LocalBrand.Business.Mapper
             CreateMap<Campaign, CampaignModel>()
                 .ForMember(dest => dest.Collections, opt => opt.MapFrom(src => src.Collections))
                 .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products));
+
+
+
+            //CreateMap <Product,ProductWithAllRelatedModel>
+            CreateMap<Product, ProductWithAllRelatedModel>()
+                .ForMember(dest => dest.Campaign, opt => opt.Ignore())
+                .ForMember(dest=>dest.Campaign,opt=>opt.Ignore()).
+                ForMember(dest=>dest.ProductsRecommendation,opt=>opt.Ignore());
+            //Create Map <Campaign, CampaignWithInfoModel 
+            CreateMap<Campaign, CampaignWithInfoModel>();
+            CreateMap<Category, CategoryWithInfoModel>();
+            CreateMap<Product, ProductWithInfoModel>();
+
         }
     }
 }
