@@ -21,7 +21,7 @@ public partial class Product : EntityBase
     public int? CategoryId { get; set; }
 
     [Column("campaignId")]
-    public int? CampaignId { get; set; }
+     public int? CampaignId { get; set; }
 
     [Column("subCategory")]
     [StringLength(100)]

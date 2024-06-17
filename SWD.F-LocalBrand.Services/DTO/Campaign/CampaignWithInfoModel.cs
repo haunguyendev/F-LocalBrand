@@ -4,14 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SWD.F_LocalBrand.Business.DTO
+namespace SWD.F_LocalBrand.Business.DTO.Campaign
 {
-    public class CampaignModel
+    public class CampaignWithInfoModel
     {
         public int Id { get; set; }
         public string CampaignName { get; set; }
-        public List<CollectionModel> Collections { get; set; }
-
-        public List<ProductModel> Products { get; set; }
     }
 }

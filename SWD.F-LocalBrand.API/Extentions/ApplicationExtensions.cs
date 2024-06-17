@@ -22,21 +22,19 @@ namespace SWD.F_LocalBrand.API.Extentions
             ////app.UseHttpsRedirection();  //for product
 
             //app.UseAuthorization();
-            if(app.Environment.IsDevelopment())
-{
-                //await using (var scope = app.Services.CreateAsyncScope())
-                //{
-                //    var dbContext = scope.ServiceProvider.GetRequiredService<>(SwdFlocalBrandContext);
-                //    await dbContext.Database.MigrateAsync();
-                //}
+            app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
+           
 
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
 
             app.UseCors("CORS");
 
             app.UseHttpsRedirection();
+            app.UseCookiePolicy();
 
             app.UseMiddleware<ExceptionMiddleware>();
 

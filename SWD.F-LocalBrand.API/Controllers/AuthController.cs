@@ -116,8 +116,9 @@ public class AuthController : ControllerBase
 
     // Check if the token is valid
     [Authorize]
-    [HttpGet]
-    public async Task<IActionResult> CheckToken()
+    [HttpGet()]
+    
+    public async Task<IActionResult> GetUserInformation()
     {
         Request.Headers.TryGetValue("Authorization", out var token);
         token = token.ToString().Split()[1];
@@ -148,5 +149,28 @@ public class AuthController : ControllerBase
         return Ok(ApiResult<CheckTokenResponse>.Succeed(new CheckTokenResponse {
             User = user
         }));
+    }
+    [AllowAnonymous]
+    [HttpPost]
+    public async Task<IActionResult> GoogleLogin([FromBody] LoginGoogleRequest request)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var res = await _identityService.LoginGoolge(request.IdToken);
+        if (!res.Authenticated)
+        {
+            var resultFail = new SignupResponse
+            {
+                AccessToken = "Sign up fail"
+            };
+            return BadRequest(ApiResult<SignupResponse>.Succeed(resultFail));
+        }
+        var result = new SignupResponse
+        {
+            AccessToken = handler.WriteToken(res.Token),
+            RefreshToken = handler.WriteToken(res.RefreshToken)
+
+        };
+
+        return Ok(ApiResult<SignupResponse>.Succeed(result));
     }
 }

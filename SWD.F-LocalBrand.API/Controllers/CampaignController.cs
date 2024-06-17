@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Sprache;
+using SWD.F_LocalBrand.API.Common;
+using SWD.F_LocalBrand.API.Common.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
@@ -21,12 +24,17 @@ namespace SWD.F_LocalBrand.API.Controllers
         {
             var campaign = await _campaignService.GetCampaignById(id);
             if (campaign != null)
+                
             {
-                return Ok(campaign);
+                return Ok(ApiResult<CampaignResponse>.Succeed(new CampaignResponse
+                {
+                    Campaign = campaign
+                }));
             }
             else
             {
-                return NotFound();
+                var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Campaign does not exist"));
+                return NotFound(resultFail);
             }
         }
     }
