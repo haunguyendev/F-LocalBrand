@@ -118,7 +118,15 @@ namespace SWD.F_LocalBrand.API.Controllers
         public async Task<IActionResult> GetOrderHistories(int customerId, int orderId)
         {
             var orderHistories = await _customerService.GetOrderHistoryByCustomerId(customerId, orderId);
-            return Ok(orderHistories);
+            if (orderHistories == null)
+            {
+                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Customer not found"));
+                return BadRequest(result);
+            }
+            return Ok(ApiResult<OrderResponse>.Succeed(new OrderResponse
+            {
+                Order = orderHistories
+            }));
         }
 
         //Get customer by id with customer products
@@ -126,7 +134,15 @@ namespace SWD.F_LocalBrand.API.Controllers
         public async Task<IActionResult> GetCustomerProductByCustomerId(int customerId)
         {
             var customer = await _customerService.GetCustomerProductByCustomerId(customerId);
-            return Ok(customer);
+            if (customer == null)
+            {
+                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Customer not found"));
+                return NotFound(result);
+            }
+            return Ok(ApiResult<ListCustomerProductResponse>.Succeed(new ListCustomerProductResponse
+            {
+                CustomerProducts = customer
+            }));
         }
 
         //Get customer product by customer id (see product recommended of products)
@@ -134,7 +150,15 @@ namespace SWD.F_LocalBrand.API.Controllers
         public async Task<IActionResult> GetCustomerProductRecommended(int customerId)
         {
             var customer = await _customerService.GetCustomerProductAndProductRecommendByCustomerId(customerId);
-            return Ok(customer);
+            if (customer == null)
+            {
+                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Customer not found"));
+                return NotFound(result);
+            }
+            return Ok(ApiResult<ListCustomerProductResponse>.Succeed(new ListCustomerProductResponse
+            {
+                CustomerProducts = customer
+            }));
         }
 
 

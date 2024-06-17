@@ -70,48 +70,72 @@ namespace SWD.F_LocalBrand.Business.Services
         //Get order history of customer by customer id and order id
         public async Task<OrderModel> GetOrderHistoryByCustomerId(int customerId, int orderId)
         {
-            var orders = await _unitOfWork.Orders.FindByCondition(
-                o => o.CustomerId == customerId,
-                trackChanges: false, includeProperties: o => o.OrderDetails)
-                .FirstOrDefaultAsync();
+            var customer = await _unitOfWork.Customers.GetByIdAsync(customerId);
+            if (customer != null)
+            {
+                // Check if the order belongs to the customer
+                var order = await _unitOfWork.Orders
+                    .FindByCondition(o => o.CustomerId == customerId && o.Id == orderId, trackChanges: false)
+                    .Include(o => o.OrderDetails)
+                    .FirstOrDefaultAsync();
+                if (order != null)
+                {
+                    var orderWithHistories = await _unitOfWork.Orders
+                        .FindByCondition(o => o.Id == orderId, false, o => o.OrderHistories)
+                    .FirstOrDefaultAsync();
+                    var orderModels = _mapper.Map<OrderModel>(orderWithHistories);
+                    return orderModels;
+                }
+                throw new Exception("Order not found for the given customer");
+            }
+            return null;
+            
 
-            var orderWithHistories = await _unitOfWork.Orders
-            .FindByCondition(o => o.Id == orderId, false, o => o.OrderHistories)
-            .FirstOrDefaultAsync();
-            var orderModels = _mapper.Map<OrderModel>(orderWithHistories);
-            return orderModels;
+            
         }
 
 
         //Get customer by id with customer products
         public async Task<List<CustomerProductModel>> GetCustomerProductByCustomerId(int id)
         {
-            var customer = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).ToListAsync();
-            var customerModel = _mapper.Map<List<CustomerProductModel>>(customer);
-            return customerModel;
+            var customer = await _unitOfWork.Customers.GetByIdAsync(id);
+            var customerProduct = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).ToListAsync();
+            if(customer != null)
+            {
+                var customerModel = _mapper.Map<List<CustomerProductModel>>(customerProduct);
+                return customerModel;
+            }
+            return null;
         }
 
         //Get customer product by customer id (see product recommended of products)
         public async Task<List<CustomerProductModel>> GetCustomerProductAndProductRecommendByCustomerId(int customerId)
         {
+            var customer = await _unitOfWork.Customers.GetByIdAsync(customerId);
+
             var customerProducts = await _unitOfWork.CustomerProducts
             .FindByCondition(cp => cp.CustomerId == customerId, false, cp => cp.Product)
             .ToListAsync();
-            var customerProductDtos = _mapper.Map<IEnumerable<CustomerProductModel>>(customerProducts);
-
-            foreach (var customerProductDto in customerProductDtos)
+            if(customer != null)
             {
-                if (customerProductDto.Product != null)
-                {
-                    var productWithRecommendations = await _productService.GetProductWithRecommendationsAsync(customerProductDto.Product.Id);
+                var customerProductDtos = _mapper.Map<IEnumerable<CustomerProductModel>>(customerProducts);
 
-                    if (productWithRecommendations != null)
+                foreach (var customerProductDto in customerProductDtos)
+                {
+                    if (customerProductDto.Product != null)
                     {
-                        customerProductDto.Product = productWithRecommendations;
+                        var productWithRecommendations = await _productService.GetProductWithRecommendationsAsync(customerProductDto.Product.Id);
+
+                        if (productWithRecommendations != null)
+                        {
+                            customerProductDto.Product = productWithRecommendations;
+                        }
                     }
                 }
+                return customerProductDtos.ToList();
             }
-            return customerProductDtos.ToList();
+            return null;
+            
         }
     }
 }
