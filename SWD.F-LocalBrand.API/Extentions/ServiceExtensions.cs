@@ -209,6 +209,8 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddTransient<ICategoryRepository, CategoryRepository>()
                 .AddTransient<ICampaignRepository, CampaignRepository>()
                 .AddTransient<ICollectionRepository, CollectionRepository>()
+                .AddTransient<ICustomerProductRepository, CustomerProductRepository>()
+                .AddTransient<IOrderRepository, OrderRepository>()
                 .AddTransient<IUnitOfWork, UnitOfWork>()
                 .AddScoped<IdentityService>()
                 .AddScoped<UserService>()

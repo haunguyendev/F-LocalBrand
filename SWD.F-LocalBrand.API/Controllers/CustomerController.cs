@@ -114,5 +114,61 @@ namespace SWD.F_LocalBrand.API.Controllers
             return NotFound(ApiResult<Dictionary<string, string[]>>.Fail(new Exception("User is not found")));
         }
 
+        [HttpGet("{customerId}/orders/{orderId}/histories")]
+        public async Task<IActionResult> GetOrderHistories(int customerId, int orderId)
+        {
+            try
+            {
+                var orderHistories = await _customerService.GetOrderHistoryByCustomerId(customerId, orderId);
+                if (orderHistories == null)
+                {
+                    var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Customer not found"));
+                    return NotFound(result);
+                }
+                return Ok(ApiResult<OrderResponse>.Succeed(new OrderResponse
+                {
+                    Order = orderHistories
+                }));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Fail(ex));
+            }
+            
+        }
+
+        //Get customer by id with customer products
+        [HttpGet("customer-product/{customerId}")]
+        public async Task<IActionResult> GetCustomerProductByCustomerId(int customerId)
+        {
+            var customer = await _customerService.GetCustomerProductByCustomerId(customerId);
+            if (customer == null)
+            {
+                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Customer not found"));
+                return NotFound(result);
+            }
+            return Ok(ApiResult<ListCustomerProductResponse>.Succeed(new ListCustomerProductResponse
+            {
+                CustomerProducts = customer
+            }));
+        }
+
+        //Get customer product by customer id (see product recommended of products)
+        [HttpGet("customer-product/{customerId}/recommended")]
+        public async Task<IActionResult> GetCustomerProductRecommended(int customerId)
+        {
+            var customer = await _customerService.GetCustomerProductAndProductRecommendByCustomerId(customerId);
+            if (customer == null)
+            {
+                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Customer not found"));
+                return NotFound(result);
+            }
+            return Ok(ApiResult<ListCustomerProductResponse>.Succeed(new ListCustomerProductResponse
+            {
+                CustomerProducts = customer
+            }));
+        }
+
+
     }
 }
