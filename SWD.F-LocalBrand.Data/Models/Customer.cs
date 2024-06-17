@@ -18,10 +18,6 @@ public partial class Customer : EntityBase
     [StringLength(255)]
     public string? FullName { get; set; }
 
-    [Column("fullName")]
-    [StringLength(255)]
-    public string? FullName { get; set; }
-
     [Column("password")]
     [StringLength(255)]
     public string? Password { get; set; }
