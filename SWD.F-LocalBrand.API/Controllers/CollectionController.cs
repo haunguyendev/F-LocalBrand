@@ -21,18 +21,26 @@ namespace SWD.F_LocalBrand.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCollectionById(int id)
         {
-            var collection = await _collectionService.GetCollectionById(id);
-            if (collection != null)
+            try
             {
-                return Ok(ApiResult<CollectionResponse>.Succeed(new CollectionResponse
+                var collection = await _collectionService.GetCollectionById(id);
+                if (collection != null)
                 {
-                    Collection = collection
-                }));
+                    return Ok(ApiResult<CollectionResponse>.Succeed(new CollectionResponse
+                    {
+                        Collection = collection
+                    }));
+                }
+                else
+                {
+                    return NotFound(ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Collection does not exist")));
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return NotFound(ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Collection does not exist")));
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
+            
         }
     }
 }

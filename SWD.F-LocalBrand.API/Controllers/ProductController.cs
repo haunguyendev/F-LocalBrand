@@ -22,48 +22,72 @@ namespace SWD.F_LocalBrand.API.Controllers
         [HttpGet("/list-product")]
         public async Task<IActionResult> GetAllProduct()
         {
-            var listProduct = await productService.GetAllProductsAsync();
-            if (listProduct == null)
+            try
             {
-                var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product!"));
-                return NotFound(resultFail);
+                var listProduct = await productService.GetAllProductsAsync();
+                if (listProduct == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product!"));
+                    return NotFound(resultFail);
+                }
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = listProduct
+                }));
             }
-            return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+            catch (Exception ex)
             {
-                Products = listProduct
-            }));
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+            
         }
 
         //get product by category id
         [HttpGet("category-with-products/{categoryId}")]
         public async Task<IActionResult> GetProductByCategoryId(int categoryId)
         {
-            var listProduct = await productService.GetProductsByCategoryIdAsync(categoryId);
-            if (listProduct == null)
+            try
             {
-                var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
-                return NotFound(resultFail);
+                var listProduct = await productService.GetProductsByCategoryIdAsync(categoryId);
+                if (listProduct == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
+                    return NotFound(resultFail);
+                }
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = listProduct
+                }));
             }
-            return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+            catch (Exception ex)
             {
-                Products = listProduct
-            }));
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+            
         }
 
         //get product by category id and have paging
         [HttpGet("category-with-products/{categoryId}/{pageIndex}/{pageSize}")]
         public async Task<IActionResult> GetProductByCategoryIdPaging(int categoryId, int pageIndex, int pageSize)
         {
-            var listProduct = await productService.GetProductsByCategoryIdPagingAsync(categoryId, pageIndex, pageSize);
-            if (listProduct == null)
+            try
             {
-                var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
-                return NotFound(resultFail);
+                var listProduct = await productService.GetProductsByCategoryIdPagingAsync(categoryId, pageIndex, pageSize);
+                if (listProduct == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
+                    return NotFound(resultFail);
+                }
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = listProduct
+                }));
             }
-            return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+            catch (Exception ex)
             {
-                Products = listProduct
-            }));
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+            
         }
 
 
@@ -71,16 +95,24 @@ namespace SWD.F_LocalBrand.API.Controllers
         [HttpGet("/product-product-recommend/{productId}")]
         public async Task<IActionResult> GetProductWithRecommendations(int productId)
         {
-            var product = await productService.GetProductWithRecommendationsAsync(productId);
-            if (product == null)
+            try
             {
-                var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product with this id!"));
-                return NotFound(resultFail);
+                var product = await productService.GetProductWithRecommendationsAsync(productId);
+                if (product == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product with this id!"));
+                    return NotFound(resultFail);
+                }
+                return Ok(ApiResult<ProductResponse>.Succeed(new ProductResponse
+                {
+                    Product = product
+                }));
             }
-            return Ok(ApiResult<ProductResponse>.Succeed(new ProductResponse
+            catch(Exception ex)
             {
-                Product = product
-            }));
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+            
         }
 
         
