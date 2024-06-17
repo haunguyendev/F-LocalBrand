@@ -34,11 +34,10 @@ namespace SWD.F_LocalBrand.Business.Services
         {
 
             var listProducts = await _unitOfWork.Products
-                                                .FindAll(true)
+                                                .FindAll(false)
                                                 .Include(x => x.Category)
                                                 .Include(x => x.Campaign)
-                                                .Include(x => x.CollectionProducts)
-                                                
+                                                .Include(x => x.CollectionProducts)                                               
                                                 .Include(x => x.CompapilityProducts)                                              
                                                 .ToListAsync();
             var listProductsPage =(List<Product>) PaginationUtils.Paginate(listProducts, pageNumber,pageSize);
@@ -65,6 +64,8 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         #endregion
+
+
 
         //get all product with entities relate
         public async Task<List<ProductModel>> GetAllProductsAsync()
@@ -157,3 +158,4 @@ namespace SWD.F_LocalBrand.Business.Services
         
     }
 }
+    
