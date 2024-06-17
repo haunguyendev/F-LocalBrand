@@ -96,7 +96,7 @@ namespace SWD.F_LocalBrand.Business.Services
         public async Task<List<CustomerProductModel>?> GetCustomerProductByCustomerId(int id)
         {
             var customer = await _unitOfWork.Customers.GetByIdAsync(id);
-            var customerProduct = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).ToListAsync();
+            var customerProduct = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).Include(c => c.Product).ToListAsync();
             if(customer != null)
             {
                 var customerModel = _mapper.Map<List<CustomerProductModel>>(customerProduct);
