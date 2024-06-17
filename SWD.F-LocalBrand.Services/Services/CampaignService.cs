@@ -27,11 +27,17 @@ namespace SWD.F_LocalBrand.Business.Services
         //get campain with product in collection in campain by id
         public async Task<CampaignModel> GetCampaignById(int id)
         {
+            //var campaign = await _unitOfWork.Campaigns.FindByCondition(
+            //    c => c.Id == id, trackChanges: false,
+            //                          includeProperties: c => c.Collections)
+            //         .Include(c => c.Collections)
+            //         .ThenInclude(col => col.CollectionProducts)
+            //         .ThenInclude(cp => cp.Product)
+            //         .Include(c => c.Products)
+            //         .FirstOrDefaultAsync();
+
             var campaign = await _unitOfWork.Campaigns.FindByCondition(
-                c => c.Id == id, trackChanges: false,
-                                      includeProperties: c => c.Collections)
-                     .Include(c => c.Collections)
-                     .ThenInclude(col => col.CollectionProducts)
+                c => c.Id == id, false).Include(c => c.Collections).ThenInclude(col => col.CollectionProducts)
                      .ThenInclude(cp => cp.Product)
                      .Include(c => c.Products)
                      .FirstOrDefaultAsync();
