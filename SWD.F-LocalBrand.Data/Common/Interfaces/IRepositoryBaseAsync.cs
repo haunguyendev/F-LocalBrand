@@ -20,8 +20,6 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         Task<T?> GetByIdAsync(int id);
         Task<T?> GetByIdAsync(int id, params Expression<Func<T, object>>[] includeProperties);
 
-
-
     }
     public interface IRepositoryBaseAsync<T> : IRepositoryQueryBase<T> where T: EntityBase
     {

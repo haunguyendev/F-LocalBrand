@@ -13,28 +13,32 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
     {
         private readonly SwdFlocalBrandContext _context;
 
-        //public IProductRepository Products { get; }
 
-        //public ICampaignRepository Campaigns { get; }
+        public ICampaignRepository Campaigns { get; }
 
-        //public ICategoryRepository Categorys { get; }
+        public ICategoryRepository Categories { get; }
 
-        //public ICollectionRepository Collections { get; }
+        public ICollectionRepository Collections { get; }
 
-        //public ICustomerRepository Customers { get; }
 
         //public IOrderDetailRepository OrderDetails { get; }
 
         //public IOrderHistoryRepository OrderHistories { get; }
 
-        //public IOrderRepository Orders { get; }
+        public IOrderRepository Orders { get; }
 
         //public IPaymentRepository Payments { get; }
 
         //public IRoleRepository Roles { get; }
 
+
         public IUserRepository Users { get; }
 
+        public ICustomerRepository Customers { get; }
+
+        public IProductRepository Products { get; }
+
+        public ICustomerProductRepository CustomerProducts { get; }
 
         // ICampaignRepository campaignRepository,
         //ICategoryRepository categoryRepository, ICollectionRepository collectionRepository,
@@ -43,7 +47,7 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
         //    IPaymentRepository paymentRepository, IRoleRepository roleRepository,
         //    IUserRepository userRepository
 
-        public UnitOfWork(SwdFlocalBrandContext context , IUserRepository userRepository)
+        public UnitOfWork(SwdFlocalBrandContext context , IUserRepository userRepository, ICustomerRepository customerRepository, IProductRepository products, ICategoryRepository category, ICampaignRepository campaigns, ICollectionRepository collections, IOrderRepository orders, ICustomerProductRepository customerProducts)
         {
             _context = context;
             //Products = productRepository;
@@ -56,8 +60,14 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
             //OrderHistories= orderHistoryRepository;
             //Payments= paymentRepository;
             //Roles= roleRepository;
-            Users= userRepository;
-
+            Users = userRepository;
+            Customers = customerRepository;
+            Products = products;
+            Categories = category;
+            Campaigns = campaigns;
+            Collections = collections;
+            Orders = orders;
+            CustomerProducts = customerProducts;
         }
         public void Dispose() => _context.Dispose();
 

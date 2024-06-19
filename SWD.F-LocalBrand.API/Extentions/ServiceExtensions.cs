@@ -32,6 +32,7 @@ namespace SWD.F_LocalBrand.API.Extentions
             services.AddScoped<ExceptionMiddleware>();
             services.AddControllers();
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+            services.AddMemoryCache();
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
             services.AddSignalR();
@@ -203,6 +204,13 @@ namespace SWD.F_LocalBrand.API.Extentions
         {
             return services.AddTransient(typeof(IRepositoryBaseAsync<>), typeof(RepositoryBaseAsync<>))
                 .AddTransient<IUserRepository, UserRepository>()
+                .AddTransient<ICustomerRepository, CustomerRepository>()
+                .AddTransient<IProductRepository, ProductRepository>()
+                .AddTransient<ICategoryRepository, CategoryRepository>()
+                .AddTransient<ICampaignRepository, CampaignRepository>()
+                .AddTransient<ICollectionRepository, CollectionRepository>()
+                .AddTransient<ICustomerProductRepository, CustomerProductRepository>()
+                .AddTransient<IOrderRepository, OrderRepository>()
                 .AddTransient<IUnitOfWork, UnitOfWork>()
                 .AddScoped<IdentityService>()
                 .AddScoped<UserService>()
@@ -211,6 +219,11 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<GoogleAuthSettings>()
 
                 .AddScoped<EmailService>()
+                .AddScoped<CustomerService>()
+                .AddScoped<ProductService>()
+                .AddScoped<CategoryService>()
+                .AddScoped<CampaignService>()
+                .AddScoped<CollectionService>()
 
                 // Register ResponseCacheService
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()
