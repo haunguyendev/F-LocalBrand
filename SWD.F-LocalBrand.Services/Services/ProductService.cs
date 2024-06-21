@@ -34,7 +34,7 @@ namespace SWD.F_LocalBrand.Business.Services
         {
 
             var listProducts = await _unitOfWork.Products
-                                                .FindAll(false)
+                                                .FindAll(true)
                                                 .Include(x => x.Category)
                                                 .Include(x => x.Campaign)
                                                 .Include(x => x.CollectionProducts)                                               
@@ -155,7 +155,67 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
-        //get product by order id
+        
+        #region create product
+
+        public async Task<int> CreateProductAsync(ProductCreateModel model)
+        {
+            // Map ProductCreateModel to Product entity
+            var product = new Product
+            {
+                ProductName = model.ProductName,
+                CategoryId = model.CategoryId,
+                CampaignId = model.CampaignId,
+                Gender = model.Gender,
+                Price = model.Price,
+                Description = model.Description,
+                StockQuantity = model.StockQuantity,
+                ImageUrl = model.ImageUrl,
+                Size = model.Size,
+                Color = model.Color,
+                Status = "Inactive"
+            };
+
+            // Create product using UnitOfWork
+            await _unitOfWork.Products.CreateAsync(product);
+            await _unitOfWork.CommitAsync();
+
+            return product.Id;
+        }
+
+        #endregion
+
+
+        #region update product detail
+        public async Task<ProductUpdateModel?> UpdateProductAsync(ProductUpdateModel model)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(model.Id);
+            if (product == null)
+            {
+                return null;
+            }
+
+            product.ProductName = model.ProductName;
+            product.CategoryId = model.CategoryId;
+            product.CampaignId = model.CampaignId;
+            product.Gender = model.Gender;
+            product.Price = model.Price;
+            product.Description = model.Description;
+            product.StockQuantity = model.StockQuantity;
+            product.ImageUrl = model.ImageUrl;
+            product.Size = model.Size;
+            product.Color = model.Color;
+            product.Status = model.Status;
+
+            await _unitOfWork.Products.UpdateAsync(product);
+            await _unitOfWork.CommitAsync();
+
+            return model;
+        }
+
+        #endregion
+
+//get product by order id
         public async Task<List<ProductModel>> GetProductsByOrderIdAsync(int orderId)
         {
             var products = await _unitOfWork.OrderDetails
@@ -165,6 +225,7 @@ namespace SWD.F_LocalBrand.Business.Services
             .ToListAsync();
             return _mapper.Map<List<ProductModel>>(products);
         }
+
     }
 }
     

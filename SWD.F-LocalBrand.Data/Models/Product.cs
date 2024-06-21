@@ -48,6 +48,10 @@ public partial class Product : EntityBase
     [StringLength(20)]
     public string? Color { get; set; }
 
+    [Column("status")]
+    [StringLength(30)]
+    public string Status { get; set; } = null!;
+
     [ForeignKey("CampaignId")]
     [InverseProperty("Products")]
     public virtual Campaign? Campaign { get; set; }
