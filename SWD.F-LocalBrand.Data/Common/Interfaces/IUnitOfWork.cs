@@ -11,10 +11,10 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         ICampaignRepository Campaigns { get; }
         ICategoryRepository Categories{ get; }
         ICollectionRepository Collections { get; }
-        //IOrderDetailRepository OrderDetails { get; }
+        IOrderDetailRepository OrderDetails { get; }
         //IOrderHistoryRepository OrderHistories { get; }
         IOrderRepository Orders { get; }
-        //IPaymentRepository Payments { get; }
+        IPaymentRepository Payments { get; }
         //IRoleRepository Roles { get; }
         IUserRepository Users { get; }
         ICustomerRepository Customers { get; }

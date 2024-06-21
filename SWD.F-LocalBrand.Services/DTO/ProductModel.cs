@@ -18,8 +18,6 @@ namespace SWD.F_LocalBrand.Business.DTO
 
         public int? CampaignId { get; set; }
 
-        public string? SubCategory { get; set; }
-
         public string? Gender { get; set; }
 
         public decimal? Price { get; set; }

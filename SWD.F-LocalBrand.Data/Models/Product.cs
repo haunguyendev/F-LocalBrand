@@ -23,10 +23,6 @@ public partial class Product : EntityBase
     [Column("campaignId")]
      public int? CampaignId { get; set; }
 
-    [Column("subCategory")]
-    [StringLength(100)]
-    public string? SubCategory { get; set; }
-
     [Column("gender")]
     [StringLength(10)]
     public string? Gender { get; set; }

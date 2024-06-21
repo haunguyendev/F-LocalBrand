@@ -31,7 +31,9 @@ namespace SWD.F_LocalBrand.Business.Mapper
 
             CreateMap<OrderHistory, OrderHistoryModel>();
             CreateMap<Order, OrderModel>()
-                .ForMember(dest => dest.OrderHistories, opt => opt.MapFrom(src => src.OrderHistories));
+                .ForMember(dest => dest.OrderHistories, opt => opt.MapFrom(src => src.OrderHistories))
+                .ForMember(dest => dest.OrderDetails, opt => opt.MapFrom(src => src.OrderDetails))
+                .ForMember(dest => dest.Payments, opt => opt.MapFrom(src => src.Payments));
 
             //CreateMap<Customer, CustomerModel>()
             //    .ForMember(dest => dest.CustomerProducts, opt => opt.MapFrom(src => src.CustomerProducts));
@@ -52,6 +54,10 @@ namespace SWD.F_LocalBrand.Business.Mapper
             CreateMap<Campaign, CampaignWithInfoModel>();
             CreateMap<Category, CategoryWithInfoModel>();
             CreateMap<Product, ProductWithInfoModel>();
+
+            CreateMap<OrderDetail, OrderDetailModel>()
+            .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
+            CreateMap<Payment, PaymentModel>();
         }
     }
 }
