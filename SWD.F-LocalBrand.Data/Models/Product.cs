@@ -23,10 +23,6 @@ public partial class Product : EntityBase
     [Column("campaignId")]
      public int? CampaignId { get; set; }
 
-    [Column("subCategory")]
-    [StringLength(100)]
-    public string? SubCategory { get; set; }
-
     [Column("gender")]
     [StringLength(10)]
     public string? Gender { get; set; }
@@ -51,6 +47,10 @@ public partial class Product : EntityBase
     [Column("color")]
     [StringLength(20)]
     public string? Color { get; set; }
+
+    [Column("status")]
+    [StringLength(30)]
+    public string Status { get; set; } = null!;
 
     [ForeignKey("CampaignId")]
     [InverseProperty("Products")]
