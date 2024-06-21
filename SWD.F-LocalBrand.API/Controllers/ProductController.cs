@@ -286,5 +286,29 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
 
+        //get product by order id
+        [HttpGet("/by-order/{orderId}/products")]
+        public async Task<IActionResult> GetProductByOrderId(int orderId)
+        {
+            try
+            {
+                var listProduct = await productService.GetProductsByOrderIdAsync(orderId);
+                if (listProduct == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this order!"));
+                    return NotFound(resultFail);
+                }
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = listProduct
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+            
+        }
+
     }
 }

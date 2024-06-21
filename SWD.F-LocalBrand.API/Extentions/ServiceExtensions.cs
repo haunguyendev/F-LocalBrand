@@ -213,6 +213,8 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddTransient<ICampaignRepository, CampaignRepository>()
                 .AddTransient<ICollectionRepository, CollectionRepository>()
                 .AddTransient<ICustomerProductRepository, CustomerProductRepository>()
+                .AddTransient<IOrderDetailRepository, OrderDetailRepository>()
+                .AddTransient<IPaymentRepository, PaymentRepository>()
                 .AddTransient<IOrderRepository, OrderRepository>()
                 .AddTransient<IUnitOfWork, UnitOfWork>()
                 .AddScoped<IdentityService>()
@@ -227,6 +229,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<CategoryService>()
                 .AddScoped<CampaignService>()
                 .AddScoped<CollectionService>()
+                .AddScoped<OrderService>()
 
                 // Register ResponseCacheService
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()

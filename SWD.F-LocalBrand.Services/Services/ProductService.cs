@@ -155,6 +155,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+        
         #region create product
 
         public async Task<int> CreateProductAsync(ProductCreateModel model)
@@ -214,6 +215,16 @@ namespace SWD.F_LocalBrand.Business.Services
 
         #endregion
 
+//get product by order id
+        public async Task<List<ProductModel>> GetProductsByOrderIdAsync(int orderId)
+        {
+            var products = await _unitOfWork.OrderDetails
+            .FindByCondition(od => od.OrderId == orderId)
+            .Include(od => od.Product)
+            .Select(od => od.Product)
+            .ToListAsync();
+            return _mapper.Map<List<ProductModel>>(products);
+        }
 
     }
 }

@@ -13,6 +13,8 @@ namespace SWD.F_LocalBrand.Business.DTO
         public DateOnly? OrderDate { get; set; }
         public decimal? TotalAmount { get; set; }
         public string? OrderStatus { get; set; }
+        public ICollection<OrderDetailModel>? OrderDetails { get; set; }
+        public ICollection<PaymentModel>? Payments { get; set; }
         public List<OrderHistoryModel>? OrderHistories { get; set; }
     }
 }

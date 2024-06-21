@@ -21,13 +21,13 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
         public ICollectionRepository Collections { get; }
 
 
-        //public IOrderDetailRepository OrderDetails { get; }
+        public IOrderDetailRepository OrderDetails { get; }
 
         //public IOrderHistoryRepository OrderHistories { get; }
 
         public IOrderRepository Orders { get; }
 
-        //public IPaymentRepository Payments { get; }
+        public IPaymentRepository Payments { get; }
 
         //public IRoleRepository Roles { get; }
 
@@ -47,7 +47,7 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
         //    IPaymentRepository paymentRepository, IRoleRepository roleRepository,
         //    IUserRepository userRepository
 
-        public UnitOfWork(SwdFlocalBrandContext context , IUserRepository userRepository, ICustomerRepository customerRepository, IProductRepository products, ICategoryRepository category, ICampaignRepository campaigns, ICollectionRepository collections, IOrderRepository orders, ICustomerProductRepository customerProducts)
+        public UnitOfWork(SwdFlocalBrandContext context , IUserRepository userRepository, ICustomerRepository customerRepository, IProductRepository products, ICategoryRepository category, ICampaignRepository campaigns, ICollectionRepository collections, IOrderRepository orders, ICustomerProductRepository customerProducts, IOrderDetailRepository orderDetails, IPaymentRepository payments)
         {
             _context = context;
             //Products = productRepository;
@@ -68,6 +68,8 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
             Collections = collections;
             Orders = orders;
             CustomerProducts = customerProducts;
+            OrderDetails = orderDetails;
+            Payments = payments;
         }
         public void Dispose() => _context.Dispose();
 

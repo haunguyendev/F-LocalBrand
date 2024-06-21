@@ -96,7 +96,7 @@ namespace SWD.F_LocalBrand.Business.Services
         public async Task<List<CustomerProductModel>?> GetCustomerProductByCustomerId(int id)
         {
             var customer = await _unitOfWork.Customers.GetByIdAsync(id);
-            var customerProduct = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).Include(c => c.Product).ToListAsync();
+            var customerProduct = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == id, false).Where(c => c.Status == "true").Include(c => c.Product).ToListAsync();
             if(customer != null)
             {
                 var customerModel = _mapper.Map<List<CustomerProductModel>>(customerProduct);
@@ -133,6 +133,26 @@ namespace SWD.F_LocalBrand.Business.Services
             }
             return null;
             
+        }
+
+        //update customer product
+        public async Task<bool> UpdateCustomerProduct(int customerId, int productId)
+        {
+            var customerProduct = await _unitOfWork.CustomerProducts.FindByCondition(c => c.CustomerId == customerId && c.ProductId == productId).FirstOrDefaultAsync();
+            if (customerProduct != null)
+            {
+                customerProduct.Status = customerProduct.Status == "false" ? "true" :  "false";
+                var result = await _unitOfWork.CommitAsync();
+                if (result > 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            return false;
         }
     }
 }
