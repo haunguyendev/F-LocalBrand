@@ -28,6 +28,7 @@ namespace SWD.F_LocalBrand.Business.DTO.Product
         public int? Size { get; set; }
 
         public string? Color { get; set; }
+        public string Status { get; set; } = null!;
 
         public CampaignWithInfoModel Campaign { get; set; }
 

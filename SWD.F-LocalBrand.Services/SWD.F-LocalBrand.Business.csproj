@@ -17,8 +17,4 @@
     <ProjectReference Include="..\SWD.F-LocalBrand.Data\SWD.F-LocalBrand.Data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Common\" />
-  </ItemGroup>
-
 </Project>

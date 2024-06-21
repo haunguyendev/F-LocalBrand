@@ -34,7 +34,10 @@ namespace SWD.F_LocalBrand.API.Extentions
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
             services.AddMemoryCache();
             services.AddEndpointsApiExplorer();
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(config =>
+            {
+                config.EnableAnnotations();
+            });
             services.AddSignalR();
 
 
