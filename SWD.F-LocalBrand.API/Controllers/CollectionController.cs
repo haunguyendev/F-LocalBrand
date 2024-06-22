@@ -86,5 +86,46 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         #endregion
+        #region api update collection
+        [HttpPut("update")]
+        [SwaggerOperation(
+           Summary = "Update collection details",
+           Description = "Updates the details of an existing collection. Campaign and CollectionProducts are optional."
+       )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Collection updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Collection not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the collection", typeof(ApiResult<object>))]
+        public async Task<IActionResult> UpdateCollection([FromBody] CollectionUpdateRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Errors", errors.ToArray() }
+                }));
+            }
+
+            try
+            {
+                var collectionModel = request.MapToModel();
+                var updatedCollection = await _collectionService.UpdateCollectionAsync(collectionModel);
+
+                if (updatedCollection == null)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Collection not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Collection updated successfully", Collection = updatedCollection }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
     }
 }

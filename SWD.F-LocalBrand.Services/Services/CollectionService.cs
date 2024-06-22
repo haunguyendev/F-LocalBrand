@@ -63,5 +63,43 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+        #region Update collection
+
+        public async Task<Collection?> UpdateCollectionAsync(CollectionUpdateModel model)
+        {
+            var collection = await _unitOfWork.Collections.GetByIdAsync(model.Id);
+            if (collection == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(model.CollectionName))
+            {
+                collection.CollectionName = model.CollectionName;
+            }
+
+            if (model.CampaignId.HasValue)
+            {
+                collection.CampaignId = model.CampaignId;
+            }
+
+            if (model.CollectionProductIds != null && model.CollectionProductIds.Any())
+            {
+                var collectionProducts = model.CollectionProductIds.Select(id => new CollectionProduct
+                {
+                    CollectionId = collection.Id,
+                    ProductId = id
+                }).ToList();
+
+                collection.CollectionProducts = collectionProducts;
+            }
+
+            await _unitOfWork.Collections.UpdateAsync(collection);
+            await _unitOfWork.CommitAsync();
+
+            return collection;
+        }
+        #endregion
+
     }
 }
