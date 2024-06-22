@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
+using SWD.F_LocalBrand.API.Payloads.Requests.Category;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Services;
+using SWD.F_LocalBrand.Data.Models;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
@@ -88,5 +91,42 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
             
         }
+        #region create category api
+        [HttpPost("create-category")]
+        [SwaggerOperation(
+           Summary = "Create a new category",
+           Description = "Creates a new category with the provided details. The input model must contain valid data as specified in the constraints."
+       )]
+        public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var model = request.MapToModel();
+                var category = await categoryService.CreateCategoryAsync(model);
+                return Ok(ApiResult<Category>.Succeed(category));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        /**
+         Json valid 
+        {
+        "categoryName": "Clothing",
+        "description": "Apparel and garments"
+        }
+        Json invalid
+        {
+        "description": "Apparel and garments"
+        }
+         
+         */
+        #endregion
     }
 }

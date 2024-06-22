@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.Category;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
+using SWD.F_LocalBrand.Data.Models;
 using SWD.F_LocalBrand.Data.Repositories;
 using System;
 using System.Collections.Generic;
@@ -57,6 +59,24 @@ namespace SWD.F_LocalBrand.Business.Services
             var categoryModel = _mapper.Map<CategoryModel>(category);
             return categoryModel;
         }
+
+        #region create category
+
+        public async Task<Category> CreateCategoryAsync(CategoryCreateModel model)
+        {
+            var category = new Category
+            {
+                CategoryName = model.CategoryName,
+                Description = model.Description
+            };
+
+            await _unitOfWork.Categories.CreateAsync(category);
+            await _unitOfWork.CommitAsync();
+
+            return category;
+        }
+        #endregion
+
 
     }
 }
