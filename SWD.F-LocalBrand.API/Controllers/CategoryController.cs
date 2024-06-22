@@ -134,5 +134,47 @@ namespace SWD.F_LocalBrand.API.Controllers
          
          */
         #endregion
+        #region update category api
+        [HttpPut("update-category")]
+        [SwaggerOperation(
+           Summary = "Update category details",
+           Description = "Updates the details of an existing category. Example of a valid request: {\"id\":1,\"categoryName\":\"New Category Name\",\"description\":\"New category description\"}"
+       )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Category updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Category not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the category", typeof(ApiResult<object>))]
+        public async Task<IActionResult> UpdateCategory([FromBody] CategoryUpdateRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Errors", errors.ToArray() }
+                }));
+            }
+
+            try
+            {
+                var categoryModel = request.MapToModel();
+                var updateResult = await categoryService.UpdateCategoryAsync(categoryModel);
+
+                if (updateResult == null)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Category not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Category updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
     }
 }

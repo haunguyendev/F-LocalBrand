@@ -76,6 +76,24 @@ namespace SWD.F_LocalBrand.Business.Services
             return category;
         }
         #endregion
+        #region update category
+        public async Task<CategoryUpdateModel?> UpdateCategoryAsync(CategoryUpdateModel model)
+        {
+            var category = await _unitOfWork.Categories.GetByIdAsync(model.Id);
+            if (category == null)
+            {
+                return null; // Return null if category is not found
+            }
+
+            category.CategoryName = model.CategoryName;
+            category.Description = model.Description;
+
+            await _unitOfWork.Categories.UpdateAsync(category);
+            await _unitOfWork.CommitAsync();
+
+            return model;
+        }
+        #endregion
 
 
     }
