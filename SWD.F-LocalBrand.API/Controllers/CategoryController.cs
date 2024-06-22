@@ -101,7 +101,13 @@ namespace SWD.F_LocalBrand.API.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+            {
+                { "Errors", errors.ToArray() }
+            }));
             }
 
             try
