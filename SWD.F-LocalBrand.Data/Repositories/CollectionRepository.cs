@@ -1,4 +1,5 @@
-﻿using SWD.F_LocalBrand.Data.Common.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.DataAccess;
 using SWD.F_LocalBrand.Data.Models;
 using System;
@@ -13,6 +14,11 @@ namespace SWD.F_LocalBrand.Data.Repositories
     {
         public CollectionRepository(SwdFlocalBrandContext dbContext) : base(dbContext)
         {
+        }
+
+        public async Task<bool> CollectionNameExistsAsync(string collectionName)
+        {
+            return await _dbContext.Collections.AnyAsync(c => c.CollectionName == collectionName);
         }
     }
 }
