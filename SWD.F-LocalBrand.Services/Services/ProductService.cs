@@ -227,7 +227,36 @@ namespace SWD.F_LocalBrand.Business.Services
 
             product.Status =ProductStatusEnum.Deleted;
 
-            _unitOfWork.Products.UpdateAsync(product);
+            await _unitOfWork.Products.UpdateAsync(product);
+            await _unitOfWork.CommitAsync();
+        }
+        #endregion
+        #region add list product recommend for product 
+        public async Task AddRecommendedProductsAsync(int productId, List<int> recommendedProductIds)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(productId);
+            if (product == null)
+            {
+                throw new EntryPointNotFoundException("Product not found");
+            }
+
+            foreach (var recommendedProductId in recommendedProductIds)
+            {
+                var recommendedProduct = await _unitOfWork.Products.GetByIdAsync(recommendedProductId);
+                if (recommendedProduct == null)
+                {
+                    throw new EntryPointNotFoundException($"Recommended product with ID {recommendedProductId} not found");
+                }
+
+                var compapility = new Compapility
+                {
+                    ProductId = productId,
+                    RecommendedProductId = recommendedProductId
+                };
+
+                await _unitOfWork.Compapilities.CreateAsync(compapility);
+            }
+
             await _unitOfWork.CommitAsync();
         }
         #endregion
