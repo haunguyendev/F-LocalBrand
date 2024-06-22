@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SWD.F_LocalBrand.API.Common;
-using SWD.F_LocalBrand.API.Common.Payloads.Responses;
+using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers

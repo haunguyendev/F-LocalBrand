@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using SWD.F_LocalBrand.Business.DTO.Product;
 
-namespace SWD.F_LocalBrand.API.Common.Payloads.Requests
+namespace SWD.F_LocalBrand.API.Payloads.Requests.Product
 {
     public class CreateProductRequest
     {
@@ -44,24 +44,24 @@ namespace SWD.F_LocalBrand.API.Common.Payloads.Requests
         [StringLength(20, ErrorMessage = "Color must not exceed 20 characters.")]
         public string Color { get; set; }
 
-       
+
         public string Status { get; set; } = "Inactive";
 
         public ProductCreateModel MapToModel()
         {
             return new ProductCreateModel
             {
-                ProductName = this.ProductName,
-                CategoryId = this.CategoryId,
-                CampaignId = this.CampaignId,
-                Gender = this.Gender,
-                Price = this.Price,
-                Description = this.Description,
-                StockQuantity = this.StockQuantity,
-                ImageUrl = this.ImageUrl,
-                Size = this.Size,
-                Color = this.Color,
-                
+                ProductName = ProductName,
+                CategoryId = CategoryId,
+                CampaignId = CampaignId,
+                Gender = Gender,
+                Price = Price,
+                Description = Description,
+                StockQuantity = StockQuantity,
+                ImageUrl = ImageUrl,
+                Size = Size,
+                Color = Color,
+
             };
         }
     }

@@ -1,7 +1,7 @@
 ﻿using SWD.F_LocalBrand.Business.DTO.Product;
 using System.ComponentModel.DataAnnotations;
 
-namespace SWD.F_LocalBrand.API.Common.Payloads.Requests
+namespace SWD.F_LocalBrand.API.Payloads.Requests.Product
 {
     public class UpdateProductRequest
     {
@@ -55,18 +55,18 @@ namespace SWD.F_LocalBrand.API.Common.Payloads.Requests
         {
             return new ProductUpdateModel
             {
-                Id = this.Id,
-                ProductName = this.ProductName,
-                CategoryId = this.CategoryId,
-                CampaignId = this.CampaignId,
-                Gender = this.Gender,
-                Price = this.Price,
-                Description = this.Description,
-                StockQuantity = this.StockQuantity,
-                ImageUrl = this.ImageUrl,
-                Size = this.Size,
-                Color = this.Color,
-                Status = this.Status
+                Id = Id,
+                ProductName = ProductName,
+                CategoryId = CategoryId,
+                CampaignId = CampaignId,
+                Gender = Gender,
+                Price = Price,
+                Description = Description,
+                StockQuantity = StockQuantity,
+                ImageUrl = ImageUrl,
+                Size = Size,
+                Color = Color,
+                Status = Status
             };
         }
     }

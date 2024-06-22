@@ -1,4 +1,4 @@
-﻿namespace SWD.F_LocalBrand.API.Common.Payloads.Responses
+﻿namespace SWD.F_LocalBrand.API.Payloads.Responses
 {
     public class SendOtpResponse
     {

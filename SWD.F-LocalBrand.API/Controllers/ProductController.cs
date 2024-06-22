@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
-using SWD.F_LocalBrand.API.Common.Payloads.Requests;
-using SWD.F_LocalBrand.API.Common.Payloads.Responses;
+using SWD.F_LocalBrand.API.Payloads.Requests.Product;
+using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
@@ -285,6 +285,29 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         #endregion
 
+        #region api delete-product
+        [HttpDelete("{productId}")]
+        [SwaggerOperation(
+       Summary = "Delete a product",
+       Description = "Deletes a product by changing its status to 'Deleted'. A valid product ID is required.")]
+        public async Task<IActionResult> DeleteProduct(int productId)
+        {
+            try
+            {
+                await productService.DeleteProductAsync(productId);
+                return Ok(ApiResult<string>.Succeed("Product deleted successfully"));
+            }
+            catch (EntryPointNotFoundException ex)
+            {
+                return NotFound(ApiResult<string>.Error(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
 
         //get product by order id
         [HttpGet("/by-order/{orderId}/products")]
@@ -310,5 +333,5 @@ namespace SWD.F_LocalBrand.API.Controllers
             
         }
 
-    }
+  }
 }

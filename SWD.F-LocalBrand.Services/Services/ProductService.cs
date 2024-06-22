@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Campaign;
 using SWD.F_LocalBrand.Business.DTO.Category;
@@ -214,8 +215,24 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         #endregion
+        #region deleted product by changed status
 
-//get product by order id
+        public async Task DeleteProductAsync(int productId)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(productId);
+            if (product == null)
+            {
+                throw new EntryPointNotFoundException("Product not found");
+            }
+
+            product.Status =ProductStatusEnum.Deleted;
+
+            _unitOfWork.Products.UpdateAsync(product);
+            await _unitOfWork.CommitAsync();
+        }
+        #endregion
+
+        //get product by order id
         public async Task<List<ProductModel>> GetProductsByOrderIdAsync(int orderId)
         {
             var products = await _unitOfWork.OrderDetails

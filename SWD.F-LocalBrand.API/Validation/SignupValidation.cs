@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using SWD.F_LocalBrand.API.Common.Payloads.Requests;
+using SWD.F_LocalBrand.API.Payloads.Requests;
 
 namespace SWD.F_LocalBrand.API.Validation
 {

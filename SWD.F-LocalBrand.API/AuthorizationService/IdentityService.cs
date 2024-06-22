@@ -11,7 +11,6 @@ using SWD.F_LocalBrand.Business.Helpers;
 
 using SWD.F_LocalBrand.Data.Models;
 using SWD.F_LocalBrand.API.Settings;
-using SWD.F_LocalBrand.API.Common.Payloads.Requests;
 using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.Business.DTO.Auth;
 using SWD.F_LocalBrand.Business.DTO;
@@ -21,6 +20,7 @@ using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Oauth2.v2;
 using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.API.Payloads.Requests;
 
 
 namespace F_LocalBrand.Services;
