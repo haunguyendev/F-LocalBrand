@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Repositories;
 using System;
@@ -38,5 +39,24 @@ namespace SWD.F_LocalBrand.Business.Services
             var orders = await _unitOfWork.Orders.FindByCondition(o => o.OrderStatus == status).ToListAsync();
             return _mapper.Map<IEnumerable<OrderModel>>(orders);
         }
+        #region change status order
+        public async Task<UpdateOrderStatusModel?> UpdateOrderStatus(UpdateOrderStatusModel model)
+        {
+            var order = await _unitOfWork.Orders.GetByIdAsync(model.Id);
+
+            if (order == null)
+            {
+                return null;
+            }
+
+            // Update the order status
+            order.OrderStatus = model.OrderStatus;
+
+            await _unitOfWork.Orders.UpdateAsync(order);
+            await _unitOfWork.CommitAsync();
+
+            return model;
+        }
+        #endregion
     }
 }
