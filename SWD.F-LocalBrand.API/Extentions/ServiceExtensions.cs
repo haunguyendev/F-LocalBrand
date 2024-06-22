@@ -216,6 +216,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddTransient<IOrderDetailRepository, OrderDetailRepository>()
                 .AddTransient<IPaymentRepository, PaymentRepository>()
                 .AddTransient<IOrderRepository, OrderRepository>()
+                .AddTransient<ICompapilityRepository,CompapilityRepository>()
                 .AddTransient<IUnitOfWork, UnitOfWork>()
                 .AddScoped<IdentityService>()
                 .AddScoped<UserService>()
