@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.Collection;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 using System;
@@ -42,6 +43,25 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
         }
+        #region create collection
+
+        public async Task<string> CreateCollectionAsync(CollectionCreateModel model)
+        {
+            if (await _unitOfWork.Collections.CollectionNameExistsAsync(model.CollectionName))
+            {
+                throw new ArgumentException("Collection name already exists.");
+            }
+            var collection = new Collection
+            {
+                CollectionName = model.CollectionName
+            };
+
+            await _unitOfWork.Collections.CreateAsync(collection);
+            await _unitOfWork.CommitAsync();
+
+            return collection.CollectionName;
+        }
+        #endregion
 
     }
 }
