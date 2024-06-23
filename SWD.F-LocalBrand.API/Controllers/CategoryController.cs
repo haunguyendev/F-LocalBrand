@@ -215,5 +215,38 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+        #region update status 
+        [HttpPut("update-status/{categoryId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateCategoryStatus(int categoryId, [FromBody] UpdateCategoryStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+            {
+                { "Errors", errors.ToArray() }
+            }));
+            }
+            try
+            {
+                await categoryService.UpdateCategoryStatusAsync(categoryId, request.Status);
+                return Ok(ApiResult<object>.Succeed(new { Message = $"Category updated to {request.Status} successfully" }));
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ApiResult<object>.Error(new { Message = ex.Message }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion 
     }
 }
