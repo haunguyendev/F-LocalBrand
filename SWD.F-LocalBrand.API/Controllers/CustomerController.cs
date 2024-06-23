@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using SWD.F_LocalBrand.API.Common;
-using SWD.F_LocalBrand.API.Common.Payloads.Requests;
-using SWD.F_LocalBrand.API.Common.Payloads.Responses;
+using SWD.F_LocalBrand.API.Payloads.Requests;
+using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Services;
 using System.Text.RegularExpressions;

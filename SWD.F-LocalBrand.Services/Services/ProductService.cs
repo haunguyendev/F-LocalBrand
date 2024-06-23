@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Campaign;
 using SWD.F_LocalBrand.Business.DTO.Category;
@@ -34,7 +35,7 @@ namespace SWD.F_LocalBrand.Business.Services
         {
 
             var listProducts = await _unitOfWork.Products
-                                                .FindAll(false)
+                                                .FindAll(true)
                                                 .Include(x => x.Category)
                                                 .Include(x => x.Campaign)
                                                 .Include(x => x.CollectionProducts)                                               
@@ -86,7 +87,7 @@ namespace SWD.F_LocalBrand.Business.Services
         //get prodcut by category id
         public async Task<List<ProductModel>> GetProductsByCategoryIdAsync(int categoryId)
         {
-            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId).ToListAsync();
+            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId && x.Status == "active").ToListAsync();
             if(listProducts != null)
             {
                 var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
@@ -156,6 +157,121 @@ namespace SWD.F_LocalBrand.Business.Services
         #endregion
 
         
+        #region create product
+
+        public async Task<int> CreateProductAsync(ProductCreateModel model)
+        {
+            // Map ProductCreateModel to Product entity
+            var product = new Product
+            {
+                ProductName = model.ProductName,
+                CategoryId = model.CategoryId,
+                CampaignId = model.CampaignId,
+                Gender = model.Gender,
+                Price = model.Price,
+                Description = model.Description,
+                StockQuantity = model.StockQuantity,
+                ImageUrl = model.ImageUrl,
+                Size = model.Size,
+                Color = model.Color,
+                Status = "Inactive"
+            };
+
+            // Create product using UnitOfWork
+            await _unitOfWork.Products.CreateAsync(product);
+            await _unitOfWork.CommitAsync();
+
+            return product.Id;
+        }
+
+        #endregion
+
+
+        #region update product detail
+        public async Task<ProductUpdateModel?> UpdateProductAsync(ProductUpdateModel model)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(model.Id);
+            if (product == null)
+            {
+                return null;
+            }
+
+            product.ProductName = model.ProductName;
+            product.CategoryId = model.CategoryId;
+            product.CampaignId = model.CampaignId;
+            product.Gender = model.Gender;
+            product.Price = model.Price;
+            product.Description = model.Description;
+            product.StockQuantity = model.StockQuantity;
+            product.ImageUrl = model.ImageUrl;
+            product.Size = model.Size;
+            product.Color = model.Color;
+            product.Status = model.Status;
+
+            await _unitOfWork.Products.UpdateAsync(product);
+            await _unitOfWork.CommitAsync();
+
+            return model;
+        }
+
+        #endregion
+        #region deleted product by changed status
+
+        public async Task DeleteProductAsync(int productId)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(productId);
+            if (product == null)
+            {
+                throw new EntryPointNotFoundException("Product not found");
+            }
+
+            product.Status =ProductStatusEnum.Deleted;
+
+            await _unitOfWork.Products.UpdateAsync(product);
+            await _unitOfWork.CommitAsync();
+        }
+        #endregion
+        #region add list product recommend for product 
+        public async Task AddRecommendedProductsAsync(int productId, List<int> recommendedProductIds)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(productId);
+            if (product == null)
+            {
+                throw new EntryPointNotFoundException("Product not found");
+            }
+
+            foreach (var recommendedProductId in recommendedProductIds)
+            {
+                var recommendedProduct = await _unitOfWork.Products.GetByIdAsync(recommendedProductId);
+                if (recommendedProduct == null)
+                {
+                    throw new EntryPointNotFoundException($"Recommended product with ID {recommendedProductId} not found");
+                }
+
+                var compapility = new Compapility
+                {
+                    ProductId = productId,
+                    RecommendedProductId = recommendedProductId
+                };
+
+                await _unitOfWork.Compapilities.CreateAsync(compapility);
+            }
+
+            await _unitOfWork.CommitAsync();
+        }
+        #endregion
+
+        //get product by order id
+        public async Task<List<ProductModel>> GetProductsByOrderIdAsync(int orderId)
+        {
+            var products = await _unitOfWork.OrderDetails
+            .FindByCondition(od => od.OrderId == orderId)
+            .Include(od => od.Product)
+            .Select(od => od.Product)
+            .ToListAsync();
+            return _mapper.Map<List<ProductModel>>(products);
+        }
+
     }
 }
     

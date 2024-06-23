@@ -6,9 +6,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SWD.F_LocalBrand.API.Common;
-using SWD.F_LocalBrand.API.Common.Payloads.Requests;
-using SWD.F_LocalBrand.API.Common.Payloads.Responses;
 using SWD.F_LocalBrand.API.Exceptions;
+using SWD.F_LocalBrand.API.Payloads.Requests;
+using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.API.Validation;
 using SWD.F_LocalBrand.Business.Services;
 
@@ -39,7 +39,8 @@ public class AuthController : ControllerBase
         if(validationResult.IsValid)
         {
             var handler = new JwtSecurityTokenHandler();
-            var res = await _identityService.Signup(req);
+            var signupModel = req.MapToModel();
+            var res = await _identityService.Signup(signupModel);
             if (!res.Authenticated)
             {
                 //var resultFail = new SignupResponse

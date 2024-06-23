@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.Collection;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 using System;
@@ -42,6 +43,63 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
         }
+        #region create collection
+
+        public async Task<string> CreateCollectionAsync(CollectionCreateModel model)
+        {
+            if (await _unitOfWork.Collections.CollectionNameExistsAsync(model.CollectionName))
+            {
+                throw new ArgumentException("Collection name already exists.");
+            }
+            var collection = new Collection
+            {
+                CollectionName = model.CollectionName
+            };
+
+            await _unitOfWork.Collections.CreateAsync(collection);
+            await _unitOfWork.CommitAsync();
+
+            return collection.CollectionName;
+        }
+        #endregion
+
+        #region Update collection
+
+        public async Task<Collection?> UpdateCollectionAsync(CollectionUpdateModel model)
+        {
+            var collection = await _unitOfWork.Collections.GetByIdAsync(model.Id);
+            if (collection == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(model.CollectionName))
+            {
+                collection.CollectionName = model.CollectionName;
+            }
+
+            if (model.CampaignId.HasValue)
+            {
+                collection.CampaignId = model.CampaignId;
+            }
+
+            if (model.CollectionProductIds != null && model.CollectionProductIds.Any())
+            {
+                var collectionProducts = model.CollectionProductIds.Select(id => new CollectionProduct
+                {
+                    CollectionId = collection.Id,
+                    ProductId = id
+                }).ToList();
+
+                collection.CollectionProducts = collectionProducts;
+            }
+
+            await _unitOfWork.Collections.UpdateAsync(collection);
+            await _unitOfWork.CommitAsync();
+
+            return collection;
+        }
+        #endregion
 
     }
 }

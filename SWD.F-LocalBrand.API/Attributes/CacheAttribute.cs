@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using SWD.F_LocalBrand.API.Settings;
+using SWD.F_LocalBrand.Business.Settings;
 using System.Text;
 
 namespace SWD.F_LocalBrand.API.Attributes

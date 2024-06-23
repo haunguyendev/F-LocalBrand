@@ -18,8 +18,6 @@ namespace SWD.F_LocalBrand.Business.DTO
 
         public int? CampaignId { get; set; }
 
-        public string? SubCategory { get; set; }
-
         public string? Gender { get; set; }
 
         public decimal? Price { get; set; }
@@ -33,6 +31,7 @@ namespace SWD.F_LocalBrand.Business.DTO
         public int? Size { get; set; }
 
         public string? Color { get; set; }
+        public string Status { get; set; } = null!;
 
         public List<ProductModel> Recommendations { get; set; }
     }

@@ -15,7 +15,7 @@ namespace SWD.F_LocalBrand.Data.Repositories
 {
     public class RepositoryBaseAsync<T> : IRepositoryBaseAsync<T> where T : EntityBase
     {
-        private readonly SwdFlocalBrandContext _dbContext;
+        protected readonly SwdFlocalBrandContext _dbContext;
         
         public RepositoryBaseAsync(SwdFlocalBrandContext dbContext)
         {
@@ -101,6 +101,7 @@ namespace SWD.F_LocalBrand.Data.Repositories
             _dbContext.Set<T>().RemoveRange(entities);
             return Task.CompletedTask;
         }
+
         
     }
 }
