@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.Campaign;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 using SWD.F_LocalBrand.Data.Repositories;
@@ -51,7 +52,24 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
         }
-        
 
+        #region create campaign
+        public async Task<Campaign?> CreateCampaignAsync(CampaignCreateModel model)
+        {
+            var campaign = new Campaign
+            {
+                CampaignName = model.CampaignName
+            };
+
+            await _unitOfWork.Campaigns.CreateAsync(campaign);
+            await _unitOfWork.CommitAsync();
+            return campaign;
+        }
+        public async Task<bool> IsCampaignNameExistAsync(string campaignName)
+        {
+            return await _unitOfWork.Campaigns.AnyAsync(c => c.CampaignName == campaignName);
+        }
+
+        #endregion
     }
 }
