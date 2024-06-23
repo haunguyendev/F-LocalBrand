@@ -3,24 +3,20 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-
-
 using SWD.F_LocalBrand.Data.DataAccess;
-
 using SWD.F_LocalBrand.Business.Helpers;
-
 using SWD.F_LocalBrand.Data.Models;
-using SWD.F_LocalBrand.API.Settings;
-using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.Business.DTO.Auth;
-using SWD.F_LocalBrand.Business.DTO;
 using AutoMapper;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Oauth2.v2.Data;
 using Google.Apis.Oauth2.v2;
 using Google.Apis.Services;
 using Microsoft.EntityFrameworkCore;
-using SWD.F_LocalBrand.API.Payloads.Requests;
+using SWD.F_LocalBrand.Business.Settings;
+using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Data.Common.Interfaces;
+using SWD.F_LocalBrand.Business.Config;
 
 
 namespace F_LocalBrand.Services;
@@ -28,29 +24,29 @@ namespace F_LocalBrand.Services;
 public class IdentityService
 {
     private readonly JwtSettings _jwtSettings;
-    private readonly SwdFlocalBrandContext _context;
     private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ConfigEnv _configurationService;
 
-
-    public IdentityService(IOptions<JwtSettings> jwtSettingsOptions, SwdFlocalBrandContext context, IMapper mapper)
+    public IdentityService(ConfigEnv configurationService, IMapper mapper, IUnitOfWork unitOfWork)
     {
-        _jwtSettings = jwtSettingsOptions.Value;
-        _context = context;
+        _jwtSettings = configurationService.LoadJwtSettings();
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
     }
 
 
 
     //Signup for User
-    public async Task<LoginResult> Signup(SignupRequest req)
+    public async Task<LoginResult> Signup(SignupModel req)
     {
-        var user = _context.Users.Where(c => c.UserName == req.UserName || c.Email == req.Email).FirstOrDefault();
+        var user = _unitOfWork.Users.FindByCondition(c => c.UserName == req.UserName || c.Email == req.Email).FirstOrDefault();
         if (user is not null)
         {
-            throw new BadRequestException("username or email already exists");
+            throw new Exception("username or email already exists");
         }
 
-        var createUser = await _context.AddAsync(new User
+        var createUser =new User
         {
             UserName = req.UserName,
             Password = SecurityUtil.Hash(req.Password),
@@ -60,16 +56,17 @@ public class IdentityService
             Address = req.Address,
             RoleId = req.RoleId,
             RegistrationDate = DateOnly.FromDateTime(DateTime.Now),
-        });
-        
-        var res = await _context.SaveChangesAsync();
+        };
+        var resCrteate = await _unitOfWork.Users.CreateAsync(createUser);
+        if(resCrteate  <1) throw new Exception("Error while creating user");
+        var res = await _unitOfWork.CommitAsync();
         if(res > 0)
         {
             return new LoginResult
             {
                 Authenticated = true,
-                Token = CreateJwtToken(createUser.Entity),
-                RefreshToken = CreateJwtRefreshToken(createUser.Entity)
+                Token = CreateJwtToken(createUser),
+                RefreshToken = CreateJwtRefreshToken(createUser)
             };
         }
         else
@@ -87,7 +84,7 @@ public class IdentityService
     //Login for User
     public LoginResult Login(string username, string password)
     {
-        var user = _context.Users.Where(c => c.UserName == username).FirstOrDefault();
+        var user = _unitOfWork.Users.FindByCondition(c => c.UserName == username).FirstOrDefault();
 
 
         if (user is null)
@@ -99,7 +96,7 @@ public class IdentityService
                 RefreshToken = null
             };
         }
-        var userRole = _context.Roles.Where(ur => ur.Id == user.RoleId).FirstOrDefault();
+        var userRole = _unitOfWork.Roles.FindByCondition(ur => ur.Id == user.RoleId).FirstOrDefault();
 
         user.Role = userRole!;
 
@@ -126,14 +123,14 @@ public class IdentityService
     public SecurityToken CreateNewToken(JwtSecurityToken refreshToken)
     {
         var email = refreshToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
-        var user = _context.Users.Where(c => c.Email == email).FirstOrDefault();
+        var user = _unitOfWork.Users.FindByCondition(c => c.Email == email).FirstOrDefault();
         if (user == null)
         {
-            throw new BadRequestException("User not found");
+            throw new Exception("User not found");
         }
         var utcNow = DateTime.UtcNow;
-        var userRole = _context.Roles.Where(u => u.Id == user.RoleId).FirstOrDefault();
-        if (userRole is null) throw new BadRequestException("Role not found");
+        var userRole = _unitOfWork.Roles.FindByCondition(u => u.Id == user.RoleId).FirstOrDefault();
+        if (userRole is null) throw new Exception("Role not found");
         var authClaims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
@@ -165,8 +162,8 @@ public class IdentityService
     public SecurityToken CreateJwtToken(User user)
     {
         var utcNow = DateTime.UtcNow;
-        var userRole = _context.Roles.Where(u => u.Id == user.RoleId).FirstOrDefault();
-        if (userRole is null) throw new BadRequestException("Role not found");
+        var userRole = _unitOfWork.Roles.FindByCondition(u => u.Id == user.RoleId).FirstOrDefault();
+        if (userRole is null) throw new Exception("Role not found");
         var authClaims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
@@ -197,8 +194,8 @@ public class IdentityService
     private SecurityToken CreateJwtRefreshToken(User user)
     {
         var utcNow = DateTime.UtcNow;
-        var userRole = _context.Roles.Where(u => u.Id == user.RoleId).FirstOrDefault();
-        if (userRole is null) throw new BadRequestException("Role not found");
+        var userRole = _unitOfWork.Roles.FindByCondition(u => u.Id == user.RoleId).FirstOrDefault();
+        if (userRole is null) throw new Exception("Role not found");
         var authClaims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
@@ -266,7 +263,7 @@ public class IdentityService
                 ApplicationName = "F-LocalBrand",
             });
             Userinfo userInfo = await oauth2Service.Userinfo.Get().ExecuteAsync();
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == userInfo.Email);
+            var user = await _unitOfWork.Users.FindByCondition(u => u.Email == userInfo.Email).FirstOrDefaultAsync();
             if (user == null)
             {
                 user = new User()
@@ -278,8 +275,8 @@ public class IdentityService
 
 
                 };
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Users.CreateAsync(user);
+                await _unitOfWork.CommitAsync();
             }
 
             var tokenResponse = CreateJwtToken(user);

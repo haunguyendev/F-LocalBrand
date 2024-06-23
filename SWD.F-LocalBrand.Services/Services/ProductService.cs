@@ -87,7 +87,7 @@ namespace SWD.F_LocalBrand.Business.Services
         //get prodcut by category id
         public async Task<List<ProductModel>> GetProductsByCategoryIdAsync(int categoryId)
         {
-            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId).ToListAsync();
+            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId && x.Status == "active").ToListAsync();
             if(listProducts != null)
             {
                 var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);

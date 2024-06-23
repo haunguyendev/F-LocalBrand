@@ -15,7 +15,7 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         //IOrderHistoryRepository OrderHistories { get; }
         IOrderRepository Orders { get; }
         IPaymentRepository Payments { get; }
-        //IRoleRepository Roles { get; }
+        IRoleRepository Roles { get; }
         IUserRepository Users { get; }
         ICustomerRepository Customers { get; }
         IProductRepository Products { get; }

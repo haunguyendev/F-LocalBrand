@@ -29,7 +29,7 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
 
         public IPaymentRepository Payments { get; }
 
-        //public IRoleRepository Roles { get; }
+        public IRoleRepository Roles { get; }
 
 
         public IUserRepository Users { get; }
@@ -56,7 +56,13 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
             IProductRepository products,
             ICategoryRepository category,
             ICampaignRepository campaigns,
-            ICollectionRepository collections, IOrderRepository orders, ICustomerProductRepository customerProducts, IOrderDetailRepository orderDetails, IPaymentRepository payments, ICompapilityRepository compapilities)
+            ICollectionRepository collections,
+            IOrderRepository orders,
+            ICustomerProductRepository customerProducts,
+            IOrderDetailRepository orderDetails,
+            IPaymentRepository payments,
+            ICompapilityRepository compapilities,
+            IRoleRepository roles)
         {
             _context = context;
             //Products = productRepository;
@@ -80,6 +86,7 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
             OrderDetails = orderDetails;
             Payments = payments;
             Compapilities = compapilities;
+            Roles = roles;
         }
         public void Dispose() => _context.Dispose();
 

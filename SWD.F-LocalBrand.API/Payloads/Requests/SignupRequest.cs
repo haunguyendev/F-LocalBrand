@@ -1,3 +1,5 @@
+using SWD.F_LocalBrand.Business.DTO;
+
 namespace SWD.F_LocalBrand.API.Payloads.Requests;
 
 public class SignupRequest
@@ -15,4 +17,18 @@ public class SignupRequest
     public string Image { get; set; } = null!;
 
     public int RoleId { get; set; }
+
+    public SignupModel MapToModel()
+    {
+        return new SignupModel
+        {
+            UserName = UserName,
+            Password = Password,
+            Email = Email,
+            Phone = Phone,
+            Address = Address,
+            Image = Image,
+            RoleId = RoleId
+        };
+    }   
 }

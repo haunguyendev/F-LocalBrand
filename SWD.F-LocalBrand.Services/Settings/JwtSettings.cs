@@ -1,4 +1,4 @@
-namespace SWD.F_LocalBrand.API.Settings;
+namespace SWD.F_LocalBrand.Business.Settings;
 
 public class JwtSettings
 {

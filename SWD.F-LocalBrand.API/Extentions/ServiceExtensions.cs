@@ -10,12 +10,12 @@ using SWD.F_LocalBrand.API.Attributes;
 using SWD.F_LocalBrand.API.Hubs;
 using SWD.F_LocalBrand.API.Middlewares;
 using SWD.F_LocalBrand.API.Payloads.Requests;
-using SWD.F_LocalBrand.API.Settings;
 using SWD.F_LocalBrand.API.Validation;
-using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.Config;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Mapper;
 using SWD.F_LocalBrand.Business.Services;
+using SWD.F_LocalBrand.Business.Settings;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.DataAccess;
 using SWD.F_LocalBrand.Data.Repositories;
@@ -28,6 +28,7 @@ namespace SWD.F_LocalBrand.API.Extentions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            
 
             services.AddScoped<ExceptionMiddleware>();
             services.AddControllers();
@@ -41,20 +42,17 @@ namespace SWD.F_LocalBrand.API.Extentions
             services.AddSignalR();
 
 
+            // Tải cấu hình từ .env file
+            var envConfiguration = ConfigEnv.LoadEnvConfiguration();
+            // Tải JWT settings từ cấu hình
+            var jwtSettings = ConfigEnv.LoadJwtSettings(envConfiguration);
 
-            var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
-            if (string.IsNullOrEmpty(secretKey))
-            {
-                throw new InvalidOperationException("JWT Secret Key is not configured.");
-            }
-            var jwtSettings = new JwtSettings
-            {
-                Key = secretKey
-            };
+            // Đăng ký JwtSettings vào DI container
             services.Configure<JwtSettings>(val =>
             {
                 val.Key = jwtSettings.Key;
             });
+
 
             var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
             var clientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET");
@@ -217,8 +215,10 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddTransient<IPaymentRepository, PaymentRepository>()
                 .AddTransient<IOrderRepository, OrderRepository>()
                 .AddTransient<ICompapilityRepository,CompapilityRepository>()
+                .AddTransient<IRoleRepository, RoleRepository>()
                 .AddTransient<IUnitOfWork, UnitOfWork>()
                 .AddScoped<IdentityService>()
+                .AddSingleton<ConfigEnv>()
                 .AddScoped<UserService>()
                 .AddScoped<JwtSettings>()
 

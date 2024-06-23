@@ -39,7 +39,8 @@ public class AuthController : ControllerBase
         if(validationResult.IsValid)
         {
             var handler = new JwtSecurityTokenHandler();
-            var res = await _identityService.Signup(req);
+            var signupModel = req.MapToModel();
+            var res = await _identityService.Signup(signupModel);
             if (!res.Authenticated)
             {
                 //var resultFail = new SignupResponse
