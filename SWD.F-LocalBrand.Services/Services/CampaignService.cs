@@ -65,11 +65,48 @@ namespace SWD.F_LocalBrand.Business.Services
             await _unitOfWork.CommitAsync();
             return campaign;
         }
+
+
+        #endregion
+        #region update campaign
+        public async Task<Campaign?> UpdateCampaignAsync(CampaignUpdateModel model)
+        {
+            var campaign = await _unitOfWork.Campaigns.GetByIdAsync(model.Id);
+            if (campaign == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.CampaignName))
+            {
+                campaign.CampaignName = model.CampaignName;
+            }
+
+            if (model.CollectionIds != null)
+            {
+                campaign.Collections.Clear();
+                foreach (var collectionId in model.CollectionIds)
+                {
+                    var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
+                    if (collection == null)
+                    {
+                        throw new ArgumentException($"Collection with ID {collectionId} does not exist.");
+                    }
+                    campaign.Collections.Add(collection);
+                }
+            }
+
+            await _unitOfWork.Campaigns.UpdateAsync(campaign);
+            await _unitOfWork.CommitAsync();
+
+            return campaign;
+        }
+
+        #endregion
+
         public async Task<bool> IsCampaignNameExistAsync(string campaignName)
         {
             return await _unitOfWork.Campaigns.AnyAsync(c => c.CampaignName == campaignName);
         }
-
-        #endregion
     }
 }
