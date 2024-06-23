@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
+using SWD.F_LocalBrand.API.Payloads.Requests;
 using SWD.F_LocalBrand.API.Payloads.Requests.Category;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Services;
@@ -175,6 +176,44 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+        #region delete category api
+        [HttpDelete("delete-category")]
+        [SwaggerOperation(
+      Summary = "Delete a category",
+      Description = "Updates the status of a category to 'Deleted' and updates the status of related products to 'Inactive'."
+  )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Category deleted successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Category not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while deleting the category", typeof(ApiResult<object>))]
+        public async Task<IActionResult> DeleteCategory([FromBody] CategoryDeleteRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+            {
+                { "Errors", errors.ToArray() }
+            }));
+            }
 
+            try
+            {
+                var deleteResult = await categoryService.DeleteCategoryAsync(request.Id);
+
+                if (!deleteResult)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Category not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Category deleted successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Category;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
@@ -95,6 +96,32 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+        #region deleted category
 
+        public async Task<bool> DeleteCategoryAsync(int categoryId)
+        {
+            var category = await _unitOfWork.Categories.GetByIdAsync(categoryId);
+            if (category == null)
+            {
+                return false; // Category not found
+            }
+
+            // Update status of all related products to "Inactive"
+            var products = await _unitOfWork.Products.FindByCondition(x=>x.CategoryId==categoryId).ToListAsync();
+            foreach (var product in products)
+            {
+                product.Status = "Inactive";
+                await _unitOfWork.Products.UpdateAsync(product);
+            }
+
+            // Update category status to "Deleted"
+            category.Status = "Deleted";
+            await _unitOfWork.Categories.UpdateAsync(category);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+
+        #endregion
     }
 }
