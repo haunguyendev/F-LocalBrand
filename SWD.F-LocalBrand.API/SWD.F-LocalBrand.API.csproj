@@ -33,4 +33,10 @@
     <ProjectReference Include="..\SWD.F-LocalBrand.Services\SWD.F-LocalBrand.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update=".env">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
