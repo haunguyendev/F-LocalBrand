@@ -101,6 +101,7 @@ namespace SWD.F_LocalBrand.Data.Repositories
             _dbContext.Set<T>().RemoveRange(entities);
             return Task.CompletedTask;
         }
+
         
     }
 }
