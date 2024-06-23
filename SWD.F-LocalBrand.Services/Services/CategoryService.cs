@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Category;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 using SWD.F_LocalBrand.Data.Repositories;
+using SWD.F_LocalBrand.Data.UnitOfWorks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -122,6 +124,31 @@ namespace SWD.F_LocalBrand.Business.Services
             return true;
         }
 
+        #endregion
+        #region update status category
+        public async Task UpdateCategoryStatusAsync(int categoryId, string status)
+        {
+            var category = await _unitOfWork.Categories.GetByIdAsync(categoryId);
+            if (category == null)
+            {
+                throw new ArgumentException("Category not found");
+            }
+
+            switch (status)
+            {
+                case CategoryStatusEnum.Active:
+                    category.Status = CategoryStatusEnum.Active;
+                    break;
+                case CategoryStatusEnum.Inactive:
+                    category.Status = CategoryStatusEnum.Inactive;
+                    break;
+                default:
+                    throw new ArgumentException("Invalid status. Status must be 'Active' or 'Inactive'");
+            }
+            await _unitOfWork.Categories.UpdateAsync(category);
+
+            await _unitOfWork.CommitAsync();
+        }
         #endregion
     }
 }
