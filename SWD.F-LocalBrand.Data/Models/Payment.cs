@@ -25,6 +25,8 @@ public partial class Payment : EntityBase
     [Column("paymentStatus")]
     [StringLength(50)]
     public string? PaymentStatus { get; set; }
+    [Column("statusResponseCode")]
+    public int? StatusResponseCode { get; set; }    
 
     [ForeignKey("OrderId")]
     [InverseProperty("Payments")]
