@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
@@ -28,8 +29,9 @@ namespace SWD.F_LocalBrand.API.Extentions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            
 
+            var cloudMessage = new CloudMessageConfig();
+            cloudMessage.InstallServices(services, configuration);
             services.AddScoped<ExceptionMiddleware>();
             services.AddControllers();
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
@@ -231,6 +233,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<CampaignService>()
                 .AddScoped<CollectionService>()
                 .AddScoped<OrderService>()
+                .AddScoped<NotificationService>()
 
                 // Register ResponseCacheService
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()

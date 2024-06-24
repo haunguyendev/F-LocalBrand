@@ -10,6 +10,9 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="DotNetEnv" Version="3.0.0" />
+    <PackageReference Include="Firebase.Auth" Version="1.0.0" />
+    <PackageReference Include="FirebaseAdmin" Version="3.0.0" />
+    <PackageReference Include="FirebaseStorage.net" Version="1.0.3" />
     <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.68.0.1869" />
     <PackageReference Include="MailKit" Version="4.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.6" />
