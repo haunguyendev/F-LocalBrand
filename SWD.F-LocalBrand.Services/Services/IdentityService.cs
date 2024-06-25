@@ -258,7 +258,7 @@ public class IdentityService
             var credential = GoogleCredential.FromAccessToken(token);
             var oauth2Service = new Oauth2Service(new BaseClientService.Initializer()
             {
-                HttpClientInitializer = credential,
+                HttpClientInitializer =credential,
                 ApplicationName = "F-LocalBrand",
             });
             Userinfo userInfo = await oauth2Service.Userinfo.Get().ExecuteAsync();
@@ -269,11 +269,8 @@ public class IdentityService
                 {
                     Email = userInfo.Email,
                     FullName=userInfo.Name,
-                    Image=user?.Image,
-                    Phone=user.Phone,
-                    Address=user.Address,
+                    Image=userInfo.Picture,
 
-                    
                     RegistrationDate = DateOnly.FromDateTime(DateTime.Now)
 
 
