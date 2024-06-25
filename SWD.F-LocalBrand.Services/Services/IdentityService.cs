@@ -230,15 +230,14 @@ public class IdentityService
     }
 
     //Generate JWT Token for Customer
-    private SecurityToken CreateJwtTokenCustomer(Customer customer)
+    public SecurityToken CreateJwtTokenCustomer(Customer user)
     {
         var utcNow = DateTime.UtcNow;
-        //var userRole = _context..FindByCondition(u => u.RoleId == user.RoleID).FirstOrDefault();
         var authClaims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.NameId, customer.Id.ToString()),
+            new(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
 /*            new(JwtRegisteredClaimNames.Sub, user.UserName),*/
-            new(JwtRegisteredClaimNames.Email, customer.Email),
+            new(JwtRegisteredClaimNames.Email, user.Email),
             new(ClaimTypes.Role, "Customer"),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
@@ -266,28 +265,29 @@ public class IdentityService
             var credential = GoogleCredential.FromAccessToken(token);
             var oauth2Service = new Oauth2Service(new BaseClientService.Initializer()
             {
-                HttpClientInitializer = credential,
+                HttpClientInitializer =credential,
                 ApplicationName = "F-LocalBrand",
             });
             Userinfo userInfo = await oauth2Service.Userinfo.Get().ExecuteAsync();
-            var user = await _unitOfWork.Users.FindByCondition(u => u.Email == userInfo.Email).FirstOrDefaultAsync();
+            var user = await _unitOfWork.Customers.FindByCondition(u => u.Email == userInfo.Email).FirstOrDefaultAsync();
             if (user == null)
             {
-                user = new User()
+                user = new Customer()
                 {
                     Email = userInfo.Email,
-                    UserName = userInfo.Name,
-                    RoleId = 1,
+                    FullName=userInfo.Name,
+                    Image=userInfo.Picture,
+
                     RegistrationDate = DateOnly.FromDateTime(DateTime.Now)
 
 
                 };
-                await _unitOfWork.Users.CreateAsync(user);
+                await _unitOfWork.Customers.CreateAsync(user);
                 await _unitOfWork.CommitAsync();
             }
 
-            var tokenResponse = CreateJwtToken(user);
-            var tokenRefreshResponse = CreateJwtRefreshToken(user);
+            var tokenResponse = CreateJwtTokenCustomer(user);
+            var tokenRefreshResponse = CreateJwtRefreshTokenCustomer(user);
             return new LoginResult
             {
                 Authenticated = true,
@@ -306,6 +306,73 @@ public class IdentityService
         }
 
 
+    }
+
+    //Login for Customer
+    public LoginResult LoginCustomer(string username, string password)
+    {
+        var user = _unitOfWork.Customers.FindByCondition(c => c.UserName == username).FirstOrDefault();
+
+
+        if (user is null)
+        {
+            return new LoginResult
+            {
+                Authenticated = false,
+                Token = null,
+                RefreshToken = null
+            };
+        }
+
+        var hash = SecurityUtil.Hash(password);
+        if (!user.Password.Equals(hash))
+        {
+            return new LoginResult
+            {
+                Authenticated = false,
+                Token = null,
+                RefreshToken = null
+            };
+        }
+
+        return new LoginResult
+        {
+            Authenticated = true,
+            Token = CreateJwtTokenCustomer(user),
+            RefreshToken = CreateJwtRefreshTokenCustomer(user)
+        };
+    }
+
+    
+
+    //Generate JWT Resfresh Token for Customer
+    private SecurityToken CreateJwtRefreshTokenCustomer(Customer user)
+    {
+        var utcNow = DateTime.UtcNow;
+        var authClaims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
+/*            new(JwtRegisteredClaimNames.Sub, user.UserName),*/
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(ClaimTypes.Role, "Customer"),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        };
+
+        var key = Encoding.ASCII.GetBytes(_jwtSettings.Key);
+
+        var tokenDescriptor = new SecurityTokenDescriptor()
+        {
+            Subject = new ClaimsIdentity(authClaims),
+            SigningCredentials =
+                new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
+            Expires = utcNow.Add(TimeSpan.FromHours(120)),
+        };
+
+        var handler = new JwtSecurityTokenHandler();
+
+        var token = handler.CreateToken(tokenDescriptor);
+
+        return token;
     }
 
 

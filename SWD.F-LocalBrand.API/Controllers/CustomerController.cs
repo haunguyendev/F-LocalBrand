@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests;
+using SWD.F_LocalBrand.API.Payloads.Requests.Customer;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Services;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace SWD.F_LocalBrand.API.Controllers
@@ -168,7 +172,138 @@ namespace SWD.F_LocalBrand.API.Controllers
                 CustomerProducts = customer
             }));
         }
+        #region api update user account
+        [Authorize]
+        [HttpPut("update-customer-account")]
+        [SwaggerOperation(
+           Summary = "Update customer account details",
+           Description = "Updates the details of an existing customer account."
+       )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Customer account updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Customer not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the customer account", typeof(ApiResult<object>))]
+        public async Task<IActionResult> UpdateCustomerAccount([FromBody] CustomerUpdateAccountRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Errors", errors.ToArray() }
+                }));
+            }
+
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var customerModel = request.MapToModel(userId);
+                var updateResult = await _customerService.UpdateCustomerAsync(customerModel);
+
+                if (updateResult == null)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Customer not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Customer account updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
+        #region api update user gmail
+        [Authorize]
+        [HttpPut("update-customer-gmail")]
+        [SwaggerOperation(
+           Summary = "Update customer Gmail details",
+           Description = "Updates the details of an existing customer Gmail. Example of a valid request: {\"fullName\":\"New FullName\",\"image\":\"http://example.com/image.jpg\",\"phone\":\"1234567890\",\"address\":\"New Address\"}"
+       )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Customer Gmail updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Customer not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the customer Gmail", typeof(ApiResult<object>))]
+        public async Task<IActionResult> UpdateCustomerGmail([FromBody] CustomerUpdateGmailRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Errors", errors.ToArray() }
+                }));
+            }
+
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var customerModel = request.MapToModel(userId);
+                var updateResult = await _customerService.UpdateCustomerAsync(customerModel);
+
+                if (updateResult == null)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Customer not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Customer Gmail updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+
+        #endregion
+        #region register customer api
+        [HttpPost("register-customer")]
+        [SwaggerOperation(
+            Summary = "Register a new customer",
+            Description = "Registers a new customer with the provided details. The input model must contain valid data as specified in the constraints."
+        )]
+        [SwaggerResponse(200, "Customer registered successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(409, "Username already exists")]
+        [SwaggerResponse(500, "An error occurred while registering the customer")]
+        public async Task<IActionResult> RegisterCustomer([FromBody] CustomerCreateRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                   .Select(e => e.ErrorMessage)
+                                                   .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                    {
+                        { "Errors", errors.ToArray() }
+                    }));
+                }
+
+                if ( _customerService.UsernameExistsAsync(request.UserName))
+                {
+                    return Conflict(ApiResult<string>.Error("Username already exists"));
+                }
+
+                var customerModel = request.MapToModel();
+                await _customerService.RegisterCustomerAsync(customerModel);
+
+                return Ok(ApiResult<string>.Succeed("Customer registered successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
 
 
     }
 }
+

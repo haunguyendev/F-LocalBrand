@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Org.BouncyCastle.Crypto.Generators;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.Customer;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
+using SWD.F_LocalBrand.Data.Repositories;
 using SWD.F_LocalBrand.Data.UnitOfWorks;
 using System;
 using System.Collections.Generic;
@@ -154,5 +157,65 @@ namespace SWD.F_LocalBrand.Business.Services
             }
             return false;
         }
+        #region update customer
+        public async Task<CustomerUpdateModel?> UpdateCustomerAsync(CustomerUpdateModel customerUpdateModel)
+        {
+            var customer = await _unitOfWork.Customers.FindAsync(c => c.Id == customerUpdateModel.Id);
+
+            if (customer == null)
+            {
+                return null;
+            }
+
+            
+            if (!string.IsNullOrEmpty(customerUpdateModel.FullName))
+                customer.FullName = customerUpdateModel.FullName;
+
+            if (!string.IsNullOrEmpty(customerUpdateModel.Email))
+                customer.Email = customerUpdateModel.Email;
+
+            if (!string.IsNullOrEmpty(customerUpdateModel.Image))
+                customer.Image = customerUpdateModel.Image;
+
+            if (!string.IsNullOrEmpty(customerUpdateModel.Phone))
+                customer.Phone = customerUpdateModel.Phone;
+
+            if (!string.IsNullOrEmpty(customerUpdateModel.Address))
+                customer.Address = customerUpdateModel.Address;
+
+            
+            await _unitOfWork.Customers.UpdateAsync(customer);
+            await _unitOfWork.CommitAsync();
+
+            return customerUpdateModel;
+        }
+        #endregion
+        #region register customer
+        public async Task RegisterCustomerAsync(CustomerCreateModel model)
+        {
+            var customer = new Customer
+            {
+                UserName = model.UserName,
+                FullName = model.FullName,
+                Password = Helpers.SecurityUtil.Hash(model.Password), 
+                Email = model.Email,
+                Phone = model.Phone,
+                Address = model.Address,
+                RegistrationDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                Image = "default.jpg" 
+            };
+
+            await _unitOfWork.Customers.CreateAsync(customer);
+            await _unitOfWork.CommitAsync();
+        }
+
+        public bool UsernameExistsAsync(string username)
+        {
+            var customer=  _unitOfWork.Customers.FindByCondition(c => c.UserName == username);
+            if(customer== null) return true;
+            return false;
+        }
+        #endregion
+
     }
 }

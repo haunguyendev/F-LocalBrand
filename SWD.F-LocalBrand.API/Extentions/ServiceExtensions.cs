@@ -262,6 +262,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<CollectionService>()
                 .AddScoped<OrderService>()
                 .AddScoped<FirebaseService>()
+                .AddScoped<PaymentService>()
 
                 // Register ResponseCacheService
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()
