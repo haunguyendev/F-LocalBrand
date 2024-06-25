@@ -262,24 +262,28 @@ public class IdentityService
                 ApplicationName = "F-LocalBrand",
             });
             Userinfo userInfo = await oauth2Service.Userinfo.Get().ExecuteAsync();
-            var user = await _unitOfWork.Users.FindByCondition(u => u.Email == userInfo.Email).FirstOrDefaultAsync();
+            var user = await _unitOfWork.Customers.FindByCondition(u => u.Email == userInfo.Email).FirstOrDefaultAsync();
             if (user == null)
             {
-                user = new User()
+                user = new Customer()
                 {
                     Email = userInfo.Email,
-                    UserName = userInfo.Name,
-                    RoleId = 1,
+                    FullName=userInfo.Name,
+                    Image=user?.Image,
+                    Phone=user.Phone,
+                    Address=user.Address,
+
+                    
                     RegistrationDate = DateOnly.FromDateTime(DateTime.Now)
 
 
                 };
-                await _unitOfWork.Users.CreateAsync(user);
+                await _unitOfWork.Customers.CreateAsync(user);
                 await _unitOfWork.CommitAsync();
             }
 
-            var tokenResponse = CreateJwtToken(user);
-            var tokenRefreshResponse = CreateJwtRefreshToken(user);
+            var tokenResponse = CreateJwtTokenCustomer(user);
+            var tokenRefreshResponse = CreateJwtRefreshTokenCustomer(user);
             return new LoginResult
             {
                 Authenticated = true,
