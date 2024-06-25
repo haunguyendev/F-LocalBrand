@@ -17,6 +17,7 @@ using SWD.F_LocalBrand.Business.Settings;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Business.Config;
+using SWD.F_LocalBrand.Business.Services;
 
 
 namespace F_LocalBrand.Services;
@@ -27,12 +28,14 @@ public class IdentityService
     private readonly IMapper _mapper;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ConfigEnv _configurationService;
+    private readonly FirebaseService _firebaseService;
 
-    public IdentityService(ConfigEnv configurationService, IMapper mapper, IUnitOfWork unitOfWork)
+    public IdentityService(ConfigEnv configurationService, IMapper mapper, IUnitOfWork unitOfWork, FirebaseService firebaseService)
     {
         _jwtSettings = configurationService.LoadJwtSettings();
         _mapper = mapper;
         _unitOfWork = unitOfWork;
+        _firebaseService = firebaseService;
     }
 
 
@@ -45,8 +48,11 @@ public class IdentityService
         {
             throw new Exception("username or email already exists");
         }
+        var guidPath = Guid.NewGuid().ToString();
+        var imagePath = "USER/" + $"{guidPath}";
+        var imageUploadResult = await _firebaseService.UploadFileToFirebase(req.Imageurl, imagePath);
 
-        var createUser =new User
+        var createUser = new User
         {
             UserName = req.UserName,
             Password = SecurityUtil.Hash(req.Password),
@@ -56,11 +62,12 @@ public class IdentityService
             Address = req.Address,
             RoleId = req.RoleId,
             RegistrationDate = DateOnly.FromDateTime(DateTime.Now),
+            Image = imageUploadResult
         };
-        var resCrteate = await _unitOfWork.Users.CreateAsync(createUser);
-        if(resCrteate  <1) throw new Exception("Error while creating user");
+
+        await _unitOfWork.Users.CreateAsync(createUser);
         var res = await _unitOfWork.CommitAsync();
-        if(res > 0)
+        if (res > 0)
         {
             return new LoginResult
             {
