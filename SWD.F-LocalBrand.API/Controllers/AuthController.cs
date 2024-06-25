@@ -174,4 +174,35 @@ public class AuthController : ControllerBase
 
         return Ok(ApiResult<SignupResponse>.Succeed(result));
     }
+
+    [AllowAnonymous]
+    [HttpPost]
+    public IActionResult LoginCustomer([FromBody] LoginRequest req)
+    {
+        var validationResult = _loginValidator.Validate(req);
+        if (validationResult.IsValid)
+        {
+            var loginResult = _identityService.LoginCustomer(req.Username, req.Password);
+            if (!loginResult.Authenticated)
+            {
+                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Username or password is invalid"));
+                return BadRequest(result);
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var res = new LoginResponse
+            {
+                AccessToken = handler.WriteToken(loginResult.Token),
+                RefreshToken = handler.WriteToken(loginResult.RefreshToken)
+            };
+            return Ok(ApiResult<LoginResponse>.Succeed(res));
+
+        }
+        else
+        {
+            var problemDetails = validationResult.ToProblemDetails();
+            return BadRequest(problemDetails);
+        }
+
+    }
 }
