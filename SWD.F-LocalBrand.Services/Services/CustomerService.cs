@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Org.BouncyCastle.Crypto.Generators;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Customer;
 using SWD.F_LocalBrand.Business.Helpers;
@@ -189,5 +190,32 @@ namespace SWD.F_LocalBrand.Business.Services
             return customerUpdateModel;
         }
         #endregion
+        #region register customer
+        public async Task RegisterCustomerAsync(CustomerCreateModel model)
+        {
+            var customer = new Customer
+            {
+                UserName = model.UserName,
+                FullName = model.FullName,
+                Password = Helpers.SecurityUtil.Hash(model.Password), 
+                Email = model.Email,
+                Phone = model.Phone,
+                Address = model.Address,
+                RegistrationDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                Image = "default.jpg" 
+            };
+
+            await _unitOfWork.Customers.CreateAsync(customer);
+            await _unitOfWork.CommitAsync();
+        }
+
+        public bool UsernameExistsAsync(string username)
+        {
+            var customer=  _unitOfWork.Customers.FindByCondition(c => c.UserName == username);
+            if(customer== null) return true;
+            return false;
+        }
+        #endregion
+
     }
 }

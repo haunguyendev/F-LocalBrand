@@ -258,8 +258,52 @@ namespace SWD.F_LocalBrand.API.Controllers
                 return StatusCode(500, ApiResult<object>.Fail(ex));
             }
         }
-    }
-    #endregion
 
+        #endregion
+        #region register customer api
+        [HttpPost("register-customer")]
+        [SwaggerOperation(
+            Summary = "Register a new customer",
+            Description = "Registers a new customer with the provided details. The input model must contain valid data as specified in the constraints."
+        )]
+        [SwaggerResponse(200, "Customer registered successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(409, "Username already exists")]
+        [SwaggerResponse(500, "An error occurred while registering the customer")]
+        public async Task<IActionResult> RegisterCustomer([FromBody] CustomerCreateRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                   .Select(e => e.ErrorMessage)
+                                                   .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                    {
+                        { "Errors", errors.ToArray() }
+                    }));
+                }
+
+                if ( _customerService.UsernameExistsAsync(request.UserName))
+                {
+                    return Conflict(ApiResult<string>.Error("Username already exists"));
+                }
+
+                var customerModel = request.MapToModel();
+                await _customerService.RegisterCustomerAsync(customerModel);
+
+                return Ok(ApiResult<string>.Succeed("Customer registered successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
+
+
+    }
 }
 
