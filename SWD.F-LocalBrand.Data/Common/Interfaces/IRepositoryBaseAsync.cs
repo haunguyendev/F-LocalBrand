@@ -34,6 +34,7 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task EndTransactionAsync();
         Task RollbackTransactionAsync();
-       
+        Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
+
     }
 }
