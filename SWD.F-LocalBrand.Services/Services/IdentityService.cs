@@ -48,9 +48,7 @@ public class IdentityService
         {
             throw new Exception("username or email already exists");
         }
-        var guidPath = Guid.NewGuid().ToString();
-        var imagePath = "USER/" + $"{guidPath}";
-        var imageUploadResult = await _firebaseService.UploadFileToFirebase(req.Imageurl, imagePath);
+        
 
         var createUser = new User
         {
@@ -62,11 +60,19 @@ public class IdentityService
             Address = req.Address,
             RoleId = req.RoleId,
             RegistrationDate = DateOnly.FromDateTime(DateTime.Now),
-            Image = imageUploadResult
+            Image = null
         };
 
         await _unitOfWork.Users.CreateAsync(createUser);
+        await _unitOfWork.CommitAsync();
+
+
+        var imagePath =  $"USER/{createUser.Id}";
+        var imageUploadResult = await _firebaseService.UploadFileToFirebase(req.Imageurl, imagePath);
+        await _unitOfWork.Users.UpdateAsync(createUser);
         var res = await _unitOfWork.CommitAsync();
+
+
         if (res > 0)
         {
             return new LoginResult
@@ -374,6 +380,18 @@ public class IdentityService
 
         return token;
     }
+    public bool UsernameUserExistsAsync(string username)
+    {
+        var user = _unitOfWork.Users.FindByCondition(c => c.UserName == username);
+        if (user == null) return false;
+        return true;
+    }
 
+    public bool EmailUserExistsAsync(string email)
+    {
+        var user = _unitOfWork.Users.FindByCondition(c => c.Email == email);
+        if (user == null) return false;
+        return true;
+    }
 
 }

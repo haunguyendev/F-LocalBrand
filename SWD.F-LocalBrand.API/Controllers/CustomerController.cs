@@ -183,7 +183,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Customer not found", typeof(ApiResult<object>))]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the customer account", typeof(ApiResult<object>))]
-        public async Task<IActionResult> UpdateCustomerAccount([FromBody] CustomerUpdateAccountRequest request)
+        public async Task<IActionResult> UpdateCustomerAccount([FromForm] CustomerUpdateAccountRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -199,6 +199,14 @@ namespace SWD.F_LocalBrand.API.Controllers
             try
             {
                 var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                if(request.Email != null)
+                {
+                    var cusById = await _customerService.GetCustomerById(userId);
+                    if (_customerService.EmailCusExistsAsync(request.Email))
+                    {
+                        return Conflict(ApiResult<string>.Error("Email already exists"));
+                    }
+                }
                 var customerModel = request.MapToModel(userId);
                 var updateResult = await _customerService.UpdateCustomerAsync(customerModel);
 
@@ -270,7 +278,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         [SwaggerResponse(400, "Invalid request")]
         [SwaggerResponse(409, "Username already exists")]
         [SwaggerResponse(500, "An error occurred while registering the customer")]
-        public async Task<IActionResult> RegisterCustomer([FromBody] CustomerCreateRequest request)
+        public async Task<IActionResult> RegisterCustomer([FromForm] CustomerCreateRequest request)
         {
             try
             {
@@ -285,9 +293,13 @@ namespace SWD.F_LocalBrand.API.Controllers
                     }));
                 }
 
-                if ( _customerService.UsernameExistsAsync(request.UserName))
+                if ( _customerService.UsernameCusExistsAsync(request.UserName))
                 {
                     return Conflict(ApiResult<string>.Error("Username already exists"));
+                }
+                if(_customerService.EmailCusExistsAsync(request.Email))
+                {
+                    return Conflict(ApiResult<string>.Error("Email already exists"));
                 }
 
                 var customerModel = request.MapToModel();

@@ -81,29 +81,29 @@ namespace SWD.F_LocalBrand.API.Controllers
             return Ok("Send mail success");
         }
 
-        [AllowAnonymous]
-        [HttpPost("firebase")]
-        public async Task<IActionResult> Firebase([FromForm] Test test)
-        {
-            try
-            {
-                if (test.File == null || test.File.Length == 0)
-                {
-                    return BadRequest(new { Message = "The file is empty", IsSuccess = false });
-                }
+        //[AllowAnonymous]
+        //[HttpPost("firebase")]
+        //public async Task<IActionResult> Firebase([FromForm] Test test)
+        //{
+        //    try
+        //    {
+        //        if (test.File == null || test.File.Length == 0)
+        //        {
+        //            return BadRequest(new { Message = "The file is empty", IsSuccess = false });
+        //        }
 
-                var result = await _userService.CreateUrl(test.File);
-                return Ok(new { Result = result, IsSuccess = true });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { Message = ex.Message, IsSuccess = false });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = ex.Message, IsSuccess = false });
-            }
-        }
+        //        var result = await _userService.CreateUrl(test.File);
+        //        return Ok(new { Result = result, IsSuccess = true });
+        //    }
+        //    catch (ArgumentException ex)
+        //    {
+        //        return BadRequest(new { Message = ex.Message, IsSuccess = false });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { Message = ex.Message, IsSuccess = false });
+        //    }
+        //}
 
         //Delete image from firebase
         [AllowAnonymous]

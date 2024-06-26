@@ -34,6 +34,8 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Customer
         public string Phone { get; set; }
         [Required(ErrorMessage = "Address is required.")]
         public string Address { get; set; }
+
+        public IFormFile ImageUrl { get; set; }
         public CustomerCreateModel MapToModel()
         {
             return new CustomerCreateModel
@@ -43,7 +45,8 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Customer
                 Password = this.Password,
                 Email = this.Email,
                 Phone = this.Phone,
-                Address = this.Address
+                Address = this.Address,
+                ImageUrl = this.ImageUrl
             };
         }
     }

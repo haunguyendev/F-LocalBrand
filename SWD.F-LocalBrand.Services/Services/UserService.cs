@@ -31,18 +31,18 @@ namespace SWD.F_LocalBrand.Business.Services
             return _mapper.Map<UserModel>(user);
         }
 
-        public async Task<string> CreateUrl(IFormFile formFile)
-        {
-            if (formFile == null || formFile.Length == 0)
-            {
-                throw new ArgumentException("The file is empty");
-            }
+        //public async Task<string> CreateUrl(IFormFile formFile)
+        //{
+        //    if (formFile == null || formFile.Length == 0)
+        //    {
+        //        throw new ArgumentException("The file is empty");
+        //    }
 
-            var guidPath = Guid.NewGuid().ToString();
-            var imagePath = "TRIP/" + $"{guidPath}";
-            var downloadUrl = await _firebaseService.UploadFileToFirebase(formFile, imagePath);
-            return downloadUrl;
-        }
+        //    var guidPath = Guid.NewGuid().ToString();
+        //    var imagePath = "TRIP/" + $"{guidPath}";
+        //    var downloadUrl = await _firebaseService.UploadFileToFirebase(formFile, imagePath);
+        //    return downloadUrl;
+        //}
 
 
     }

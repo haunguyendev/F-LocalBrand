@@ -13,9 +13,7 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Customer
         [StringLength(255, ErrorMessage = "FullName length can't be more than 255.")]
         public string? FullName { get; set; }
 
-        [StringLength(255, ErrorMessage = "Image URL length can't be more than 255.")]
-        [Url(ErrorMessage = "Invalid URL format")]
-        public string? Image { get; set; }
+        public IFormFile? ImageUrl { get; set; }
 
         [Phone(ErrorMessage = "Invalid Phone Number")]
         [StringLength(20, ErrorMessage = "Phone length can't be more than 20.")]
@@ -31,7 +29,7 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Customer
                 Id = customerId,
                 FullName = FullName,
                 Email = Email,
-                Image = Image,
+                ImageUrl = ImageUrl,
                 Phone = Phone,
                 Address = Address
             };
