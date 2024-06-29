@@ -196,20 +196,20 @@ namespace SWD.F_LocalBrand.API.Extentions
             });
 
 
-            //services.AddCors(option =>
-            //    option.AddPolicy("CORS", builder =>
-            //        builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((host) => true)));
+            services.AddCors(option =>
+                option.AddPolicy("CORS", builder =>
+                    builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()));
 
-            services.AddCors(options =>
-            {
-                options.AddPolicy("CORS", builder =>
-                {
-                    builder.AllowAnyOrigin() // Nếu bạn muốn cho phép tất cả các nguồn
-                                             //.WithOrigins("http://example.com") // Nếu bạn muốn chỉ định các nguồn cụ thể
-                           .AllowAnyMethod()
-                           .AllowAnyHeader();
-                });
-            });
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy("CORS", builder =>
+            //    {
+            //        builder.AllowAnyOrigin() // Nếu bạn muốn cho phép tất cả các nguồn
+            //                                 //.WithOrigins("http://example.com") // Nếu bạn muốn chỉ định các nguồn cụ thể
+            //               .AllowAnyMethod()
+            //               .AllowAnyHeader();
+            //    });
+            //});
             return services;
         }
         private static IServiceCollection ConfigureDbContext(this IServiceCollection services, IConfiguration configuration)

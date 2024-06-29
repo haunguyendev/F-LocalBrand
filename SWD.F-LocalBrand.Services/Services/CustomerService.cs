@@ -248,17 +248,29 @@ namespace SWD.F_LocalBrand.Business.Services
         #endregion
         public bool UsernameCusExistsAsync(string username)
         {
-            var customer =  _unitOfWork.Customers.FindByCondition(c => c.UserName == username);
+            var customer =  _unitOfWork.Customers.FindByCondition(c => c.UserName == username).FirstOrDefault();
+            Console.WriteLine(customer);
             if(customer == null) return false;
             return true;
         }
 
         public bool EmailCusExistsAsync(string email)
         {
-            var customer = _unitOfWork.Customers.FindByCondition(c => c.Email == email);
+            var customer = _unitOfWork.Customers.FindByCondition(c => c.Email == email).FirstOrDefault();
+            Console.WriteLine(customer);
             if (customer == null) return false;
             return true;
         }
 
+        public async Task<CustomerModel?> GetCustomerById(int id)
+        {
+            var customer = await _unitOfWork.Customers.GetByIdAsync(id);
+            if (customer != null)
+            {
+                var customerModel = _mapper.Map<CustomerModel>(customer);
+                return customerModel;
+            }
+            return null;
+        }
     }
 }

@@ -202,9 +202,13 @@ namespace SWD.F_LocalBrand.API.Controllers
                 if(request.Email != null)
                 {
                     var cusById = await _customerService.GetCustomerById(userId);
-                    if (_customerService.EmailCusExistsAsync(request.Email))
+                    if (cusById.Email != request.Email)
                     {
-                        return Conflict(ApiResult<string>.Error("Email already exists"));
+                        if(_customerService.EmailCusExistsAsync(request.Email))
+                        {
+                            return Conflict(ApiResult<string>.Error("Email already exists"));
+
+                        }
                     }
                 }
                 var customerModel = request.MapToModel(userId);
