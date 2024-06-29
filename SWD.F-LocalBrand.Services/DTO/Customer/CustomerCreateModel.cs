@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,8 @@ namespace SWD.F_LocalBrand.Business.DTO.Customer
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Address { get; set; }
+
+        public IFormFile ImageUrl { get; set; }
     }
 
 }

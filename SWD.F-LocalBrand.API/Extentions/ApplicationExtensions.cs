@@ -22,6 +22,7 @@ namespace SWD.F_LocalBrand.API.Extentions
             ////app.UseHttpsRedirection();  //for product
 
             //app.UseAuthorization();
+
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c =>

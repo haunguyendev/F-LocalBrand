@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost]
-    public async Task<IActionResult> Signup([FromBody] SignupRequest req)
+    public async Task<IActionResult> Signup([FromForm] SignupRequest req)
     {
         var validationResult = _signupValidator.Validate(req);
         if(validationResult.IsValid)

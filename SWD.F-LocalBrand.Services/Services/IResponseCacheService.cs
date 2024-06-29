@@ -1,4 +1,4 @@
-﻿namespace SWD.F_LocalBrand.API.Attributes
+﻿namespace SWD.F_LocalBrand.Business.Attributes
 {
     public interface IResponseCacheService
     {

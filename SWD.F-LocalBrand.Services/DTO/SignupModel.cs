@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,7 +19,7 @@ namespace SWD.F_LocalBrand.Business.DTO
 
         public string Address { get; set; }
 
-        public string Image { get; set; } = null!;
+        public IFormFile Imageurl { get; set; }
 
         public int RoleId { get; set; }
 

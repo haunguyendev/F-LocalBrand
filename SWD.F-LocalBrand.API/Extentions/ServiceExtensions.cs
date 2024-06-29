@@ -11,6 +11,7 @@ using SWD.F_LocalBrand.API.Hubs;
 using SWD.F_LocalBrand.API.Middlewares;
 using SWD.F_LocalBrand.API.Payloads.Requests;
 using SWD.F_LocalBrand.API.Validation;
+using SWD.F_LocalBrand.Business.Attributes;
 using SWD.F_LocalBrand.Business.Config;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Mapper;
@@ -42,16 +43,36 @@ namespace SWD.F_LocalBrand.API.Extentions
             services.AddSignalR();
 
 
-            // Tải cấu hình từ .env file
-            var envConfiguration = ConfigEnv.LoadEnvConfiguration();
-            // Tải JWT settings từ cấu hình
-            var jwtSettings = ConfigEnv.LoadJwtSettings(envConfiguration);
+            //// Tải cấu hình từ .env file
+            //var envConfiguration = ConfigEnv.LoadEnvConfiguration();
+            //// Tải JWT settings từ cấu hình
+            //var jwtSettings = ConfigEnv.LoadJwtSettings(envConfiguration);
 
-            // Đăng ký JwtSettings vào DI container
-            services.Configure<JwtSettings>(val =>
+            //// Đăng ký JwtSettings vào DI container
+            //services.Configure<JwtSettings>(val =>
+            //{
+            //    val.Key = jwtSettings.Key;
+            //});
+
+            var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
+            if (string.IsNullOrEmpty(secretKey))
             {
-                val.Key = jwtSettings.Key;
+                throw new InvalidOperationException("JWT Secret Key is not configured.");
+            }
+            var jwtSettings = new JwtSettings
+            {
+                Key = secretKey
+            };
+
+
+            services.Configure<FirebaseSettings>(config =>
+            {
+                config.ApiKey = Environment.GetEnvironmentVariable("FIREBASE_API_KEY");
+                config.AuthEmail = Environment.GetEnvironmentVariable("FIREBASE_AUTH_EMAIL");
+                config.AuthPassword = Environment.GetEnvironmentVariable("FIREBASE_AUTH_PASSWORD");
+                config.Bucket = Environment.GetEnvironmentVariable("FIREBASE_BUCKET");
             });
+            
 
 
             var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
@@ -177,9 +198,18 @@ namespace SWD.F_LocalBrand.API.Extentions
 
             services.AddCors(option =>
                 option.AddPolicy("CORS", builder =>
-                    builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed((host) => true)));
+                    builder.AllowAnyMethod().AllowAnyHeader().AllowAnyOrigin()));
 
-
+            //services.AddCors(options =>
+            //{
+            //    options.AddPolicy("CORS", builder =>
+            //    {
+            //        builder.AllowAnyOrigin() // Nếu bạn muốn cho phép tất cả các nguồn
+            //                                 //.WithOrigins("http://example.com") // Nếu bạn muốn chỉ định các nguồn cụ thể
+            //               .AllowAnyMethod()
+            //               .AllowAnyHeader();
+            //    });
+            //});
             return services;
         }
         private static IServiceCollection ConfigureDbContext(this IServiceCollection services, IConfiguration configuration)
@@ -231,6 +261,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<CampaignService>()
                 .AddScoped<CollectionService>()
                 .AddScoped<OrderService>()
+                .AddScoped<FirebaseService>()
                 .AddScoped<PaymentService>()
 
                 // Register ResponseCacheService

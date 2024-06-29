@@ -14,7 +14,7 @@ public class SignupRequest
 
     public string Address { get; set; }
 
-    public string Image { get; set; } = null!;
+    public IFormFile ImageUrl { get; set; } = null!;
 
     public int RoleId { get; set; }
 
@@ -27,7 +27,7 @@ public class SignupRequest
             Email = Email,
             Phone = Phone,
             Address = Address,
-            Image = Image,
+            Imageurl = ImageUrl,
             RoleId = RoleId
         };
     }   
