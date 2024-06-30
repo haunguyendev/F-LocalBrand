@@ -14,20 +14,20 @@ namespace SWD.F_LocalBrand.API.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly CategoryService categoryService;
+        private readonly CategoryService _categoryService;
 
         public CategoryController(CategoryService categoryService)
         {
-            this.categoryService = categoryService;
+            _categoryService = categoryService;
         }
 
         //get categories with products of them
-        [HttpGet("categories/with-products")]
+        [HttpGet("categories/products")]
         public IActionResult GetCategoriesWithProducts()
         {
             try
             {
-                var list = categoryService.GetAllProductsWithCategories();
+                var list = _categoryService.GetAllProductsWithCategories();
                 if (list == null)
                 {
                     var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any category"));
@@ -44,6 +44,53 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
             
         }
+        //get product by category id
+        [HttpGet("category/{categoryId}/products/")]
+        public async Task<IActionResult> GetProductByCategoryId(int categoryId)
+        {
+            try
+            {
+                var listProduct = await _categoryService.GetProductsByCategoryIdAsync(categoryId);
+                if (listProduct == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
+                    return NotFound(resultFail);
+                }
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = listProduct
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+
+        }
+
+        //get product by category id and have paging
+        [HttpGet("category/{categoryId}/products/{pageIndex}/{pageSize}")]
+        public async Task<IActionResult> GetProductByCategoryIdPaging(int categoryId, int pageIndex, int pageSize)
+        {
+            try
+            {
+                var listProduct = await _categoryService.GetProductsByCategoryIdPagingAsync(categoryId, pageIndex, pageSize);
+                if (listProduct == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
+                    return NotFound(resultFail);
+                }
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = listProduct
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+
+        }
 
         //get all categories
         [HttpGet("categories")]
@@ -51,7 +98,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         {
             try
             {
-                var list = categoryService.GetAllCategories();
+                var list = _categoryService.GetAllCategories();
                 if (list == null)
                 {
                     var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any category"));
@@ -75,7 +122,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         {
             try
             {
-                var category = categoryService.GetCategoryWithProducts(categoryId);
+                var category = _categoryService.GetCategoryWithProducts(categoryId);
                 if (category == null)
                 {
                     var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Category does not exist"));
@@ -114,7 +161,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             try
             {
                 var model = request.MapToModel();
-                var category = await categoryService.CreateCategoryAsync(model);
+                var category = await _categoryService.CreateCategoryAsync(model);
                 return Ok(ApiResult<Category>.Succeed(category));
             }
             catch (Exception ex)
@@ -161,7 +208,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             try
             {
                 var categoryModel = request.MapToModel();
-                var updateResult = await categoryService.UpdateCategoryAsync(categoryModel);
+                var updateResult = await _categoryService.UpdateCategoryAsync(categoryModel);
 
                 if (updateResult == null)
                 {
@@ -200,7 +247,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
             try
             {
-                var deleteResult = await categoryService.DeleteCategoryAsync(request.Id);
+                var deleteResult = await _categoryService.DeleteCategoryAsync(request.Id);
 
                 if (!deleteResult)
                 {
@@ -235,7 +282,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
             try
             {
-                await categoryService.UpdateCategoryStatusAsync(categoryId, request.Status);
+                await _categoryService.UpdateCategoryStatusAsync(categoryId, request.Status);
                 return Ok(ApiResult<object>.Succeed(new { Message = $"Category updated to {request.Status} successfully" }));
             }
             catch (ArgumentException ex)

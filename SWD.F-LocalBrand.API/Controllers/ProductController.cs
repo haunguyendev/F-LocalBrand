@@ -57,53 +57,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }));
         }
 
-        //get product by category id
-        [HttpGet("products/category/{categoryId}")]
-        public async Task<IActionResult> GetProductByCategoryId(int categoryId)
-        {
-            try
-            {
-                var listProduct = await productService.GetProductsByCategoryIdAsync(categoryId);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
-                    return NotFound(resultFail);
-                }
-                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
-                {
-                    Products = listProduct
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-
-        }
-
-        //get product by category id and have paging
-        [HttpGet("products/category/{categoryId}/{pageIndex}/{pageSize}")]
-        public async Task<IActionResult> GetProductByCategoryIdPaging(int categoryId, int pageIndex, int pageSize)
-        {
-            try
-            {
-                var listProduct = await productService.GetProductsByCategoryIdPagingAsync(categoryId, pageIndex, pageSize);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
-                    return NotFound(resultFail);
-                }
-                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
-                {
-                    Products = listProduct
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-
-        }
+        
 
 
         //get product by id and compapility of them
@@ -344,30 +298,5 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
-
-        //get product by order id
-        [HttpGet("products/order/{orderId}")]
-        public async Task<IActionResult> GetProductByOrderId(int orderId)
-        {
-            try
-            {
-                var listProduct = await productService.GetProductsByOrderIdAsync(orderId);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this order!"));
-                    return NotFound(resultFail);
-                }
-                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
-                {
-                    Products = listProduct
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-            
-        }
-
-  }
+    }
 }

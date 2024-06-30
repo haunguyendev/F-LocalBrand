@@ -84,35 +84,7 @@ namespace SWD.F_LocalBrand.Business.Services
             
         }
 
-        //get prodcut by category id
-        public async Task<List<ProductModel>> GetProductsByCategoryIdAsync(int categoryId)
-        {
-            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId && x.Status == "active").ToListAsync();
-            if(listProducts != null)
-            {
-                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
-                return listProductModel;
-            }
-            else
-            {
-                return null;
-            }            
-        }
-
-        //get product by category id and have paging
-        public async Task<List<ProductModel>> GetProductsByCategoryIdPagingAsync(int categoryId, int pageIndex, int pageSize)
-        {
-            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-            if(listProducts != null)
-            {
-                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
-                return listProductModel;
-            }
-            else
-            {
-                return null;
-            }
-        }
+        
 
         #region Get product by id and compapility of them ( only get product by id and recommend of them, do not have reverse)
         public async Task<ProductModel?> GetProductWithRecommendationsAsync(int productId)
@@ -261,16 +233,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
-        //get product by order id
-        public async Task<List<ProductModel>> GetProductsByOrderIdAsync(int orderId)
-        {
-            var products = await _unitOfWork.OrderDetails
-            .FindByCondition(od => od.OrderId == orderId)
-            .Include(od => od.Product)
-            .Select(od => od.Product)
-            .ToListAsync();
-            return _mapper.Map<List<ProductModel>>(products);
-        }
+        
 
     }
 }
