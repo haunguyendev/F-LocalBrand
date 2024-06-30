@@ -4,17 +4,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
+using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.API.Payloads.Requests;
 using SWD.F_LocalBrand.API.Payloads.Requests.Customer;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Services;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class CustomerController : ControllerBase
     {
@@ -44,7 +46,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             await _emailService.SendEmailAsync(mailData);
         }
 
-        [HttpPost("send-otp")]
+        [HttpPost("customer/otp/send")]
         public async Task<IActionResult> SendOtp([FromBody] SendOtpRequest request)
         {
             Regex regex = new Regex(@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
@@ -74,7 +76,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         }
 
-        [HttpPost("verify-otp")]
+        [HttpPost("customer/otp/verify")]
         public IActionResult VerifyOtp([FromBody] VerifyOtpRequest request)
         {
             Regex regex = new Regex(@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
@@ -92,7 +94,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             return Unauthorized(ApiResult<SendOtpResponse>.Succeed(new SendOtpResponse { Message = "Invalid OTP" }));
         }
 
-        [HttpPost("reset-password")]
+        [HttpPost("customer/password/reset")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
             var checkCustomer = await _customerService.GetCustomerByUsername(request.Email);
@@ -118,7 +120,8 @@ namespace SWD.F_LocalBrand.API.Controllers
             return NotFound(ApiResult<Dictionary<string, string[]>>.Fail(new Exception("User is not found")));
         }
 
-        [HttpGet("{customerId}/orders/{orderId}/histories")]
+        //Get orders by customer id and check orderId == in database if it have return order 
+        [HttpGet("customer/{customerId}/orders/{orderId}")]
         public async Task<IActionResult> GetOrderHistories(int customerId, int orderId)
         {
             try
@@ -142,7 +145,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //Get customer by id with customer products
-        [HttpGet("customer-product/{customerId}")]
+        [HttpGet("customer/{customerId}/customer-products")]
         public async Task<IActionResult> GetCustomerProductByCustomerId(int customerId)
         {
             var customer = await _customerService.GetCustomerProductByCustomerId(customerId);
@@ -158,7 +161,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //Get customer product by customer id (see product recommended of products)
-        [HttpGet("customer-product/{customerId}/recommended")]
+        [HttpGet("customer/{customerId}/products/product-recommended")]
         public async Task<IActionResult> GetCustomerProductRecommended(int customerId)
         {
             var customer = await _customerService.GetCustomerProductAndProductRecommendByCustomerId(customerId);
@@ -174,7 +177,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #region api update user account
         [Authorize]
-        [HttpPut("update-customer-account")]
+        [HttpPut("customer/customer-account")]
         [SwaggerOperation(
            Summary = "Update customer account details",
            Description = "Updates the details of an existing customer account."
@@ -230,7 +233,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         #region api update user gmail
         [Authorize]
-        [HttpPut("update-customer-gmail")]
+        [HttpPut("customer/customer-gmail")]
         [SwaggerOperation(
            Summary = "Update customer Gmail details",
            Description = "Updates the details of an existing customer Gmail. Example of a valid request: {\"fullName\":\"New FullName\",\"image\":\"http://example.com/image.jpg\",\"phone\":\"1234567890\",\"address\":\"New Address\"}"
@@ -273,7 +276,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         #endregion
         #region register customer api
-        [HttpPost("register-customer")]
+        [HttpPost("customer/register-customer")]
         [SwaggerOperation(
             Summary = "Register a new customer",
             Description = "Registers a new customer with the provided details. The input model must contain valid data as specified in the constraints."
@@ -318,7 +321,41 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
+        [Authorize]
+        [HttpGet("cutomer-info")]
 
+        public async Task<IActionResult> GetUserInformation()
+        {
+            Request.Headers.TryGetValue("Authorization", out var token);
+            token = token.ToString().Split()[1];
+            // Here goes your token validation logic
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                throw new BadRequestException("Authorization header is missing or invalid.");
+            }
+            // Decode the JWT token
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            // Check if the token is expired
+            if (jwtToken.ValidTo < DateTime.UtcNow)
+            {
+                throw new BadRequestException("Token has expired.");
+            }
+
+            string id = jwtToken.Claims.FirstOrDefault(c => c.Type == "nameid")?.Value;
+            var customer = await _customerService.GetCustomerById(int.Parse(id));
+            if (customer == null)
+            {
+                return BadRequest("email is in valid");
+            }
+
+            // If token is valid, return success response
+            return Ok(ApiResult<CheckTokenResponseCustomer>.Succeed(new CheckTokenResponseCustomer
+            {
+                Customer = customer
+            }));
+        }
 
     }
 }

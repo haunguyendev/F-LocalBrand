@@ -14,7 +14,7 @@ using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers;
 
-[Route("api/[controller]/[action]")]
+[Route("api/[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
 {
@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost]
+    [HttpPost("register")]
     public async Task<IActionResult> Signup([FromForm] SignupRequest req)
     {
         var validationResult = _signupValidator.Validate(req);
@@ -69,7 +69,7 @@ public class AuthController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost]
+    [HttpPost("login")]
     public IActionResult Login([FromBody] LoginRequest req)
     {
         var validationResult = _loginValidator.Validate(req);
@@ -100,7 +100,7 @@ public class AuthController : ControllerBase
     }
     //Recive refresh token and return new access token
     [AllowAnonymous]
-    [HttpPost]
+    [HttpPost("access-token")]
     public IActionResult RefreshToken([FromBody] RefreshTokenRequest req)
     {
         var handler = new JwtSecurityTokenHandler();
@@ -117,7 +117,7 @@ public class AuthController : ControllerBase
 
     // Check if the token is valid
     [Authorize]
-    [HttpGet()]
+    [HttpGet("user-info")]
     
     public async Task<IActionResult> GetUserInformation()
     {
@@ -152,7 +152,7 @@ public class AuthController : ControllerBase
         }));
     }
     [AllowAnonymous]
-    [HttpPost]
+    [HttpPost("google-login")]
     public async Task<IActionResult> GoogleLogin([FromBody] LoginGoogleRequest request)
     {
         var handler = new JwtSecurityTokenHandler();
@@ -176,7 +176,7 @@ public class AuthController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpPost]
+    [HttpPost("customer-login")]
     public IActionResult LoginCustomer([FromBody] LoginRequest req)
     {
         var validationResult = _loginValidator.Validate(req);

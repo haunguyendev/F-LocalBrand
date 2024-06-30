@@ -8,7 +8,7 @@ using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class CollectionController : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //Get collection by id
-        [HttpGet("{id}")]
+        [HttpGet("collection/{collectionId}")]
         public async Task<IActionResult> GetCollectionById(int id)
         {
             try
@@ -46,7 +46,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         #region api create collection
-        [HttpPost("create")]
+        [HttpPost("collection")]
         [SwaggerOperation(
             Summary = "Create a new collection",
             Description = "Creates a new collection with the provided name."
@@ -87,7 +87,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         #endregion
         #region api update collection
-        [HttpPut("update")]
+        [HttpPut("collection")]
         [SwaggerOperation(
            Summary = "Update collection details",
            Description = "Updates the details of an existing collection. Campaign and CollectionProducts are optional."

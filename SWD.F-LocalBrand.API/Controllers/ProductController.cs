@@ -7,7 +7,7 @@ using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -19,7 +19,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //Get all product
-        [HttpGet("/list-product")]
+        [HttpGet("products")]
         public async Task<IActionResult> GetAllProduct()
         {
             try
@@ -42,7 +42,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         }
 
-        [HttpGet("/list-product/{pageSize}/{pageNumber}")]
+        [HttpGet("products/{pageSize}/{pageNumber}")]
         public async Task<IActionResult> GetAllProduct(int pageSize, int pageNumber)
         {
             var listProduct = await productService.GetAllProductsAsync(pageNumber, pageSize);
@@ -58,7 +58,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //get product by category id
-        [HttpGet("category-with-products/{categoryId}")]
+        [HttpGet("products/category/{categoryId}")]
         public async Task<IActionResult> GetProductByCategoryId(int categoryId)
         {
             try
@@ -82,7 +82,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //get product by category id and have paging
-        [HttpGet("category-with-products/{categoryId}/{pageIndex}/{pageSize}")]
+        [HttpGet("products/category/{categoryId}/{pageIndex}/{pageSize}")]
         public async Task<IActionResult> GetProductByCategoryIdPaging(int categoryId, int pageIndex, int pageSize)
         {
             try
@@ -107,7 +107,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         //get product by id and compapility of them
-        [HttpGet("/product-product-recommend/{productId}")]
+        [HttpGet("product/{productId}/product-recommendations")]
         public async Task<IActionResult> GetProductWithRecommendations(int productId)
         {
             try
@@ -138,7 +138,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         /// <response code="200">Returns the newly created product.</response>
         /// <response code="400">If the request is invalid.</response>
         /// <response code="500">If there was an internal server error.</response>
-        [HttpPost("create-product")]
+        [HttpPost("product")]
         [SwaggerOperation(
         Summary = "Create a new product",
         Description = "Creates a new product with the provided details. The input model must contain valid data as specified in the constraints."
@@ -209,7 +209,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region api update product detail 
-        [HttpPut("update-product")]
+        [HttpPut("product")]
         [SwaggerOperation(
            Summary = "Update product details",
            Description = "Updates the details of an existing product. Example of a valid request: {\"id\":1,\"productName\":\"New Product Name\",\"categoryId\":1,\"campaignId\":1,\"gender\":\"Male\",\"price\":100.00,\"description\":\"New description\",\"stockQuantity\":50,\"imageUrl\":\"http://example.com/image.jpg\",\"size\":42,\"color\":\"Red\",\"status\":\"Active\"}"
@@ -286,7 +286,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region api delete-product
-        [HttpDelete("{productId}")]
+        [HttpDelete("product/{productId}")]
         [SwaggerOperation(
        Summary = "Delete a product",
        Description = "Deletes a product by changing its status to 'Deleted'. A valid product ID is required.")]
@@ -308,7 +308,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
         #region add product recommend api
-        [HttpPost("add-recommended-products")]
+        [HttpPost("product/recommended-products")]
         [SwaggerOperation(
            Summary = "Add recommended products to a product",
            Description = "Adds recommended products to a specified product. The request must contain a valid product ID and a list of recommended product IDs.")]
@@ -346,7 +346,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         //get product by order id
-        [HttpGet("/by-order/{orderId}/products")]
+        [HttpGet("products/order/{orderId}")]
         public async Task<IActionResult> GetProductByOrderId(int orderId)
         {
             try

@@ -8,7 +8,7 @@ using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class OrderController : ControllerBase
     {
@@ -20,7 +20,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //get list order have payment status is true
-        [HttpGet("orders/withPaymentStatusTrue")]
+        [HttpGet("orders/payment-true")]
         public async Task<IActionResult> GetOrdersWithPaymentStatusTrue()
         {
             try
@@ -38,7 +38,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //get order or list order have status from request
-        [HttpGet("byStatus/{status}")]
+        [HttpGet("order/status/{status}")]
         public async Task<IActionResult> GetOrdersByStatus(string status)
         {
             try
@@ -55,7 +55,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #region api order status
-        [HttpPut("update-status")]
+        [HttpPut("order/status")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResult<object>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResult<ValidationProblemDetails>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResult<object>))]

@@ -8,7 +8,7 @@ using SWD.F_LocalBrand.Data.Models;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class PaymentController : ControllerBase
     {
@@ -19,7 +19,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             
         }
 
-        [HttpPost("create")]
+        [HttpPost("payment")]
         [SwaggerOperation(
        Summary = "Create a new payment",
        Description = "Creates a new payment with the provided details."

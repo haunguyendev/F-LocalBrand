@@ -10,7 +10,7 @@ using SWD.F_LocalBrand.Data.Models;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class CategoryController : ControllerBase
     {
@@ -22,7 +22,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //get categories with products of them
-        [HttpGet("categories/products")]
+        [HttpGet("categories/with-products")]
         public IActionResult GetCategoriesWithProducts()
         {
             try
@@ -70,7 +70,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //get category with categpry id with products of them 
-        [HttpGet("category/{categoryId}")]
+        [HttpGet("category/{categoryId}/with-products")]
         public IActionResult GetCategoryWithProducts(int categoryId)
         {
             try
@@ -93,7 +93,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             
         }
         #region create category api
-        [HttpPost("create-category")]
+        [HttpPost("category")]
         [SwaggerOperation(
            Summary = "Create a new category",
            Description = "Creates a new category with the provided details. The input model must contain valid data as specified in the constraints."
@@ -136,7 +136,7 @@ namespace SWD.F_LocalBrand.API.Controllers
          */
         #endregion
         #region update category api
-        [HttpPut("update-category")]
+        [HttpPut("category")]
         [SwaggerOperation(
            Summary = "Update category details",
            Description = "Updates the details of an existing category. Example of a valid request: {\"id\":1,\"categoryName\":\"New Category Name\",\"description\":\"New category description\"}"
@@ -177,7 +177,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
         #region delete category api
-        [HttpDelete("delete-category")]
+        [HttpDelete("category")]
         [SwaggerOperation(
       Summary = "Delete a category",
       Description = "Updates the status of a category to 'Deleted' and updates the status of related products to 'Inactive'."
@@ -216,7 +216,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
         #region update status 
-        [HttpPut("update-status/{categoryId}")]
+        [HttpPut("category/{categoryId}/status")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

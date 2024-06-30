@@ -9,7 +9,7 @@ using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class CampaignController : ControllerBase
     {
@@ -21,7 +21,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //Get campaign by id
-        [HttpGet("{id}")]
+        [HttpGet("campaign/{id}")]
         public async Task<IActionResult> GetCampaignById(int id)
         {
             var campaign = await _campaignService.GetCampaignById(id);
@@ -40,7 +40,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #region create campaig api
-        [HttpPost("create-campaign")]
+        [HttpPost("campaign")]
         [SwaggerOperation(
        Summary = "Create a new campaign",
        Description = "Creates a new campaign. Example of a valid request: {\"campaignName\":\"New Campaign Name\"}")]
@@ -72,7 +72,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
         #region update campaign api
-        [HttpPut("update-campaign")]
+        [HttpPut("campaign")]
         [SwaggerOperation(
     Summary = "Update campaign details",
     Description = "Updates the details of an existing campaign. Example of a valid request: {\"id\":1,\"campaignName\":\"New Campaign Name\",\"collectionIds\":[1,2,3]}"
