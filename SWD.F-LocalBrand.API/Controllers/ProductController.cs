@@ -4,6 +4,7 @@ using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests.Product;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.Services;
+using System.Collections.Generic;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
@@ -299,17 +300,17 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region get list product which best seller
-        [HttpGet("products/best-seller")]
+        [HttpGet("products/best-seller/{limit}")]
         [SwaggerOperation(
                       Summary = "Get best-selling products",
                       Description = "Retrieves a list of best-selling products based on the number of orders.")]
         [SwaggerResponse(200, "Best-selling products retrieved successfully", typeof(ApiResult<ListProductResponse>))]
         [SwaggerResponse(500, "An error occurred while retrieving the best-selling products", typeof(ApiResult<object>))]
-        public async Task<IActionResult> GetBestSellingProducts()
+        public async Task<IActionResult> GetBestSellingProducts(int limit)
         {
             try
             {
-                var bestSellingProducts = await productService.GetBestSellerProductsAsync();
+                var bestSellingProducts = await productService.GetBestSellerProductsAsync(limit);
                 return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
                 {
                     Products = bestSellingProducts
@@ -323,17 +324,17 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region get list product have lastest
-        [HttpGet("products/latest")]
+        [HttpGet("products/latest/{limit}")]
         [SwaggerOperation(
                                  Summary = "Get latest products",
                                  Description = "Retrieves a list of the latest products based on the creation date.")]
         [SwaggerResponse(200, "Latest products retrieved successfully", typeof(ApiResult<ListProductResponse>))]
         [SwaggerResponse(500, "An error occurred while retrieving the latest products", typeof(ApiResult<object>))]
-        public async Task<IActionResult> GetLatestProducts()
+        public async Task<IActionResult> GetLatestProducts(int limit)
         {
             try
             {
-                var latestProducts = await productService.GetLatestProductsAsync();
+                var latestProducts = await productService.GetLatestProductsAsync(limit);
                 return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
                 {
                     Products = latestProducts
