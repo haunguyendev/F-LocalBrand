@@ -57,53 +57,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }));
         }
 
-        //get product by category id
-        [HttpGet("products/category/{categoryId}")]
-        public async Task<IActionResult> GetProductByCategoryId(int categoryId)
-        {
-            try
-            {
-                var listProduct = await productService.GetProductsByCategoryIdAsync(categoryId);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
-                    return NotFound(resultFail);
-                }
-                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
-                {
-                    Products = listProduct
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
 
-        }
-
-        //get product by category id and have paging
-        [HttpGet("products/category/{categoryId}/{pageIndex}/{pageSize}")]
-        public async Task<IActionResult> GetProductByCategoryIdPaging(int categoryId, int pageIndex, int pageSize)
-        {
-            try
-            {
-                var listProduct = await productService.GetProductsByCategoryIdPagingAsync(categoryId, pageIndex, pageSize);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
-                    return NotFound(resultFail);
-                }
-                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
-                {
-                    Products = listProduct
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-
-        }
 
 
         //get product by id and compapility of them
@@ -150,7 +104,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         {
             try
             {
-                
+
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors)
@@ -288,8 +242,8 @@ namespace SWD.F_LocalBrand.API.Controllers
         #region api delete-product
         [HttpDelete("product/{productId}")]
         [SwaggerOperation(
-       Summary = "Delete a product",
-       Description = "Deletes a product by changing its status to 'Deleted'. A valid product ID is required.")]
+            Summary = "Delete a product",
+            Description = "Deletes a product by changing its status to 'Deleted'. A valid product ID is required.")]
         public async Task<IActionResult> DeleteProduct(int productId)
         {
             try
@@ -344,30 +298,52 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
-
-        //get product by order id
-        [HttpGet("products/order/{orderId}")]
-        public async Task<IActionResult> GetProductByOrderId(int orderId)
+        #region get list product which best seller
+        [HttpGet("products/best-seller")]
+        [SwaggerOperation(
+                      Summary = "Get best-selling products",
+                      Description = "Retrieves a list of best-selling products based on the number of orders.")]
+        [SwaggerResponse(200, "Best-selling products retrieved successfully", typeof(ApiResult<ListProductResponse>))]
+        [SwaggerResponse(500, "An error occurred while retrieving the best-selling products", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetBestSellingProducts()
         {
             try
             {
-                var listProduct = await productService.GetProductsByOrderIdAsync(orderId);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this order!"));
-                    return NotFound(resultFail);
-                }
+                var bestSellingProducts = await productService.GetBestSellerProductsAsync();
                 return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
                 {
-                    Products = listProduct
+                    Products = bestSellingProducts
                 }));
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(500, ApiResult<object>.Fail(ex));
             }
-            
         }
+        #endregion
 
-  }
+        #region get list product have lastest
+        [HttpGet("products/latest")]
+        [SwaggerOperation(
+                                 Summary = "Get latest products",
+                                 Description = "Retrieves a list of the latest products based on the creation date.")]
+        [SwaggerResponse(200, "Latest products retrieved successfully", typeof(ApiResult<ListProductResponse>))]
+        [SwaggerResponse(500, "An error occurred while retrieving the latest products", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetLatestProducts()
+        {
+            try
+            {
+                var latestProducts = await productService.GetLatestProductsAsync();
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = latestProducts
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+    }
 }

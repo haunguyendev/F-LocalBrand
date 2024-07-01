@@ -52,6 +52,9 @@ public partial class Product : EntityBase
     [StringLength(30)]
     public string Status { get; set; } = null!;
 
+    [Column("createDate")]
+    public DateTime? CreateDate { get; set; }
+
     [ForeignKey("CampaignId")]
     [InverseProperty("Products")]
     public virtual Campaign? Campaign { get; set; }
