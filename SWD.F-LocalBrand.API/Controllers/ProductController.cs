@@ -323,7 +323,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region get list product have lastest
-        [HttpGet("products/latest")]
+        [HttpGet("products/newest")]
         [SwaggerOperation(
                                  Summary = "Get latest products",
                                  Description = "Retrieves a list of the latest products based on the creation date.")]
