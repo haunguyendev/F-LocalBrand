@@ -127,5 +127,36 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+        #region get all collection
+        [HttpGet("collections")]
+        [SwaggerOperation(
+            Summary = "Get collections",
+            Description = "Get all collections"
+        )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Collections get successfully", typeof(ApiResult<CollectionsResponse>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Collection not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while get collections", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetAllCollections()
+        {
+            try
+            {
+                var collections = await _collectionService.GetCollections();
+                if (collections == null)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Collections not found" }));
+                }
+
+                return Ok(ApiResult<CollectionsResponse>.Succeed(new CollectionsResponse{ 
+                    Collections = collections 
+                }));
+            }
+            catch (Exception e){ 
+                return StatusCode(500, ApiResult<object>.Fail(e));
+            }
+        }
+        #endregion
+
     }
 }
