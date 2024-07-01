@@ -9,5 +9,6 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
 {
     public interface IOrderRepository : IRepositoryBaseAsync<Order>
     {
+        Task<Order?> GetCartByCustomerId(int customerId);
     }
 }

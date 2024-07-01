@@ -90,6 +90,8 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
         }
         public void Dispose() => _context.Dispose();
 
+        
+
         public Task<int> CommitAsync() => _context.SaveChangesAsync();
     }
 }
