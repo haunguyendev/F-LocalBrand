@@ -101,5 +101,12 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+        #region get all collection
+        public async Task<List<CollectionModel>> GetCollections()
+        {
+            var collection = await _unitOfWork.Collections.FindAll().ToListAsync();
+            return _mapper.Map<List<CollectionModel>>(collection);
+        }
+        #endregion
     }
 }
