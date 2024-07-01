@@ -60,8 +60,6 @@ namespace SWD.F_LocalBrand.Business.Services
 
             return listProductReturn;
 
-
-
         }
 
         #endregion
@@ -233,8 +231,41 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
-        
+        #region get list product which best seller
+        public async Task<List<ProductModel>> GetBestSellerProductsAsync()
+        {
+            var bestSellerProductIds = await _unitOfWork.OrderDetails
+                .FindAll()
+                .GroupBy(od => od.ProductId)
+                .OrderByDescending(g => g.Sum(od => od.Quantity ?? 0))
+                .Select(g => g.Key)
+                .ToListAsync();
+            Console.WriteLine("Best Seller Product IDs: " + string.Join(", ", bestSellerProductIds));
+            var bestSellerProducts = await _unitOfWork.Products
+                .FindAll()
+                .Where(p => bestSellerProductIds.Contains(p.Id))
+                .ToListAsync();
 
+            //sort best seller products by bestSellerProductIds
+            bestSellerProducts = bestSellerProducts
+                .OrderBy(p => bestSellerProductIds.IndexOf(p.Id))
+                .ToList();
+
+            return _mapper.Map<List<ProductModel>>(bestSellerProducts);
+        }
+        #endregion
+
+        #region get list product have lastest
+        public async Task<List<ProductModel>> GetLatestProductsAsync()
+        {
+            var latestProducts = await _unitOfWork.Products
+                .FindAll()
+                .OrderByDescending(p => p.CreateDate)
+                .ToListAsync();
+
+            return _mapper.Map<List<ProductModel>>(latestProducts);
+        }
+        #endregion
     }
 }
     

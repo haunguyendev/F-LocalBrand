@@ -20,5 +20,7 @@ namespace SWD.F_LocalBrand.Business.DTO.Product
         public int Size { get; set; }
         public string Color { get; set; }
         public string Status { get; set; }
+
+        public DateTime CreateDate { get; set; }
     }
 }
