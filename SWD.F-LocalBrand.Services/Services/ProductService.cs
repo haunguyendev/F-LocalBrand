@@ -87,23 +87,31 @@ namespace SWD.F_LocalBrand.Business.Services
         #region Get product by id and compapility of them ( only get product by id and recommend of them, do not have reverse)
         public async Task<ProductModel?> GetProductWithRecommendationsAsync(int productId)
         {
+            // Tải sản phẩm cùng với các sản phẩm được đề xuất và các bộ sưu tập liên quan
             var product = await _unitOfWork.Products.FindByCondition(
                 p => p.Id == productId,
                 trackChanges: false,
                 includeProperties: p => p.CompapilityProducts)
                 .Include(p => p.CompapilityProducts)
                     .ThenInclude(cp => cp.RecommendedProduct)
+                .Include(p => p.CollectionProducts)
+                    .ThenInclude(cp => cp.Collection)
+                .AsSplitQuery() // Tách truy vấn thành nhiều truy vấn nhỏ để tối ưu hiệu suất
                 .FirstOrDefaultAsync();
 
             if (product == null) return null;
 
+            // Sử dụng HashSet để tránh lặp lại các sản phẩm đã kiểm tra
             var visitedProducts = new HashSet<int>();
             var recommendations = new List<Product>();
 
+            // Gọi hàm đệ quy để lấy tất cả các sản phẩm được đề xuất
             GetRecommendations(product, visitedProducts, recommendations);
 
+            // Map các dữ liệu sản phẩm sang ProductModel
             var productModel = _mapper.Map<ProductModel>(product);
-            productModel.Recommendations = _mapper.Map<List<ProductModel>>(recommendations);
+            productModel.Recommendations = _mapper.Map<List<ProductModel>>(recommendations.DistinctBy(p => p.Id).ToList());
+            productModel.Collections = _mapper.Map<List<CollectionModel>>(product.CollectionProducts.Select(cp => cp.Collection).ToList());
 
             return productModel;
         }

@@ -28,7 +28,7 @@ public partial class Product : EntityBase
     public string? Gender { get; set; }
 
     [Column("price", TypeName = "decimal(10, 2)")]
-    public decimal? Price { get; set; }
+    public decimal Price { get; set; }
 
     [Column("description")]
     [StringLength(500)]
