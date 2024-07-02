@@ -23,7 +23,9 @@ namespace SWD.F_LocalBrand.Business.Mapper
             CreateMap<Compapility, CompapilityModel>()
             .ForMember(dest => dest.RecommendedProduct, opt => opt.MapFrom(src => src.RecommendedProduct));
             CreateMap<Product, ProductModel>()
-                .ForMember(dest => dest.Recommendations, opt => opt.MapFrom(src => src.CompapilityProducts.Select(cp => cp.RecommendedProduct)));
+            .ForMember(dest => dest.Recommendations, opt => opt.Ignore()) // Recommendations sẽ được xử lý thủ công
+            .ForMember(dest => dest.Collections, opt => opt.Ignore());
+
             CreateMap<Collection, CollectionModel>()
             .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.CollectionProducts.Select(cp => cp.Product)));
             CreateMap<Campaign, CampaignModel>()
