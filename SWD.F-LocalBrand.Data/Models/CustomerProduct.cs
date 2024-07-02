@@ -24,7 +24,7 @@ public partial class CustomerProduct : EntityBase
 
     [Column("status")]
     [StringLength(50)]
-    public string? Status { get; set; }
+    public bool Status { get; set; } 
 
     [ForeignKey("CustomerId")]
     [InverseProperty("CustomerProducts")]

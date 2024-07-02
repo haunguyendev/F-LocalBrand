@@ -137,7 +137,6 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
         #region update payment 
-
         public async Task UpdatePaymentStatusAsync(int paymentId, string status, int statusCode)
         {
             await _unitOfWork.BeginTransactionAsync();
@@ -172,6 +171,31 @@ namespace SWD.F_LocalBrand.Business.Services
                     };
 
                     await _unitOfWork.OrderHistories.CreateAsync(orderHistory);
+
+                    var orderDetails = await _unitOfWork.OrderDetails.FindAllAsync(od => od.OrderId == order.Id);
+                    foreach (var orderDetail in orderDetails)
+                    {
+                        var customerProduct = await _unitOfWork.CustomerProducts
+                            .FindAsync(cp => cp.CustomerId == order.CustomerId && cp.ProductId == orderDetail.ProductId);
+
+                        if (customerProduct != null)
+                        {
+                            customerProduct.BuyDate = DateOnly.FromDateTime(DateTime.Now);
+                            await _unitOfWork.CustomerProducts.UpdateAsync(customerProduct);
+                        }
+                        else
+                        {
+                            customerProduct = new CustomerProduct
+                            {
+                                CustomerId = order.CustomerId,
+                                ProductId = orderDetail.ProductId,
+                                BuyDate = DateOnly.FromDateTime(DateTime.Now),
+                                Status = true 
+                            };
+
+                            await _unitOfWork.CustomerProducts.CreateAsync(customerProduct);
+                        }
+                    }
                 }
                 else if (status == PaymentStatusTypeEnum.Failed || status == PaymentStatusTypeEnum.Expired)
                 {
