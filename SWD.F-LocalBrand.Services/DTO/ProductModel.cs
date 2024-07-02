@@ -36,5 +36,7 @@ namespace SWD.F_LocalBrand.Business.DTO
         public DateTime? CreateDate { get; set; }
 
         public List<ProductModel> Recommendations { get; set; }
+
+        public List<CollectionModel> Collections { get; set; }
     }
 }
