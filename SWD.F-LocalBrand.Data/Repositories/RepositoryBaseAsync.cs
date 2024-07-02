@@ -106,5 +106,10 @@ namespace SWD.F_LocalBrand.Data.Repositories
         {
             return await _dbContext.Set<T>().FirstOrDefaultAsync(predicate);
         }
+
+        public async Task<List<T>> FindAllAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbContext.Set<T>().Where(predicate).ToListAsync();
+        }
     }
 }

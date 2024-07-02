@@ -1,10 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
+using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.API.Payloads.Requests.Order;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Business.Services;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
@@ -106,6 +110,100 @@ namespace SWD.F_LocalBrand.API.Controllers
                 }
 
                 return Ok(ApiResult<object>.Succeed(new { Message = "Order status updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+        #region api create order with payment
+
+
+        [HttpPost("create-order")]
+        [Authorize]
+        [SwaggerOperation(
+            Summary = "Create a new order and initiate payment",
+            Description = "Creates a new order with the provided products and initiates payment."
+        )]
+        [SwaggerResponse(200, "Order created successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(500, "An error occurred while creating the order")]
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                   .Select(e => e.ErrorMessage)
+                                                   .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                    {
+                        { "Errors", errors.ToArray() }
+                    }));
+                }
+
+                if (!Request.Headers.TryGetValue("Authorization", out var token))
+                {
+                    throw new BadRequestException("Authorization header is missing or invalid.");
+                }
+
+                token = token.ToString().Split()[1];
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    throw new BadRequestException("Authorization header is missing or invalid.");
+                }
+
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var customerClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.NameId);
+
+                if (customerClaim == null)
+                {
+                    return Unauthorized(ApiResult<string>.Error("Unauthorized: No customer ID found in token."));
+                }
+
+                var customerId = int.Parse(customerClaim.Value);
+                await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
+
+                return Ok(ApiResult<string>.Succeed("Order created successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+        #region api update payment status 
+        [HttpPost("update-payment-status")]
+        [Authorize]
+        [SwaggerOperation(
+           Summary = "Update payment status",
+           Description = "Updates the status of the payment and the corresponding order."
+       )]
+        [SwaggerResponse(200, "Payment status updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(500, "An error occurred while updating the payment status")]
+        public async Task<IActionResult> UpdatePaymentStatus([FromBody] UpdatePaymentStatusRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                   .Select(e => e.ErrorMessage)
+                                                   .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                    {
+                        { "Errors", errors.ToArray() }
+                    }));
+                }
+
+                await _orderService.UpdatePaymentStatusAsync(request.PaymentId, request.Status, request.StatusCode);
+
+                return Ok(ApiResult<string>.Succeed("Payment status updated successfully"));
             }
             catch (Exception ex)
             {
