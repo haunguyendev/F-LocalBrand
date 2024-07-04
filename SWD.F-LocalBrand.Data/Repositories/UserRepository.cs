@@ -1,4 +1,5 @@
-﻿using SWD.F_LocalBrand.Data.Common.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.DataAccess;
 using SWD.F_LocalBrand.Data.Models;
 using System;
@@ -14,6 +15,10 @@ namespace SWD.F_LocalBrand.Data.Repositories
         public UserRepository(SwdFlocalBrandContext dbContext) : base(dbContext)
         {
         }
-       
+
+        public async Task<List<User>> GetAllAsync()
+        {
+            return await _dbContext.Users.Include(x=>x.Role).ToListAsync();
+        }
     }
 }

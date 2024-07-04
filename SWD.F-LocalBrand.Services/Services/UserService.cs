@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.DTO.User;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 namespace SWD.F_LocalBrand.Business.Services
@@ -30,6 +31,25 @@ namespace SWD.F_LocalBrand.Business.Services
             var user = await _unitOfWork.Users.FindByCondition(u=>u.Email==email).FirstOrDefaultAsync();
             return _mapper.Map<UserModel>(user);
         }
+
+        #region Get all list user
+
+        public async Task<List<UserResponseModel>> GetAllUsersAsync()
+        {
+            var users = await _unitOfWork.Users.GetAllAsync();
+            var userDtos = users.Select(u => new UserResponseModel
+            {
+                Id = u.Id,
+                UserName = u.UserName,
+                Email = u.Email,
+                Phone = u.Phone,
+                Address = u.Address,
+                RoleName = u.Role?.RoleName // Thêm RoleName vào DTO
+            }).ToList();
+
+            return userDtos;
+        }
+        #endregion
 
         //public async Task<string> CreateUrl(IFormFile formFile)
         //{
