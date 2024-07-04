@@ -3,6 +3,7 @@ using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Campaign;
 using SWD.F_LocalBrand.Business.DTO.Category;
 using SWD.F_LocalBrand.Business.DTO.Product;
+using SWD.F_LocalBrand.Business.DTO.User;
 using SWD.F_LocalBrand.Data.Models;
 
 
@@ -61,6 +62,7 @@ namespace SWD.F_LocalBrand.Business.Mapper
             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
             CreateMap<Payment, PaymentModel>();
             CreateMap<Customer, CustomerModel>();
+            
         }
     }
 }
