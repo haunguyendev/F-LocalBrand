@@ -36,7 +36,9 @@ public partial class User : EntityBase
 
     [Column("image")]
     public string? Image { get; set; }
-
+    [Column("status")]
+    public string? Status { get; set; }
+    
     [Column("role_id")]
     public int? RoleId { get; set; }
 
