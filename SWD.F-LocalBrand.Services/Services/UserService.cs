@@ -44,7 +44,8 @@ namespace SWD.F_LocalBrand.Business.Services
                 Email = u.Email,
                 Phone = u.Phone,
                 Address = u.Address,
-                RoleName = u.Role?.RoleName // Thêm RoleName vào DTO
+                Status=u.Status,
+                RoleName = u.Role?.RoleName 
             }).ToList();
 
             return userDtos;
