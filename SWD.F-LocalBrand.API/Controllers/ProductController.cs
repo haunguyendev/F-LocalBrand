@@ -3,6 +3,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests.Product;
 using SWD.F_LocalBrand.API.Payloads.Responses;
+using SWD.F_LocalBrand.Business.DTO.Product;
 using SWD.F_LocalBrand.Business.Services;
 using System.Collections.Generic;
 
@@ -338,6 +339,30 @@ namespace SWD.F_LocalBrand.API.Controllers
                 return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
                 {
                     Products = latestProducts
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
+        #region get products with fillter
+        [HttpGet("products/filter")]
+        [SwaggerOperation(
+                       Summary = "Get products with filter",
+                       Description = "Retrieves a list of products based on the provided filter criteria.")]
+        [SwaggerResponse(200, "Products retrieved successfully", typeof(ApiResult<ListProductResponse>))]
+        [SwaggerResponse(500, "An error occurred while retrieving the products", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetProductsWithFilter([FromQuery] ProductFilterModel request)
+        {
+            try
+            {
+                var products = await productService.GetAllProductsWithFilterAsync(request);
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = products
                 }));
             }
             catch (Exception ex)
