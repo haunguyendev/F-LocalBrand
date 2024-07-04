@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Cart;
 using SWD.F_LocalBrand.Business.DTO.Order;
+using SWD.F_LocalBrand.Business.DTO.VNPay;
+using SWD.F_LocalBrand.Business.Settings.VNPay;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 using SWD.F_LocalBrand.Data.Repositories;
@@ -19,11 +22,15 @@ namespace SWD.F_LocalBrand.Business.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly VNPaySettings _vnPaySettings;
+        private readonly VNPayService _vnPayService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, IOptions<VNPaySettings> vnPaySettings, VNPayService vnPayService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _vnPaySettings = vnPaySettings.Value;
+            _vnPayService = vnPayService;
         }
 
         //get list order have payment status is true
@@ -73,7 +80,7 @@ namespace SWD.F_LocalBrand.Business.Services
             return _mapper.Map<List<ProductModel>>(products);
         }
         #region create order with payment 
-        public async Task CreateOrderAsync(int customerId, List<CartProductModel> products, string paymentMethod)
+        public async Task<string> CreateOrderAsync(int customerId, List<CartProductModel> products, string paymentMethod)
         {
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -126,43 +133,71 @@ namespace SWD.F_LocalBrand.Business.Services
                 };
 
                 await _unitOfWork.Payments.CreateAsync(payment);
-                await _unitOfWork.CommitAsync();
-               
+                var res = await _unitOfWork.CommitAsync();
+
+                var paymentUrl = string.Empty;
+                if (res > 0)
+                {
+                    var vnPayRequest = new CreateVNPayModel(_vnPaySettings.Version,
+                        _vnPaySettings.TmnCode, DateTime.Now, "127.0.0.1" ?? string.Empty, order.TotalAmount ?? 0, "VNĐ",
+                        "other", $"Thanh toan don hang {order.Id}", _vnPaySettings.ReturnUrl, order.Id!.ToString() ?? string.Empty);
+                    paymentUrl = _vnPayService.GetLink(_vnPaySettings.PaymentUrl, _vnPaySettings.HashSecret, vnPayRequest);
+                    return paymentUrl;
+                }
+                return "Something wrong!";
+
             }
             catch
             {
-                await _unitOfWork.RollbackAsync(); 
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
         #endregion
         #region update payment 
 
-        public async Task UpdatePaymentStatusAsync(int paymentId, string status, int statusCode)
+        public async Task<string> UpdatePaymentStatusAsync(UpdateVNPayModel updateVNPayModel)
         {
+            if (updateVNPayModel == null)
+            {
+                return "Input data required"; // "RspCode":"99"
+            }
+
+            if (!_vnPayService.IsValidSignature(_vnPaySettings.HashSecret, updateVNPayModel))
+            {
+                return "Invalid signature"; // "RspCode":"97"
+            }
+
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                var payment = await _unitOfWork.Payments.FindAsync(p => p.Id == paymentId);
-                if (payment == null)
-                {
-                    throw new Exception("Payment not found");
-                }
-
-                payment.PaymentStatus = status;
-                payment.StatusResponseCode = statusCode;
-                await _unitOfWork.Payments.UpdateAsync(payment);
-
-                var order = await _unitOfWork.Orders.FindAsync(o => o.Id == payment.OrderId);
+                var order = await _unitOfWork.Orders.FindByCondition(o => o.Id == int.Parse(updateVNPayModel.vnp_TxnRef)).FirstOrDefaultAsync();
                 if (order == null)
                 {
                     throw new Exception("Order not found");
                 }
 
-                if (status == PaymentStatusTypeEnum.Completed)
+                var paymentCheck = await _unitOfWork.Payments.FindByCondition(p => p.OrderId == order.Id).FirstOrDefaultAsync();
+                if (paymentCheck == null)
+                {
+                    return "Payment not found"; // "RspCode":"01"
+                }
+
+                if (order.TotalAmount != (updateVNPayModel.vnp_Amount / 100))
+                {
+                    return "Amount mismatch"; // "RspCode":"04"
+                }
+
+                if (order.OrderStatus != PaymentStatusTypeEnum.Pending)
+                {
+                    return "Payment in order already confirmed"; // "RspCode":"02"
+                }
+
+                // Update order status based on VNPay response
+                if (updateVNPayModel.vnp_ResponseCode == "00" && updateVNPayModel.vnp_TransactionStatus == "00")
                 {
                     order.OrderStatus = OrderStatusTypeEnum.Completed;
-
+                    paymentCheck.PaymentStatus = PaymentStatusTypeEnum.Completed;
                     var orderHistory = new OrderHistory
                     {
                         OrderId = order.Id,
@@ -172,30 +207,46 @@ namespace SWD.F_LocalBrand.Business.Services
                     };
 
                     await _unitOfWork.OrderHistories.CreateAsync(orderHistory);
+                    await _unitOfWork.Orders.UpdateAsync(order);
+                    await _unitOfWork.Payments.UpdateAsync(paymentCheck);
+                    await _unitOfWork.CommitAsync(); // Commit all changes
+                    return "Confirm Success"; // "RspCode":"00"
                 }
-                else if (status == PaymentStatusTypeEnum.Failed || status == PaymentStatusTypeEnum.Expired)
+                else
                 {
                     order.OrderStatus = OrderStatusTypeEnum.Failed;
-
-                    var orderDetails = await _unitOfWork.OrderDetails.FindAllAsync(od => od.OrderId == order.Id);
-                    foreach (var orderDetail in orderDetails)
-                    {
-                        var product = await _unitOfWork.Products.FindAsync(p => p.Id == orderDetail.ProductId);
-                        if (product != null)
-                        {
-                            product.StockQuantity += orderDetail.Quantity;
-                            await _unitOfWork.Products.UpdateAsync(product);
-                        }
-                    }
+                    paymentCheck.PaymentStatus = PaymentStatusTypeEnum.Failed;
+                    await _unitOfWork.Orders.UpdateAsync(order);
+                    await _unitOfWork.Payments.UpdateAsync(paymentCheck);
+                    await _unitOfWork.CommitAsync(); // Commit changes including the order update
+                    return "Có lỗi xảy ra trong quá trình xử lý"; // Error during payment processing
                 }
-
-                await _unitOfWork.Orders.UpdateAsync(order);
-                await _unitOfWork.CommitAsync();
             }
-            catch
+            catch (Exception ex)
             {
                 await _unitOfWork.RollbackAsync();
-                throw;
+                // Optionally log the exception here for debugging purposes
+                throw; // Re-throwing the exception
+            }
+        }
+
+        #endregion
+
+        #region update status payment and order
+        public async Task UpdateStatusPayymentAndOrder(int orderId)
+        {
+            var order = _unitOfWork.Orders.FindByCondition(o => o.Id == orderId).FirstOrDefault();
+            order.OrderStatus = OrderStatusTypeEnum.Failed;
+
+            var orderDetails = await _unitOfWork.OrderDetails.FindAllAsync(od => od.OrderId == order.Id);
+            foreach (var orderDetail in orderDetails)
+            {
+                var product = await _unitOfWork.Products.FindAsync(p => p.Id == orderDetail.ProductId);
+                if (product != null)
+                {
+                    product.StockQuantity += orderDetail.Quantity;
+                    await _unitOfWork.Products.UpdateAsync(product);
+                }
             }
         }
         #endregion

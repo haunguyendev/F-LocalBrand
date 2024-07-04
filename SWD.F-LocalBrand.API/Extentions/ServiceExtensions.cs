@@ -17,6 +17,7 @@ using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Mapper;
 using SWD.F_LocalBrand.Business.Services;
 using SWD.F_LocalBrand.Business.Settings;
+using SWD.F_LocalBrand.Business.Settings.VNPay;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.DataAccess;
 using SWD.F_LocalBrand.Data.Repositories;
@@ -71,6 +72,15 @@ namespace SWD.F_LocalBrand.API.Extentions
                 config.AuthEmail = Environment.GetEnvironmentVariable("FIREBASE_AUTH_EMAIL");
                 config.AuthPassword = Environment.GetEnvironmentVariable("FIREBASE_AUTH_PASSWORD");
                 config.Bucket = Environment.GetEnvironmentVariable("FIREBASE_BUCKET");
+            });
+
+            services.Configure<VNPaySettings>(config =>
+            {
+                config.Version = Environment.GetEnvironmentVariable("VNPaySettings__Version");
+                config.TmnCode = Environment.GetEnvironmentVariable("VNPaySettings__TmnCode");
+                config.HashSecret = Environment.GetEnvironmentVariable("VNPaySettings__HashSecret");
+                config.ReturnUrl = Environment.GetEnvironmentVariable("VNPaySettings__ReturnUrl");
+                config.PaymentUrl = Environment.GetEnvironmentVariable("VNPaySettings__PaymentUrl");
             });
             
 
@@ -265,6 +275,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<FirebaseService>()
                 .AddScoped<PaymentService>()
                 .AddScoped<CartService>()
+                .AddScoped<VNPayService>()
 
                 // Register ResponseCacheService
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()
