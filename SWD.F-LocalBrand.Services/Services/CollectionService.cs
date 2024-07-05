@@ -53,7 +53,8 @@ namespace SWD.F_LocalBrand.Business.Services
             }
             var collection = new Collection
             {
-                CollectionName = model.CollectionName
+                CollectionName = model.CollectionName,
+                Status = model.Status
             };
 
             await _unitOfWork.Collections.CreateAsync(collection);
@@ -107,6 +108,50 @@ namespace SWD.F_LocalBrand.Business.Services
             var collection = await _unitOfWork.Collections.FindAll().ToListAsync();
             return _mapper.Map<List<CollectionModel>>(collection);
         }
+        #endregion
+
+        #region get collections with filter
+        public async Task<List<CollectionModel>> GetAllCollectionsWithFilterAsync(CollectionFilterModel filter)
+        {
+            var query = _unitOfWork.Collections.FindAll();
+
+            if (filter.CollectionName != null)
+                query = query.Where(c => c.CollectionName.Contains(filter.CollectionName));
+
+            if (filter.CampaignId.HasValue)
+                query = query.Where(c => c.CampaignId == filter.CampaignId.Value);
+
+            if (filter.Status != null)
+                query = query.Where(c => c.Status == filter.Status);
+
+            // Áp dụng sắp xếp
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(Collection.CollectionName):
+                        query = filter.IsAscending ? query.OrderBy(c => c.CollectionName) : query.OrderByDescending(c => c.CollectionName);
+                        break;
+                    case nameof(Collection.CampaignId):
+                        query = filter.IsAscending ? query.OrderBy(c => c.CampaignId) : query.OrderByDescending(c => c.CampaignId);
+                        break;
+                        // Thêm các trường khác nếu cần
+                }
+            }
+
+            var listCollections = await query.ToListAsync();
+
+            if (listCollections != null)
+            {
+                var listCollectionModel = _mapper.Map<List<CollectionModel>>(listCollections);
+                return listCollectionModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         #endregion
     }
 }

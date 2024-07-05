@@ -223,5 +223,63 @@ namespace SWD.F_LocalBrand.Business.Services
             }
         }
         #endregion
+
+        #region get orders with filter
+        public async Task<List<OrderModel>> GetAllOrdersWithFilterAsync(OrderFilterModel filter)
+        {
+            var query = _unitOfWork.Orders.FindAll();
+                
+
+            if (filter.CustomerId.HasValue)
+                query = query.Where(o => o.CustomerId == filter.CustomerId.Value);
+
+            if (filter.OrderDate.HasValue)
+                query = query.Where(o => o.OrderDate == filter.OrderDate.Value);
+
+            if (filter.MinTotalAmount.HasValue)
+                query = query.Where(o => o.TotalAmount >= filter.MinTotalAmount.Value);
+
+            if (filter.MaxTotalAmount.HasValue)
+                query = query.Where(o => o.TotalAmount <= filter.MaxTotalAmount.Value);
+
+            if (!string.IsNullOrEmpty(filter.OrderStatus))
+                query = query.Where(o => o.OrderStatus.Contains(filter.OrderStatus));
+
+            // Áp dụng sắp xếp
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(OrderModel.OrderDate):
+                        query = filter.IsAscending ? query.OrderBy(o => o.OrderDate) : query.OrderByDescending(o => o.OrderDate);
+                        break;
+                    case nameof(OrderModel.TotalAmount):
+                        query = filter.IsAscending ? query.OrderBy(o => o.TotalAmount) : query.OrderByDescending(o => o.TotalAmount);
+                        break;
+                    case nameof(OrderModel.OrderStatus):
+                        query = filter.IsAscending ? query.OrderBy(o => o.OrderStatus) : query.OrderByDescending(o => o.OrderStatus);
+                        break;
+                        // Thêm các trường khác nếu cần
+                }
+            }
+
+            query = query.Include(o => o.OrderDetails)
+                .Include(o => o.Payments)
+                .Include(o => o.OrderHistories);
+
+            var listOrders = await query.ToListAsync();
+
+            if (listOrders != null)
+            {
+                var listOrderModel = _mapper.Map<List<OrderModel>>(listOrders);
+                return listOrderModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #endregion
     }
 }
