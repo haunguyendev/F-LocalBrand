@@ -180,5 +180,46 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
         }
+
+        #region get categories with filter
+        public async Task<List<CategoryModel>> GetAllCategoriesWithFilterAsync(CategoryFilterModel filter)
+        {
+            var query = _unitOfWork.Categories.FindAll();
+
+            if (filter.CategoryName != null)
+                query = query.Where(c => c.CategoryName.Contains(filter.CategoryName));
+
+            if (filter.Description != null)
+                query = query.Where(c => c.Description.Contains(filter.Description));
+
+            // Áp dụng sắp xếp
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(CategoryModel.CategoryName):
+                        query = filter.IsAscending ? query.OrderBy(c => c.CategoryName) : query.OrderByDescending(c => c.CategoryName);
+                        break;
+                    case nameof(CategoryModel.Description):
+                        query = filter.IsAscending ? query.OrderBy(c => c.Description) : query.OrderByDescending(c => c.Description);
+                        break;
+                        // Thêm các trường khác nếu cần
+                }
+            }
+
+            var listCategories = await query.ToListAsync();
+
+            if (listCategories != null)
+            {
+                var listCategoryModel = _mapper.Map<List<CategoryModel>>(listCategories);
+                return listCategoryModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #endregion
     }
 }
