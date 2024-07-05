@@ -394,4 +394,23 @@ public class IdentityService
         return true;
     }
 
+    #region update user password
+    public async Task<bool> UpdateUserPass(string username, string newPassword)
+    {
+        var user = await _unitOfWork.Users.FindByCondition(c => c.UserName == username, true).FirstOrDefaultAsync();
+
+            user.Password = SecurityUtil.Hash(newPassword);
+
+            var result = await _unitOfWork.CommitAsync();
+            if (result > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+    }
+    #endregion
+
 }

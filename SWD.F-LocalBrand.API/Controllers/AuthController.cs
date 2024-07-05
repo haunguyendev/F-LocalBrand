@@ -291,4 +291,49 @@ public class AuthController : ControllerBase
             Customer = customer
         }));
     }
+
+    #region update user password api
+    [HttpPut("user/update-password")]
+    [SwaggerOperation(
+               Summary = "Update user password",
+               Description = "Updates the password of the user with the provided details. The input model must contain valid data as specified in the constraints."
+           )]
+    [SwaggerResponse(200, "Password updated successfully", typeof(ApiResult<object>))]
+    [SwaggerResponse(400, "Invalid request")]
+    [SwaggerResponse(404, "User not found")]
+    [SwaggerResponse(500, "An error occurred while updating the password")]
+    public async Task<IActionResult> UpdateUserPassword([FromBody] ResetUserPasswordRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                        { "Errors", errors.ToArray() }
+                    }));
+            }
+
+            var user = await _userService.GetUserByUsername(request.UserName);
+            if (user == null)
+            {
+                return NotFound(ApiResult<string>.Error("User not found"));
+            }
+
+            var res = await _identityService.UpdateUserPass(request.UserName, request.Password);
+            if(!res)
+            {
+                return BadRequest(ApiResult<string>.Error("Update password fail"));
+            }
+            return Ok(ApiResult<string>.Succeed("Password updated successfully"));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResult<object>.Fail(ex));
+        }
+    }
+    #endregion
 }

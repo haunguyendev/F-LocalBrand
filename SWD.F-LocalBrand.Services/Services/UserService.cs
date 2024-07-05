@@ -26,6 +26,12 @@ namespace SWD.F_LocalBrand.Business.Services
             return await _unitOfWork.Users.GetByIdAsync(id);
         }
 
+        public async Task<UserModel> GetUserByUsername(string username)
+        {
+            var user = await _unitOfWork.Users.FindByCondition(u => u.UserName == username).FirstOrDefaultAsync();
+            return _mapper.Map<UserModel>(user);
+        }
+
         public async Task<UserModel?> GetUserByEmail(string email)
         {
             var user = await _unitOfWork.Users.FindByCondition(u=>u.Email==email).FirstOrDefaultAsync();
