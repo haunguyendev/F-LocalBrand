@@ -39,6 +39,8 @@ public partial class Customer : EntityBase
 
     [Column("registrationDate")]
     public DateOnly? RegistrationDate { get; set; }
+    [Column("status")]
+    public string? Status { get; set; }
 
     [InverseProperty("Customer")]
     public virtual ICollection<CustomerProduct> CustomerProducts { get; set; } = new List<CustomerProduct>();

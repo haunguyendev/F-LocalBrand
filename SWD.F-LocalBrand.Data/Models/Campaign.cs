@@ -15,6 +15,9 @@ public partial class Campaign :EntityBase
     [Column("campaignName")]
     [StringLength(255)]
     public string? CampaignName { get; set; }
+    [Column("status")]
+    public string? Status { get; set; }
+
 
     [InverseProperty("Campaign")]
     public virtual ICollection<Collection> Collections { get; set; } = new List<Collection>();
