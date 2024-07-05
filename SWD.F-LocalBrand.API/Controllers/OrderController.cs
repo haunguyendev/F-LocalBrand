@@ -211,5 +211,42 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+        #region get orders with filter
+        [HttpGet("orders/filter")]
+        [SwaggerOperation(
+                       Summary = "Get orders with filter",
+                       Description = "Retrieves a list of orders based on the provided filter."
+                   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Orders retrieved successfully", typeof(ApiResult<ListOrderResponse>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        public async Task<IActionResult> GetOrders([FromQuery] OrderFilterModel request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Errors", errors.ToArray() }
+                }));
+                }
+
+                var orders = await _orderService.GetAllOrdersWithFilterAsync(request);
+
+                return Ok(ApiResult<ListOrderResponse>.Succeed(new ListOrderResponse
+                {
+                    Orders = orders
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
     }
 }
