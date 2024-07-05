@@ -127,6 +127,71 @@ namespace SWD.F_LocalBrand.Business.Services
         //    return downloadUrl;
         //}
 
+        #region update user detail
+        public async Task<UserUpdateModel?> UpdateUserAsync(UserUpdateModel userUpdateModel)
+        {
+            var user = await _unitOfWork.Users.FindAsync(u => u.Id == userUpdateModel.Id);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+
+            if (!string.IsNullOrEmpty(userUpdateModel.Email))
+                user.Email = userUpdateModel.Email;
+
+            if (!string.IsNullOrEmpty(userUpdateModel.Phone))
+                user.Phone = userUpdateModel.Phone;
+
+            if (!string.IsNullOrEmpty(userUpdateModel.Address))
+                user.Address = userUpdateModel.Address;
+            
+
+            if (userUpdateModel.ImageUrl != null && userUpdateModel.ImageUrl.Length > 0)
+            {
+                if (!string.IsNullOrEmpty(user.Image))
+                {
+                    var addressImage = ExtractMiddlePart(user.Image);
+                    string url = $"USER/{addressImage}";
+                    var deleteResult = await _firebaseService.DeleteFileFromFirebase(url);
+                    if (!deleteResult)
+                    {
+                        throw new Exception("Delete image failed");
+                    }
+                }
+
+                var imageUrl = $"USER/{user.Id}";
+                var uploadResult = await _firebaseService.UploadFileToFirebase(userUpdateModel.ImageUrl, imageUrl);
+                user.Image = uploadResult;
+                
+            }
+
+            await _unitOfWork.Users.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
+
+            return userUpdateModel;
+        }
+        public string ExtractMiddlePart(string url)
+        {
+            // Chia chuỗi URL thành các phần sử dụng chuỗi cố định
+            string[] parts = url.Split(new[] { "USER%2F", "?alt=media&token=" }, StringSplitOptions.None);
+
+            // Nếu chuỗi được chia thành các phần mong muốn, trả về phần giữa
+            if (parts.Length > 1)
+            {
+                return parts[1];
+            }
+
+            return null; // Trả về null nếu URL không hợp lệ
+        }
+        #endregion
+
+        public async Task<bool> EmailExistsAsync(string email)
+        {
+            return await _unitOfWork.Users.AnyAsync(u => u.Email == email);
+        }
+
 
     }
 }

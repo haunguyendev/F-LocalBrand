@@ -36,6 +36,7 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         Task RollbackTransactionAsync();
         Task<T?> FindAsync(Expression<Func<T, bool>> predicate);
         Task<List<T>> FindAllAsync(Expression<Func<T, bool>> predicate);
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
 
     }
 }
