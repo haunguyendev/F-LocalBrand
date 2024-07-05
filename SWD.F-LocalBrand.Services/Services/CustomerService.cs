@@ -272,6 +272,71 @@ namespace SWD.F_LocalBrand.Business.Services
             }
             return null;
         }
+
+        #region get customers by filter
+        public async Task<List<CustomerModel>> GetAllCustomersWithFilterAsync(CustomerFilterModel filter)
+        {
+            var query = _unitOfWork.Customers.FindAll();
+
+            if (filter.UserName != null)
+                query = query.Where(c => c.UserName.Contains(filter.UserName));
+
+            if (filter.FullName != null)
+                query = query.Where(c => c.FullName.Contains(filter.FullName));
+
+            if (filter.Email != null)
+                query = query.Where(c => c.Email.Contains(filter.Email));
+
+            if (filter.Phone != null)
+                query = query.Where(c => c.Phone.Contains(filter.Phone));
+
+            if (filter.Address != null)
+                query = query.Where(c => c.Address.Contains(filter.Address));
+
+            if (filter.RegistrationDate.HasValue)
+                query = query.Where(c => c.RegistrationDate == filter.RegistrationDate.Value);
+
+            // Áp dụng sắp xếp
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(Customer.UserName):
+                        query = filter.IsAscending ? query.OrderBy(c => c.UserName) : query.OrderByDescending(c => c.UserName);
+                        break;
+                    case nameof(Customer.FullName):
+                        query = filter.IsAscending ? query.OrderBy(c => c.FullName) : query.OrderByDescending(c => c.FullName);
+                        break;
+                    case nameof(Customer.Email):
+                        query = filter.IsAscending ? query.OrderBy(c => c.Email) : query.OrderByDescending(c => c.Email);
+                        break;
+                    case nameof(Customer.Phone):
+                        query = filter.IsAscending ? query.OrderBy(c => c.Phone) : query.OrderByDescending(c => c.Phone);
+                        break;
+                    case nameof(Customer.Address):
+                        query = filter.IsAscending ? query.OrderBy(c => c.Address) : query.OrderByDescending(c => c.Address);
+                        break;
+                    case nameof(Customer.RegistrationDate):
+                        query = filter.IsAscending ? query.OrderBy(c => c.RegistrationDate) : query.OrderByDescending(c => c.RegistrationDate);
+                        break;
+                        // Thêm các trường khác nếu cần
+                }
+            }
+
+            var listCustomers = await query.ToListAsync();
+
+            if (listCustomers != null)
+            {
+                var listCustomerModel = _mapper.Map<List<CustomerModel>>(listCustomers);
+                return listCustomerModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #endregion
     }
 
 }
