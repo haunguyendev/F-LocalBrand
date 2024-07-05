@@ -131,6 +131,7 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
 
+
             if (!string.IsNullOrEmpty(userUpdateModel.Email))
                 user.Email = userUpdateModel.Email;
 
@@ -139,12 +140,14 @@ namespace SWD.F_LocalBrand.Business.Services
 
             if (!string.IsNullOrEmpty(userUpdateModel.Address))
                 user.Address = userUpdateModel.Address;
+            
 
             if (userUpdateModel.ImageUrl != null && userUpdateModel.ImageUrl.Length > 0)
             {
                 if (!string.IsNullOrEmpty(user.Image))
                 {
-                    string url = $"USER/{user.Id}";
+                    var addressImage = ExtractMiddlePart(user.Image);
+                    string url = $"USER/{addressImage}";
                     var deleteResult = await _firebaseService.DeleteFileFromFirebase(url);
                     if (!deleteResult)
                     {
@@ -162,6 +165,19 @@ namespace SWD.F_LocalBrand.Business.Services
             await _unitOfWork.CommitAsync();
 
             return userUpdateModel;
+        }
+        public string ExtractMiddlePart(string url)
+        {
+            // Chia chuỗi URL thành các phần sử dụng chuỗi cố định
+            string[] parts = url.Split(new[] { "USER%2F", "?alt=media&token=" }, StringSplitOptions.None);
+
+            // Nếu chuỗi được chia thành các phần mong muốn, trả về phần giữa
+            if (parts.Length > 1)
+            {
+                return parts[1];
+            }
+
+            return null; // Trả về null nếu URL không hợp lệ
         }
         #endregion
 
