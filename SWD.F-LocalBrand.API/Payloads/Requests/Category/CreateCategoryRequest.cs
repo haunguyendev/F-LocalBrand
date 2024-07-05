@@ -15,7 +15,6 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Category
         [Required(ErrorMessage = "ImageUrl is required.")]
         [ImageFile(ErrorMessage = "Invalid file type. Only JPEG, PNG, GIF, and BMP are allowed.")]
         public IFormFile ImageUrl { get; set; }
-
         [Required(ErrorMessage = "Status is required.")]
         [Status(ErrorMessage = "Invalid status.")]
         public string? Status { get; set; }
