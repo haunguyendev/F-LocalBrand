@@ -5,6 +5,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests.Campaign;
 using SWD.F_LocalBrand.API.Payloads.Responses;
+using SWD.F_LocalBrand.Business.DTO.Campaign;
 using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
@@ -136,6 +137,35 @@ namespace SWD.F_LocalBrand.API.Controllers
     "collectionIds": [9999, 8888]
 }
          **/
+        #endregion
+
+        #region get campaigns with filter
+        [HttpGet("campaigns/filter")]
+        [SwaggerOperation(
+                       Summary = "Get campaigns with filter",
+                       Description = "Retrieves a list of campaigns based on the specified filter. Example of a valid request: /api/campaigns?campaignName=New Campaign&sortBy=campaignName&isAscending=true")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Campaigns retrieved successfully", typeof(ApiResult<ListCampaignsResponse>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        public async Task<IActionResult> GetCampaigns([FromQuery] CampaignFilterModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+
+            var campaigns = await _campaignService.GetAllCampaignsWithFilterAsync(request);
+
+            return Ok(ApiResult<ListCampaignsResponse>.Succeed(new ListCampaignsResponse
+            {
+                Campaigns = campaigns
+            }));
+        }
         #endregion
     }
 }
