@@ -34,7 +34,8 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Customer
         public string Phone { get; set; }
         [Required(ErrorMessage = "Address is required.")]
         public string Address { get; set; }
-
+        [Required(ErrorMessage = "Image is required.")]
+        [ImageFile(ErrorMessage = "Invalid file type. Only JPEG, PNG, GIF, and BMP are allowed.")]
         public IFormFile ImageUrl { get; set; }
         public CustomerCreateModel MapToModel()
         {

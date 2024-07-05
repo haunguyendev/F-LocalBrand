@@ -51,6 +51,62 @@ namespace SWD.F_LocalBrand.Business.Services
             return userDtos;
         }
         #endregion
+        #region Get user have filter
+         public async Task<List<UserResponseModel>> GetAllUsersWithFilterAsync(UserFilterModel filter)
+    {
+        var query = _unitOfWork.Users.FindAll();
+
+        if (!string.IsNullOrEmpty(filter.UserName))
+            query = query.Where(u => u.UserName.Contains(filter.UserName));
+
+        if (!string.IsNullOrEmpty(filter.Email))
+            query = query.Where(u => u.Email.Contains(filter.Email));
+
+        if (!string.IsNullOrEmpty(filter.Phone))
+            query = query.Where(u => u.Phone.Contains(filter.Phone));
+
+        if (!string.IsNullOrEmpty(filter.Address))
+            query = query.Where(u => u.Address.Contains(filter.Address));
+
+        if (filter.RegistrationDate.HasValue)
+            query = query.Where(u => u.RegistrationDate == filter.RegistrationDate.Value);
+
+        if (!string.IsNullOrEmpty(filter.Status))
+            query = query.Where(u => u.Status == filter.Status);
+
+        if (!string.IsNullOrEmpty(filter.RoleName))
+            query = query.Where(u => u.Role.RoleName.Contains(filter.RoleName));
+
+        if (!string.IsNullOrEmpty(filter.SortBy))
+        {
+            switch (filter.SortBy)
+            {
+                case nameof(User.UserName):
+                    query = filter.IsAscending ? query.OrderBy(u => u.UserName) : query.OrderByDescending(u => u.UserName);
+                    break;
+                case nameof(User.Email):
+                    query = filter.IsAscending ? query.OrderBy(u => u.Email) : query.OrderByDescending(u => u.Email);
+                    break;
+                case nameof(User.Phone):
+                    query = filter.IsAscending ? query.OrderBy(u => u.Phone) : query.OrderByDescending(u => u.Phone);
+                    break;
+                case nameof(User.RegistrationDate):
+                    query = filter.IsAscending ? query.OrderBy(u => u.RegistrationDate) : query.OrderByDescending(u => u.RegistrationDate);
+                    break;
+                case nameof(User.Status):
+                    query = filter.IsAscending ? query.OrderBy(u => u.Status) : query.OrderByDescending(u => u.Status);
+                    break;
+                case nameof(User.Role.RoleName):
+                    query = filter.IsAscending ? query.OrderBy(u => u.Role.RoleName) : query.OrderByDescending(u => u.Role.RoleName);
+                    break;
+            }
+        }
+
+        var users = await query.ToListAsync();
+        var userDtos = _mapper.Map<List<UserResponseModel>>(users);
+        return userDtos;
+    }
+        #endregion
 
         //public async Task<string> CreateUrl(IFormFile formFile)
         //{

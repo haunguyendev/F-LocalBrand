@@ -17,6 +17,9 @@ public partial class Collection : EntityBase
 
     [Column("campaignId")]
     public int? CampaignId { get; set; }
+    [Column("status")]
+    public string? Status { get; set; }
+
 
     [ForeignKey("CampaignId")]
     [InverseProperty("Collections")]
