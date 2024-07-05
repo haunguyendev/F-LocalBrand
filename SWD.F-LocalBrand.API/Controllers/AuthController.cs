@@ -316,6 +316,11 @@ public class AuthController : ControllerBase
                         { "Errors", errors.ToArray() }
                     }));
             }
+            var username = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if(username != request.UserName)
+            {
+                return BadRequest(ApiResult<string>.Error("User not match"));
+            }
 
             var user = await _userService.GetUserByUsername(request.UserName);
             if (user == null)
