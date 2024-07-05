@@ -4,6 +4,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests.Collection;
 using SWD.F_LocalBrand.API.Payloads.Responses;
+using SWD.F_LocalBrand.Business.DTO.Collection;
 using SWD.F_LocalBrand.Business.Services;
 
 namespace SWD.F_LocalBrand.API.Controllers
@@ -153,6 +154,49 @@ namespace SWD.F_LocalBrand.API.Controllers
                 }));
             }
             catch (Exception e){ 
+                return StatusCode(500, ApiResult<object>.Fail(e));
+            }
+        }
+        #endregion
+
+        #region get collections with filter
+        [HttpGet("collections/filter")]
+        [SwaggerOperation(
+                       Summary = "Get collections with filter",
+                       Description = "Get all collections with filter"
+                   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Collections get successfully", typeof(ApiResult<CollectionsResponse>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Collection not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while get collections", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetCollectionsWithFilter([FromQuery] CollectionFilterModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Errors", errors.ToArray() }
+                }));
+            }
+
+            try
+            {
+                var collections = await _collectionService.GetAllCollectionsWithFilterAsync(request);
+                if (collections == null)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Collections not found" }));
+                }
+
+                return Ok(ApiResult<CollectionsResponse>.Succeed(new CollectionsResponse
+                {
+                    Collections = collections
+                }));
+            }
+            catch (Exception e)
+            {
                 return StatusCode(500, ApiResult<object>.Fail(e));
             }
         }
