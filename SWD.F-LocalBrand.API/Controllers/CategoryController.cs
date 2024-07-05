@@ -5,6 +5,7 @@ using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests;
 using SWD.F_LocalBrand.API.Payloads.Requests.Category;
 using SWD.F_LocalBrand.API.Payloads.Responses;
+using SWD.F_LocalBrand.Business.DTO.Category;
 using SWD.F_LocalBrand.Business.Services;
 using SWD.F_LocalBrand.Data.Models;
 
@@ -295,5 +296,30 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion 
+
+        #region get categories with filter
+        [HttpGet("categories/filter")]
+        public async Task<IActionResult> GetCategoriesWithFilter([FromQuery] CategoryFilterModel request)
+        {
+            try
+            {
+                var list = await _categoryService.GetAllCategoriesWithFilterAsync(request);
+                if (list == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any category"));
+                    return BadRequest(resultFail);
+                }
+                return Ok(ApiResult<ListCategoryResponse>.Succeed(new ListCategoryResponse
+                {
+                    Categories = list
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+
+        }
+        #endregion
     }
 }
