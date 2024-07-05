@@ -146,7 +146,7 @@ namespace SWD.F_LocalBrand.API.Controllers
            Summary = "Create a new category",
            Description = "Creates a new category with the provided details. The input model must contain valid data as specified in the constraints."
        )]
-        public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryRequest request)
+        public async Task<IActionResult> CreateCategory([FromForm] CreateCategoryRequest request)
         {
             if (!ModelState.IsValid)
             {
