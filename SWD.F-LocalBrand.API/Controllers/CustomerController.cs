@@ -8,6 +8,7 @@ using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.API.Payloads.Requests;
 using SWD.F_LocalBrand.API.Payloads.Requests.Customer;
 using SWD.F_LocalBrand.API.Payloads.Responses;
+using SWD.F_LocalBrand.Business.DTO.Customer;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Services;
 using System.IdentityModel.Tokens.Jwt;
@@ -267,6 +268,31 @@ namespace SWD.F_LocalBrand.API.Controllers
                 }
 
                 return Ok(ApiResult<object>.Succeed(new { Message = "Customer Gmail updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
+        #region get customers with filter
+        [HttpGet("customers/filter")]
+        [SwaggerOperation(
+                       Summary = "Get customers with filter",
+                       Description = "Retrieves a list of customers based on the provided filter."
+                   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Customers retrieved successfully", typeof(ApiResult<ListCustomersResponse>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while retrieving customers", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetCustomers([FromQuery] CustomerFilterModel request)
+        {
+            try
+            {
+                var customers = await _customerService.GetAllCustomersWithFilterAsync(request);
+                return Ok(ApiResult<ListCustomersResponse>.Succeed(new ListCustomersResponse
+                {
+                    Customers = customers
+                }));
             }
             catch (Exception ex)
             {
