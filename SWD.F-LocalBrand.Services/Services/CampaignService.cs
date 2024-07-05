@@ -108,5 +108,45 @@ namespace SWD.F_LocalBrand.Business.Services
         {
             return await _unitOfWork.Campaigns.AnyAsync(c => c.CampaignName == campaignName);
         }
+
+        #region get campaigns with filter
+        public async Task<List<CampaignModel>> GetAllCampaignsWithFilterAsync(CampaignFilterModel filter)
+        {
+            var query = _unitOfWork.Campaigns.FindAll();
+
+            if (filter.CampaignName != null)
+                query = query.Where(c => c.CampaignName.Contains(filter.CampaignName));
+
+            // Áp dụng sắp xếp
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(Campaign.CampaignName):
+                        query = filter.IsAscending ? query.OrderBy(c => c.CampaignName) : query.OrderByDescending(c => c.CampaignName);
+                        break;
+                        // Thêm các trường khác nếu cần
+                }
+            }
+            query = query
+                .Include(c => c.Collections)
+                    .ThenInclude(col => col.CollectionProducts)
+                        .ThenInclude(cp => cp.Product)
+                .Include(c => c.Products);
+
+            var listCampaigns = await query.ToListAsync();
+
+            if (listCampaigns != null)
+            {
+                var listCampaignModel = _mapper.Map<List<CampaignModel>>(listCampaigns);
+                return listCampaignModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #endregion
     }
 }
