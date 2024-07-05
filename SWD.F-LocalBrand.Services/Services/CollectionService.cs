@@ -53,7 +53,8 @@ namespace SWD.F_LocalBrand.Business.Services
             }
             var collection = new Collection
             {
-                CollectionName = model.CollectionName
+                CollectionName = model.CollectionName,
+                Status = model.Status
             };
 
             await _unitOfWork.Collections.CreateAsync(collection);
@@ -119,6 +120,9 @@ namespace SWD.F_LocalBrand.Business.Services
 
             if (filter.CampaignId.HasValue)
                 query = query.Where(c => c.CampaignId == filter.CampaignId.Value);
+
+            if (filter.Status != null)
+                query = query.Where(c => c.Status == filter.Status);
 
             // Áp dụng sắp xếp
             if (!string.IsNullOrEmpty(filter.SortBy))

@@ -9,5 +9,7 @@ namespace SWD.F_LocalBrand.Business.DTO.Collection
     public class CollectionCreateModel
     {
         public string CollectionName { get; set; }
+
+        public string? Status { get; set; }
     }
 }

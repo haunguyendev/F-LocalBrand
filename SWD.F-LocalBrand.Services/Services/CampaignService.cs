@@ -58,7 +58,8 @@ namespace SWD.F_LocalBrand.Business.Services
         {
             var campaign = new Campaign
             {
-                CampaignName = model.CampaignName
+                CampaignName = model.CampaignName,
+                Status = model.Status
             };
 
             await _unitOfWork.Campaigns.CreateAsync(campaign);
@@ -116,6 +117,8 @@ namespace SWD.F_LocalBrand.Business.Services
 
             if (filter.CampaignName != null)
                 query = query.Where(c => c.CampaignName.Contains(filter.CampaignName));
+            if(filter.Status != null)
+                query = query.Where(c => c.Status == filter.Status);
 
             // Áp dụng sắp xếp
             if (!string.IsNullOrEmpty(filter.SortBy))

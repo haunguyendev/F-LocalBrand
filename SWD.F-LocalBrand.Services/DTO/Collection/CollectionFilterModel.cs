@@ -11,6 +11,8 @@ namespace SWD.F_LocalBrand.Business.DTO.Collection
         public string? CollectionName { get; set; }
         public int? CampaignId { get; set; }
 
+        public string? Status { get; set; }
+
         // Thuộc tính sắp xếp
         public string? SortBy { get; set; }
         public bool IsAscending { get; set; } = true;

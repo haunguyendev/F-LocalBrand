@@ -9,5 +9,7 @@ namespace SWD.F_LocalBrand.Business.DTO.Campaign
     public class CampaignCreateModel
     {
         public string? CampaignName { get; set; }
+
+        public string? Status { get; set; }
     }
 }
