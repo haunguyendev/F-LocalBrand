@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using SWD.F_LocalBrand.API.Validation;
 using SWD.F_LocalBrand.Business.DTO.Product;
 
 namespace SWD.F_LocalBrand.API.Payloads.Requests.Product
@@ -35,6 +36,7 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Product
         [Required(ErrorMessage = "Image URL is required.")]
         [StringLength(255, ErrorMessage = "Image URL must not exceed 255 characters.")]
         [Url(ErrorMessage = "Image URL must be a valid URL.")]
+        [ImageFile(ErrorMessage = "Invalid file type. Only JPEG, PNG, GIF, and BMP are allowed.")]
         public string ImageUrl { get; set; }
 
         [Required(ErrorMessage = "Size is required.")]
