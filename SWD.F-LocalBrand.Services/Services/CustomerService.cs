@@ -230,20 +230,24 @@ namespace SWD.F_LocalBrand.Business.Services
                 Phone = model.Phone,
                 Address = model.Address,
                 RegistrationDate = DateOnly.FromDateTime(DateTime.UtcNow),
-                Image = null
-            };
-            await _unitOfWork.Customers.CreateAsync(customer);
-            await _unitOfWork.CommitAsync();
+                Image = null,
+                Status="Active"
 
+            };
             if (model.ImageUrl != null && model.ImageUrl.Length > 0)
             {
-                var imageUrl = $"CUSTOMER/{customer.Id}";
+                Random random = new Random();
+                int randomNumber = random.Next(1000, 10000);
+                var imageUrl = $"CUSTOMER/{randomNumber}";
                 var pathUrl = await _firebaseService.UploadFileToFirebase(model.ImageUrl, imageUrl);
                 customer.Image = pathUrl;
             }
 
-            await _unitOfWork.Customers.UpdateAsync(customer);
+            await _unitOfWork.Customers.CreateAsync(customer);
             await _unitOfWork.CommitAsync();
+
+
+
         }
         #endregion
         public bool UsernameCusExistsAsync(string username)
