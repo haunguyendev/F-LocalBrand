@@ -14,6 +14,8 @@ namespace SWD.F_LocalBrand.Business.DTO
 
         public string? Description { get; set; }
 
+        public string? Status { get; set; }
+
         public List<ProductModel> Products { get; set; }
     }
 }
