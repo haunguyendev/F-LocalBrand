@@ -10,6 +10,8 @@ namespace SWD.F_LocalBrand.Business.DTO.Campaign
     {
         public string? CampaignName { get; set; }
 
+        public string? Status { get; set; }
+
         // Thuộc tính sắp xếp
         public string? SortBy { get; set; }
         public bool IsAscending { get; set; } = true;

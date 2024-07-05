@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -14,5 +15,9 @@ namespace SWD.F_LocalBrand.Business.DTO.Category
 
         
         public string? Description { get; set; }
+
+        public IFormFile ImageUrl { get; set; }
+
+        public string? Status { get; set; }
     }
 }
