@@ -62,7 +62,8 @@ namespace SWD.F_LocalBrand.Business.Mapper
             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
             CreateMap<Payment, PaymentModel>();
             CreateMap<Customer, CustomerModel>();
-            
+            CreateMap<User, UserResponseModel>()
+           .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.RoleName : string.Empty));
         }
     }
 }
