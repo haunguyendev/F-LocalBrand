@@ -19,6 +19,8 @@ public partial class Category : EntityBase
     public string? Description { get; set; }
     [Column("status")]
     public string? Status { get; set; }
+    [Column("image")]
+    public string? ImageUrl { get; set; }
 
     [InverseProperty("Category")]
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();

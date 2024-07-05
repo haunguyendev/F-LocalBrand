@@ -348,7 +348,7 @@ namespace SWD.F_LocalBrand.Business.Services
                     case nameof(Product.Status):
                         query = filter.IsAscending ? query.OrderBy(p => p.Status) : query.OrderByDescending(p => p.Status);
                         break;
-                        // Thêm các trường khác nếu cần
+                        
                 }
             }
             var listProducts = await query.ToListAsync();
