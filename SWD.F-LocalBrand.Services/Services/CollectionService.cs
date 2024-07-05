@@ -125,10 +125,10 @@ namespace SWD.F_LocalBrand.Business.Services
             {
                 switch (filter.SortBy)
                 {
-                    case nameof(CollectionFilterModel.CollectionName):
+                    case nameof(Collection.CollectionName):
                         query = filter.IsAscending ? query.OrderBy(c => c.CollectionName) : query.OrderByDescending(c => c.CollectionName);
                         break;
-                    case nameof(CollectionFilterModel.CampaignId):
+                    case nameof(Collection.CampaignId):
                         query = filter.IsAscending ? query.OrderBy(c => c.CampaignId) : query.OrderByDescending(c => c.CampaignId);
                         break;
                         // Thêm các trường khác nếu cần
