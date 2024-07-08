@@ -9,5 +9,7 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
 {
     public interface IUserRepository : IRepositoryBaseAsync<User>
     {
+        Task<List<User>> GetAllAsync();
+
     }
 }

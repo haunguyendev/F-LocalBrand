@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SWD.F_LocalBrand.API.Attributes;
+using SWD.F_LocalBrand.API.Payloads.Requests;
+using SWD.F_LocalBrand.Business.Attributes;
 using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Services;
 
@@ -19,12 +21,17 @@ namespace SWD.F_LocalBrand.API.Controllers
         private readonly ILogger<WeatherForecastController> _logger;
 
         private readonly IResponseCacheService _responseCacheService;
+        private readonly FirebaseService _firebaseService;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, IResponseCacheService responseCacheService, EmailService emailService)
+        private readonly UserService _userService;
+
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IResponseCacheService responseCacheService, EmailService emailService, FirebaseService firebaseService, UserService userService)
         {
             _logger = logger;
             _responseCacheService = responseCacheService;
             _emailService = emailService;
+            _firebaseService = firebaseService;
+            _userService = userService;
         }
 
         [AllowAnonymous]
@@ -73,5 +80,50 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
             return Ok("Send mail success");
         }
+
+        //[AllowAnonymous]
+        //[HttpPost("firebase")]
+        //public async Task<IActionResult> Firebase([FromForm] Test test)
+        //{
+        //    try
+        //    {
+        //        if (test.File == null || test.File.Length == 0)
+        //        {
+        //            return BadRequest(new { Message = "The file is empty", IsSuccess = false });
+        //        }
+
+        //        var result = await _userService.CreateUrl(test.File);
+        //        return Ok(new { Result = result, IsSuccess = true });
+        //    }
+        //    catch (ArgumentException ex)
+        //    {
+        //        return BadRequest(new { Message = ex.Message, IsSuccess = false });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { Message = ex.Message, IsSuccess = false });
+        //    }
+        //}
+
+        //Delete image from firebase
+        [AllowAnonymous]
+        [HttpDelete("firebase")]
+        public async Task<IActionResult> DeleteFirebase([FromQuery] string pathFileName)
+        {
+            try
+            {
+                var result = await _firebaseService.DeleteFileFromFirebase(pathFileName);
+                return Ok(new { Result = result, IsSuccess = true });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message, IsSuccess = false });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = ex.Message, IsSuccess = false });
+            }
+        }
+
     }
 }

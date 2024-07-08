@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Campaign;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
@@ -52,13 +53,21 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
         }
+        #region Utils
+        public async Task<bool> IsCampaignInUseAsync(int campaignId)
+        {
+            return await _unitOfWork.Collections.AnyAsync(c => c.CampaignId == campaignId);
+        }
+        #endregion
+
 
         #region create campaign
         public async Task<Campaign?> CreateCampaignAsync(CampaignCreateModel model)
         {
             var campaign = new Campaign
             {
-                CampaignName = model.CampaignName
+                CampaignName = model.CampaignName,
+                Status = model.Status
             };
 
             await _unitOfWork.Campaigns.CreateAsync(campaign);
@@ -108,5 +117,82 @@ namespace SWD.F_LocalBrand.Business.Services
         {
             return await _unitOfWork.Campaigns.AnyAsync(c => c.CampaignName == campaignName);
         }
+
+        #region get campaigns with filter
+        public async Task<List<CampaignModel>> GetAllCampaignsWithFilterAsync(CampaignFilterModel filter)
+        {
+            var query = _unitOfWork.Campaigns.FindAll();
+
+            if (filter.CampaignName != null)
+                query = query.Where(c => c.CampaignName.Contains(filter.CampaignName));
+            if(filter.Status != null)
+                query = query.Where(c => c.Status == filter.Status);
+
+            // Áp dụng sắp xếp
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(Campaign.CampaignName):
+                        query = filter.IsAscending ? query.OrderBy(c => c.CampaignName) : query.OrderByDescending(c => c.CampaignName);
+                        break;
+                        // Thêm các trường khác nếu cần
+                }
+            }
+            query = query
+                .Include(c => c.Collections)
+                    .ThenInclude(col => col.CollectionProducts)
+                        .ThenInclude(cp => cp.Product)
+                .Include(c => c.Products);
+
+            var listCampaigns = await query.ToListAsync();
+
+            if (listCampaigns != null)
+            {
+                var listCampaignModel = _mapper.Map<List<CampaignModel>>(listCampaigns);
+                return listCampaignModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #endregion
+        #region update status campaign
+        public async Task<bool> UpdateCampaignStatusAsync(int campaignId, string status)
+        {
+            var campaign = await _unitOfWork.Campaigns.FindAsync(c => c.Id == campaignId);
+
+            if (campaign == null)
+            {
+                return false;
+            }
+
+            campaign.Status = status;
+            await _unitOfWork.Campaigns.UpdateAsync(campaign);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+        #endregion
+        #region update stauts deleted campaign
+        public async Task<bool> DeleteCampaignAsync(int campaignId)
+        {
+            var campaign = await _unitOfWork.Campaigns.FindAsync(c => c.Id == campaignId);
+
+            if (campaign == null)
+            {
+                return false;
+            }
+
+            campaign.Status = CollectionStatusTypeEnum.Deleted;
+            await _unitOfWork.Campaigns.UpdateAsync(campaign);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+        #endregion
+
     }
 }

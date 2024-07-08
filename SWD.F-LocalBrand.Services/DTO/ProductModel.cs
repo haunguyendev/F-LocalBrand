@@ -33,6 +33,10 @@ namespace SWD.F_LocalBrand.Business.DTO
         public string? Color { get; set; }
         public string Status { get; set; } = null!;
 
+        public DateTime? CreateDate { get; set; }
+
         public List<ProductModel> Recommendations { get; set; }
+
+        public List<CollectionModel> Collections { get; set; }
     }
 }

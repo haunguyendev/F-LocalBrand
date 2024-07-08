@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Ocsp;
 using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Category;
@@ -19,11 +20,13 @@ namespace SWD.F_LocalBrand.Business.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly FirebaseService _firebaseService;
 
-        public CategoryService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CategoryService(IUnitOfWork unitOfWork, IMapper mapper, FirebaseService firebaseService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _firebaseService = firebaseService;
         }
 
         //Get categories with all product of them
@@ -67,10 +70,17 @@ namespace SWD.F_LocalBrand.Business.Services
 
         public async Task<Category> CreateCategoryAsync(CategoryCreateModel model)
         {
+            Random random = new Random();
+            int randomNumber = random.Next(1000, 10000);
+            var imagePath = $"CATEGORY/{randomNumber}";
+            var imageUploadResult = await _firebaseService.UploadFileToFirebase(model.ImageUrl, imagePath);
             var category = new Category
             {
                 CategoryName = model.CategoryName,
-                Description = model.Description
+                Description = model.Description,
+                ImageUrl = imageUploadResult,
+                Status = model.Status
+
             };
 
             await _unitOfWork.Categories.CreateAsync(category);
@@ -149,6 +159,80 @@ namespace SWD.F_LocalBrand.Business.Services
 
             await _unitOfWork.CommitAsync();
         }
+        #endregion
+
+        //get prodcut by category id
+        public async Task<List<ProductModel>> GetProductsByCategoryIdAsync(int categoryId)
+        {
+            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId && x.Status == "active").ToListAsync();
+            if (listProducts != null)
+            {
+                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
+                return listProductModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        //get product by category id and have paging
+        public async Task<List<ProductModel>> GetProductsByCategoryIdPagingAsync(int categoryId, int pageIndex, int pageSize)
+        {
+            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+            if (listProducts != null)
+            {
+                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
+                return listProductModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #region get categories with filter
+        public async Task<List<CategoryModel>> GetAllCategoriesWithFilterAsync(CategoryFilterModel filter)
+        {
+            var query = _unitOfWork.Categories.FindAll();
+
+            if (filter.CategoryName != null)
+                query = query.Where(c => c.CategoryName.Contains(filter.CategoryName));
+
+            if (filter.Description != null)
+                query = query.Where(c => c.Description.Contains(filter.Description));
+
+            if(filter.Status != null)
+                query = query.Where(c => c.Status == filter.Status);
+
+            // Áp dụng sắp xếp
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(Category.CategoryName):
+                        query = filter.IsAscending ? query.OrderBy(c => c.CategoryName) : query.OrderByDescending(c => c.CategoryName);
+                        break;
+                    case nameof(Category.Description):
+                        query = filter.IsAscending ? query.OrderBy(c => c.Description) : query.OrderByDescending(c => c.Description);
+                        break;
+                        // Thêm các trường khác nếu cần
+                }
+            }
+
+            var listCategories = await query.ToListAsync();
+
+            if (listCategories != null)
+            {
+                var listCategoryModel = _mapper.Map<List<CategoryModel>>(listCategories);
+                return listCategoryModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         #endregion
     }
 }

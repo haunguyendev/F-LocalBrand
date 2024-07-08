@@ -1,14 +1,18 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
+using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.API.Payloads.Requests.Order;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Business.Services;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class OrderController : ControllerBase
     {
@@ -19,8 +23,31 @@ namespace SWD.F_LocalBrand.API.Controllers
             _orderService = orderService;
         }
 
+        //get product by order id
+        [HttpGet("order/{orderId}/products")]
+        public async Task<IActionResult> GetProductByOrderId(int orderId)
+        {
+            try
+            {
+                var listProduct = await _orderService.GetProductsByOrderIdAsync(orderId);
+                if (listProduct == null)
+                {
+                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this order!"));
+                    return NotFound(resultFail);
+                }
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = listProduct
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+
+        }
         //get list order have payment status is true
-        [HttpGet("orders/withPaymentStatusTrue")]
+        [HttpGet("orders/payment-true")]
         public async Task<IActionResult> GetOrdersWithPaymentStatusTrue()
         {
             try
@@ -38,7 +65,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //get order or list order have status from request
-        [HttpGet("byStatus/{status}")]
+        [HttpGet("order/status/{status}")]
         public async Task<IActionResult> GetOrdersByStatus(string status)
         {
             try
@@ -55,7 +82,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #region api order status
-        [HttpPut("update-status")]
+        [HttpPut("order/status")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResult<object>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ApiResult<ValidationProblemDetails>))]
         [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ApiResult<object>))]
@@ -83,6 +110,137 @@ namespace SWD.F_LocalBrand.API.Controllers
                 }
 
                 return Ok(ApiResult<object>.Succeed(new { Message = "Order status updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+        #region api create order with payment
+
+
+        [HttpPost("create-order")]
+        [Authorize]
+        [SwaggerOperation(
+            Summary = "Create a new order and initiate payment",
+            Description = "Creates a new order with the provided products and initiates payment."
+        )]
+        [SwaggerResponse(200, "Order created successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(500, "An error occurred while creating the order")]
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                   .Select(e => e.ErrorMessage)
+                                                   .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                    {
+                        { "Errors", errors.ToArray() }
+                    }));
+                }
+
+                if (!Request.Headers.TryGetValue("Authorization", out var token))
+                {
+                    throw new BadRequestException("Authorization header is missing or invalid.");
+                }
+
+                token = token.ToString().Split()[1];
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    throw new BadRequestException("Authorization header is missing or invalid.");
+                }
+
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var customerClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.NameId);
+
+                if (customerClaim == null)
+                {
+                    return Unauthorized(ApiResult<string>.Error("Unauthorized: No customer ID found in token."));
+                }
+
+                var customerId = int.Parse(customerClaim.Value);
+                await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
+
+                return Ok(ApiResult<string>.Succeed("Order created successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+        #region api update payment status 
+        [HttpPost("update-payment-status")]
+        [Authorize]
+        [SwaggerOperation(
+           Summary = "Update payment status",
+           Description = "Updates the status of the payment and the corresponding order."
+       )]
+        [SwaggerResponse(200, "Payment status updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(500, "An error occurred while updating the payment status")]
+        public async Task<IActionResult> UpdatePaymentStatus([FromBody] UpdatePaymentStatusRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                   .Select(e => e.ErrorMessage)
+                                                   .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                    {
+                        { "Errors", errors.ToArray() }
+                    }));
+                }
+
+                await _orderService.UpdatePaymentStatusAsync(request.PaymentId, request.Status, request.StatusCode);
+
+                return Ok(ApiResult<string>.Succeed("Payment status updated successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
+        #region get orders with filter
+        [HttpGet("orders/filter")]
+        [SwaggerOperation(
+                       Summary = "Get orders with filter",
+                       Description = "Retrieves a list of orders based on the provided filter."
+                   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Orders retrieved successfully", typeof(ApiResult<ListOrderResponse>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        public async Task<IActionResult> GetOrders([FromQuery] OrderFilterModel request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                {
+                    { "Errors", errors.ToArray() }
+                }));
+                }
+
+                var orders = await _orderService.GetAllOrdersWithFilterAsync(request);
+
+                return Ok(ApiResult<ListOrderResponse>.Succeed(new ListOrderResponse
+                {
+                    Orders = orders
+                }));
             }
             catch (Exception ex)
             {

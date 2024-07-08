@@ -1,4 +1,5 @@
-﻿using SWD.F_LocalBrand.Business.DTO.Category;
+﻿using SWD.F_LocalBrand.API.Validation;
+using SWD.F_LocalBrand.Business.DTO.Category;
 using System.ComponentModel.DataAnnotations;
 
 namespace SWD.F_LocalBrand.API.Payloads.Requests.Category
@@ -11,13 +12,21 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Category
 
         [StringLength(500, ErrorMessage = "Description must not exceed 500 characters.")]
         public string? Description { get; set; }
+        [Required(ErrorMessage = "ImageUrl is required.")]
+        [ImageFile(ErrorMessage = "Invalid file type. Only JPEG, PNG, GIF, and BMP are allowed.")]
+        public IFormFile ImageUrl { get; set; }
+        [Required(ErrorMessage = "Status is required.")]
+        [Status(ErrorMessage = "Invalid status.")]
+        public string? Status { get; set; }
 
         public CategoryCreateModel MapToModel()
         {
             return new CategoryCreateModel
             {
                 CategoryName = this.CategoryName,
-                Description = this.Description
+                Description = this.Description,
+                ImageUrl = this.ImageUrl,
+                Status = this.Status
             };
         }
     }

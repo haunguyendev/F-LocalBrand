@@ -4,7 +4,7 @@ using StackExchange.Redis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace SWD.F_LocalBrand.API.Attributes
+namespace SWD.F_LocalBrand.Business.Attributes
 {
     public class ResponseCacheService : IResponseCacheService
     {

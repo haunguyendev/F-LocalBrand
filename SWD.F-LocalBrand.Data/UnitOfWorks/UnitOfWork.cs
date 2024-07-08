@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.DataAccess;
 using System;
@@ -12,7 +13,7 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
     public class UnitOfWork : IUnitOfWork
     {
         private readonly SwdFlocalBrandContext _context;
-
+        private IDbContextTransaction _currentTransaction;
 
         public ICampaignRepository Campaigns { get; }
 
@@ -42,6 +43,10 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
 
         public ICompapilityRepository Compapilities { get; }
 
+        public IOrderHistoryRepository OrderHistories { get; }
+
+        public ICollectionProductRepository CollectionProducts { get; }
+
         // ICampaignRepository campaignRepository,
         //ICategoryRepository categoryRepository, ICollectionRepository collectionRepository,
         //    ICustomerRepository customerRepository, IOrderDetailRepository orderDetailRepository,
@@ -62,7 +67,8 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
             IOrderDetailRepository orderDetails,
             IPaymentRepository payments,
             ICompapilityRepository compapilities,
-            IRoleRepository roles)
+            IRoleRepository roles,
+            IOrderHistoryRepository orderHistories)
         {
             _context = context;
             //Products = productRepository;
@@ -87,9 +93,64 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
             Payments = payments;
             Compapilities = compapilities;
             Roles = roles;
+            OrderHistories = orderHistories;
         }
-        public void Dispose() => _context.Dispose();
+        public void Dispose()
+        {
+            _currentTransaction?.Dispose();
+            _context.Dispose();
+            
+        }
 
-        public Task<int> CommitAsync() => _context.SaveChangesAsync();
+
+        public async Task BeginTransactionAsync()
+        {
+            if (_currentTransaction != null)
+            {
+                return;
+            }
+
+            _currentTransaction = await _context.Database.BeginTransactionAsync();
+        }
+
+        public async Task<int> CommitAsync()
+        {
+            try
+            {
+                var result = await _context.SaveChangesAsync();
+
+                if (_currentTransaction != null)
+                {
+                    await _currentTransaction.CommitAsync();
+                    await _currentTransaction.DisposeAsync();
+                    _currentTransaction = null;
+                }
+
+                return result;
+            }
+            catch
+            {
+                if (_currentTransaction != null)
+                {
+                    await _currentTransaction.RollbackAsync();
+                    await _currentTransaction.DisposeAsync();
+                    _currentTransaction = null;
+                }
+
+                throw;
+            }
+        }
+
+        public async Task RollbackAsync()
+        {
+            if (_currentTransaction != null)
+            {
+                await _currentTransaction.RollbackAsync();
+                await _currentTransaction.DisposeAsync();
+                _currentTransaction = null;
+            }
+        }
+
+        
     }
 }

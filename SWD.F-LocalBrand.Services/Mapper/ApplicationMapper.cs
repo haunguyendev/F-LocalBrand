@@ -3,6 +3,7 @@ using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Campaign;
 using SWD.F_LocalBrand.Business.DTO.Category;
 using SWD.F_LocalBrand.Business.DTO.Product;
+using SWD.F_LocalBrand.Business.DTO.User;
 using SWD.F_LocalBrand.Data.Models;
 
 
@@ -23,7 +24,9 @@ namespace SWD.F_LocalBrand.Business.Mapper
             CreateMap<Compapility, CompapilityModel>()
             .ForMember(dest => dest.RecommendedProduct, opt => opt.MapFrom(src => src.RecommendedProduct));
             CreateMap<Product, ProductModel>()
-                .ForMember(dest => dest.Recommendations, opt => opt.MapFrom(src => src.CompapilityProducts.Select(cp => cp.RecommendedProduct)));
+            .ForMember(dest => dest.Recommendations, opt => opt.Ignore()) // Recommendations sẽ được xử lý thủ công
+            .ForMember(dest => dest.Collections, opt => opt.Ignore());
+
             CreateMap<Collection, CollectionModel>()
             .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.CollectionProducts.Select(cp => cp.Product)));
             CreateMap<Campaign, CampaignModel>()
@@ -58,6 +61,9 @@ namespace SWD.F_LocalBrand.Business.Mapper
             CreateMap<OrderDetail, OrderDetailModel>()
             .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product));
             CreateMap<Payment, PaymentModel>();
+            CreateMap<Customer, CustomerModel>();
+            CreateMap<User, UserResponseModel>()
+           .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role != null ? src.Role.RoleName : string.Empty));
         }
     }
 }

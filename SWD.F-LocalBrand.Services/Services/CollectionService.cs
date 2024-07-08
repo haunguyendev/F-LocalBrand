@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Collection;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
@@ -43,6 +44,10 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
         }
+        public async Task<bool> IsCollectionInUseAsync(int collectionId)
+        {
+            return await _unitOfWork.CollectionProducts.AnyAsync(cp => cp.CollectionId == collectionId);
+        }
         #region create collection
 
         public async Task<string> CreateCollectionAsync(CollectionCreateModel model)
@@ -53,7 +58,8 @@ namespace SWD.F_LocalBrand.Business.Services
             }
             var collection = new Collection
             {
-                CollectionName = model.CollectionName
+                CollectionName = model.CollectionName,
+                Status = model.Status
             };
 
             await _unitOfWork.Collections.CreateAsync(collection);
@@ -101,5 +107,90 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+        #region get all collection
+        public async Task<List<CollectionModel>> GetCollections()
+        {
+            var collection = await _unitOfWork.Collections.FindAll().ToListAsync();
+            return _mapper.Map<List<CollectionModel>>(collection);
+        }
+        #endregion
+
+        #region get collections with filter
+        public async Task<List<CollectionModel>> GetAllCollectionsWithFilterAsync(CollectionFilterModel filter)
+        {
+            var query = _unitOfWork.Collections.FindAll();
+
+            if (filter.CollectionName != null)
+                query = query.Where(c => c.CollectionName.Contains(filter.CollectionName));
+
+            if (filter.CampaignId.HasValue)
+                query = query.Where(c => c.CampaignId == filter.CampaignId.Value);
+
+            if (filter.Status != null)
+                query = query.Where(c => c.Status == filter.Status);
+
+            // Áp dụng sắp xếp
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(Collection.CollectionName):
+                        query = filter.IsAscending ? query.OrderBy(c => c.CollectionName) : query.OrderByDescending(c => c.CollectionName);
+                        break;
+                    case nameof(Collection.CampaignId):
+                        query = filter.IsAscending ? query.OrderBy(c => c.CampaignId) : query.OrderByDescending(c => c.CampaignId);
+                        break;
+                        // Thêm các trường khác nếu cần
+                }
+            }
+
+            var listCollections = await query.ToListAsync();
+
+            if (listCollections != null)
+            {
+                var listCollectionModel = _mapper.Map<List<CollectionModel>>(listCollections);
+                return listCollectionModel;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        #endregion
+        #region update collection category
+        public async Task<bool> UpdateCollectionStatusAsync(int collectionId, string status)
+        {
+            var collection = await _unitOfWork.Collections.FindAsync(c => c.Id == collectionId);
+
+            if (collection == null)
+            {
+                return false;
+            }
+
+            collection.Status = status;
+            await _unitOfWork.Collections.UpdateAsync(collection);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+        #endregion
+        #region delete collection 
+        public async Task<bool> DeleteCollectionAsync(int collectionId)
+        {
+            var collection = await _unitOfWork.Collections.FindAsync(c => c.Id == collectionId);
+
+            if (collection == null)
+            {
+                return false;
+            }
+
+            collection.Status = CollectionStatusTypeEnum.Deleted;
+            await _unitOfWork.Collections.UpdateAsync(collection);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+        #endregion
     }
 }

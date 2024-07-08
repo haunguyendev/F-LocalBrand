@@ -30,6 +30,8 @@ namespace SWD.F_LocalBrand.Business.DTO.Product
         public string? Color { get; set; }
         public string Status { get; set; } = null!;
 
+        public DateTime? CreateDate { get; set; }
+
         public CampaignWithInfoModel Campaign { get; set; }
 
         public CategoryWithInfoModel Category { get; set; }

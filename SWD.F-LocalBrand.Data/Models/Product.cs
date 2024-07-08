@@ -28,7 +28,7 @@ public partial class Product : EntityBase
     public string? Gender { get; set; }
 
     [Column("price", TypeName = "decimal(10, 2)")]
-    public decimal? Price { get; set; }
+    public decimal Price { get; set; }
 
     [Column("description")]
     [StringLength(500)]
@@ -51,6 +51,9 @@ public partial class Product : EntityBase
     [Column("status")]
     [StringLength(30)]
     public string Status { get; set; } = null!;
+
+    [Column("createDate")]
+    public DateTime? CreateDate { get; set; }
 
     [ForeignKey("CampaignId")]
     [InverseProperty("Products")]

@@ -20,12 +20,14 @@ try
     
     builder.Host.AddAppConfigurations();
     builder.Services.AddInfrastructure(builder.Configuration);
+    
     builder.Host.UseSerilog((ctx, lc) =>
 
     lc.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
     .Enrich.FromLogContext().ReadFrom.Configuration(ctx.Configuration));
 
     var app = builder.Build();
+    app.UseHttpsRedirection();
     app.UseInfrastructure();
     app.Run();
     

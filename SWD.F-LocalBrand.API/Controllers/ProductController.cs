@@ -3,11 +3,13 @@ using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests.Product;
 using SWD.F_LocalBrand.API.Payloads.Responses;
+using SWD.F_LocalBrand.Business.DTO.Product;
 using SWD.F_LocalBrand.Business.Services;
+using System.Collections.Generic;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class ProductController : ControllerBase
     {
@@ -19,7 +21,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         //Get all product
-        [HttpGet("/list-product")]
+        [HttpGet("products")]
         public async Task<IActionResult> GetAllProduct()
         {
             try
@@ -42,7 +44,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         }
 
-        [HttpGet("/list-product/{pageSize}/{pageNumber}")]
+        [HttpGet("products/{pageSize}/{pageNumber}")]
         public async Task<IActionResult> GetAllProduct(int pageSize, int pageNumber)
         {
             var listProduct = await productService.GetAllProductsAsync(pageNumber, pageSize);
@@ -57,57 +59,11 @@ namespace SWD.F_LocalBrand.API.Controllers
             }));
         }
 
-        //get product by category id
-        [HttpGet("category-with-products/{categoryId}")]
-        public async Task<IActionResult> GetProductByCategoryId(int categoryId)
-        {
-            try
-            {
-                var listProduct = await productService.GetProductsByCategoryIdAsync(categoryId);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
-                    return NotFound(resultFail);
-                }
-                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
-                {
-                    Products = listProduct
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
 
-        }
-
-        //get product by category id and have paging
-        [HttpGet("category-with-products/{categoryId}/{pageIndex}/{pageSize}")]
-        public async Task<IActionResult> GetProductByCategoryIdPaging(int categoryId, int pageIndex, int pageSize)
-        {
-            try
-            {
-                var listProduct = await productService.GetProductsByCategoryIdPagingAsync(categoryId, pageIndex, pageSize);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this category!"));
-                    return NotFound(resultFail);
-                }
-                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
-                {
-                    Products = listProduct
-                }));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-
-        }
 
 
         //get product by id and compapility of them
-        [HttpGet("/product-product-recommend/{productId}")]
+        [HttpGet("product/{productId}/product-recommendations")]
         public async Task<IActionResult> GetProductWithRecommendations(int productId)
         {
             try
@@ -138,7 +94,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         /// <response code="200">Returns the newly created product.</response>
         /// <response code="400">If the request is invalid.</response>
         /// <response code="500">If there was an internal server error.</response>
-        [HttpPost("create-product")]
+        [HttpPost("product")]
         [SwaggerOperation(
         Summary = "Create a new product",
         Description = "Creates a new product with the provided details. The input model must contain valid data as specified in the constraints."
@@ -150,7 +106,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         {
             try
             {
-                
+
                 if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values.SelectMany(v => v.Errors)
@@ -209,7 +165,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region api update product detail 
-        [HttpPut("update-product")]
+        [HttpPut("product")]
         [SwaggerOperation(
            Summary = "Update product details",
            Description = "Updates the details of an existing product. Example of a valid request: {\"id\":1,\"productName\":\"New Product Name\",\"categoryId\":1,\"campaignId\":1,\"gender\":\"Male\",\"price\":100.00,\"description\":\"New description\",\"stockQuantity\":50,\"imageUrl\":\"http://example.com/image.jpg\",\"size\":42,\"color\":\"Red\",\"status\":\"Active\"}"
@@ -286,10 +242,10 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region api delete-product
-        [HttpDelete("{productId}")]
+        [HttpDelete("product/{productId}")]
         [SwaggerOperation(
-       Summary = "Delete a product",
-       Description = "Deletes a product by changing its status to 'Deleted'. A valid product ID is required.")]
+            Summary = "Delete a product",
+            Description = "Deletes a product by changing its status to 'Deleted'. A valid product ID is required.")]
         public async Task<IActionResult> DeleteProduct(int productId)
         {
             try
@@ -308,7 +264,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
         #region add product recommend api
-        [HttpPost("add-recommended-products")]
+        [HttpPost("product/recommended-products")]
         [SwaggerOperation(
            Summary = "Add recommended products to a product",
            Description = "Adds recommended products to a specified product. The request must contain a valid product ID and a list of recommended product IDs.")]
@@ -344,30 +300,76 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
-
-        //get product by order id
-        [HttpGet("/by-order/{orderId}/products")]
-        public async Task<IActionResult> GetProductByOrderId(int orderId)
+        #region get list product which best seller
+        [HttpGet("products/best-seller/{limit}")]
+        [SwaggerOperation(
+                      Summary = "Get best-selling products",
+                      Description = "Retrieves a list of best-selling products based on the number of orders.")]
+        [SwaggerResponse(200, "Best-selling products retrieved successfully", typeof(ApiResult<ListProductResponse>))]
+        [SwaggerResponse(500, "An error occurred while retrieving the best-selling products", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetBestSellingProducts(int limit)
         {
             try
             {
-                var listProduct = await productService.GetProductsByOrderIdAsync(orderId);
-                if (listProduct == null)
-                {
-                    var resultFail = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Do not have any product in this order!"));
-                    return NotFound(resultFail);
-                }
+                var bestSellingProducts = await productService.GetBestSellerProductsAsync(limit);
                 return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
                 {
-                    Products = listProduct
+                    Products = bestSellingProducts
                 }));
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(500, ApiResult<object>.Fail(ex));
             }
-            
         }
+        #endregion
 
-  }
+        #region get list product have lastest
+        [HttpGet("products/latest/{limit}")]
+        [SwaggerOperation(
+                                 Summary = "Get latest products",
+                                 Description = "Retrieves a list of the latest products based on the creation date.")]
+        [SwaggerResponse(200, "Latest products retrieved successfully", typeof(ApiResult<ListProductResponse>))]
+        [SwaggerResponse(500, "An error occurred while retrieving the latest products", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetLatestProducts(int limit)
+        {
+            try
+            {
+                var latestProducts = await productService.GetLatestProductsAsync(limit);
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = latestProducts
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
+        #region get products with fillter
+        [HttpGet("products/filter")]
+        [SwaggerOperation(
+                       Summary = "Get products with filter",
+                       Description = "Retrieves a list of products based on the provided filter criteria.")]
+        [SwaggerResponse(200, "Products retrieved successfully", typeof(ApiResult<ListProductResponse>))]
+        [SwaggerResponse(500, "An error occurred while retrieving the products", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetProductsWithFilter([FromQuery] ProductFilterModel request)
+        {
+            try
+            {
+                var products = await productService.GetAllProductsWithFilterAsync(request);
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = products
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+    }
 }

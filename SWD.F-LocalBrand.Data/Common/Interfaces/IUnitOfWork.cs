@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,13 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         ICustomerRepository Customers { get; }
         IProductRepository Products { get; }
         ICompapilityRepository Compapilities { get; }
+        IOrderHistoryRepository OrderHistories { get; }
+        ICollectionProductRepository CollectionProducts { get; }
 
         ICustomerProductRepository CustomerProducts { get; }
         
         Task<int> CommitAsync();
+        Task BeginTransactionAsync();
+        Task RollbackAsync();
     }
 }

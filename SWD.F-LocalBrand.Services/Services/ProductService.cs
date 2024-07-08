@@ -60,8 +60,6 @@ namespace SWD.F_LocalBrand.Business.Services
 
             return listProductReturn;
 
-
-
         }
 
         #endregion
@@ -84,56 +82,36 @@ namespace SWD.F_LocalBrand.Business.Services
             
         }
 
-        //get prodcut by category id
-        public async Task<List<ProductModel>> GetProductsByCategoryIdAsync(int categoryId)
-        {
-            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId && x.Status == "active").ToListAsync();
-            if(listProducts != null)
-            {
-                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
-                return listProductModel;
-            }
-            else
-            {
-                return null;
-            }            
-        }
-
-        //get product by category id and have paging
-        public async Task<List<ProductModel>> GetProductsByCategoryIdPagingAsync(int categoryId, int pageIndex, int pageSize)
-        {
-            var listProducts = await _unitOfWork.Products.FindAll().Where(x => x.CategoryId == categoryId).Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-            if(listProducts != null)
-            {
-                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
-                return listProductModel;
-            }
-            else
-            {
-                return null;
-            }
-        }
+        
 
         #region Get product by id and compapility of them ( only get product by id and recommend of them, do not have reverse)
         public async Task<ProductModel?> GetProductWithRecommendationsAsync(int productId)
         {
+            // Tải sản phẩm cùng với các sản phẩm được đề xuất và các bộ sưu tập liên quan
             var product = await _unitOfWork.Products.FindByCondition(
                 p => p.Id == productId,
                 trackChanges: false,
                 includeProperties: p => p.CompapilityProducts)
                 .Include(p => p.CompapilityProducts)
                     .ThenInclude(cp => cp.RecommendedProduct)
+                .Include(p => p.CollectionProducts)
+                    .ThenInclude(cp => cp.Collection)
+                .AsSplitQuery() // Tách truy vấn thành nhiều truy vấn nhỏ để tối ưu hiệu suất
                 .FirstOrDefaultAsync();
 
             if (product == null) return null;
 
+            // Sử dụng HashSet để tránh lặp lại các sản phẩm đã kiểm tra
             var visitedProducts = new HashSet<int>();
             var recommendations = new List<Product>();
 
+            // Gọi hàm đệ quy để lấy tất cả các sản phẩm được đề xuất
             GetRecommendations(product, visitedProducts, recommendations);
 
+            // Map các dữ liệu sản phẩm sang ProductModel
             var productModel = _mapper.Map<ProductModel>(product);
-            productModel.Recommendations = _mapper.Map<List<ProductModel>>(recommendations);
+            productModel.Recommendations = _mapper.Map<List<ProductModel>>(recommendations.DistinctBy(p => p.Id).ToList());
+            productModel.Collections = _mapper.Map<List<CollectionModel>>(product.CollectionProducts.Select(cp => cp.Collection).ToList());
 
             return productModel;
         }
@@ -261,17 +239,132 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
-        //get product by order id
-        public async Task<List<ProductModel>> GetProductsByOrderIdAsync(int orderId)
+        #region get list product which best seller
+        public async Task<List<ProductModel>> GetBestSellerProductsAsync(int limit)
         {
-            var products = await _unitOfWork.OrderDetails
-            .FindByCondition(od => od.OrderId == orderId)
-            .Include(od => od.Product)
-            .Select(od => od.Product)
-            .ToListAsync();
-            return _mapper.Map<List<ProductModel>>(products);
+            var bestSellerProductIds = await _unitOfWork.OrderDetails
+                .FindAll()
+                .GroupBy(od => od.ProductId)
+                .OrderByDescending(g => g.Sum(od => od.Quantity ?? 0))
+                .Select(g => g.Key)
+                .Take(limit)
+                .ToListAsync();
+            Console.WriteLine("Best Seller Product IDs: " + string.Join(", ", bestSellerProductIds));
+            var bestSellerProducts = await _unitOfWork.Products
+                .FindAll()
+                .Where(p => bestSellerProductIds.Contains(p.Id))
+                .ToListAsync();
+
+            //sort best seller products by bestSellerProductIds
+            bestSellerProducts = bestSellerProducts
+                .OrderBy(p => bestSellerProductIds.IndexOf(p.Id))
+                .ToList();
+
+            return _mapper.Map<List<ProductModel>>(bestSellerProducts);
+        }
+        #endregion
+
+        #region get list product have lastest
+        public async Task<List<ProductModel>> GetLatestProductsAsync(int limit)
+        {
+            var latestProducts = await _unitOfWork.Products
+                .FindAll()
+                .OrderByDescending(p => p.CreateDate)
+                .Take(limit)
+                .ToListAsync();
+
+            return _mapper.Map<List<ProductModel>>(latestProducts);
+        }
+        #endregion
+
+        #region get products with filter
+        public async Task<List<ProductModel>> GetAllProductsWithFilterAsync(ProductFilterModel filter)
+        {
+            var query = _unitOfWork.Products.FindAll();
+
+            if (filter.ProductName != null)
+                query = query.Where(p => p.ProductName.Contains(filter.ProductName));
+
+            if (filter.CategoryId.HasValue)
+                query = query.Where(p => p.CategoryId == filter.CategoryId.Value);
+
+            if (filter.CampaignId.HasValue)
+                query = query.Where(p => p.CampaignId == filter.CampaignId.Value);
+
+            if (filter.Gender != null)
+                query = query.Where(p => p.Gender == filter.Gender);
+
+            if (filter.MinPrice.HasValue)
+                query = query.Where(p => p.Price >= filter.MinPrice.Value);
+
+            if (filter.MaxPrice.HasValue)
+                query = query.Where(p => p.Price <= filter.MaxPrice.Value);
+
+            if (filter.StockQuantity.HasValue)
+                query = query.Where(p => p.StockQuantity == filter.StockQuantity.Value);
+
+            if (filter.ImageUrl != null)
+                query = query.Where(p => p.ImageUrl == filter.ImageUrl);
+
+            if (filter.Size.HasValue)
+                query = query.Where(p => p.Size == filter.Size.Value);
+
+            if (filter.Color != null)
+                query = query.Where(p => p.Color == filter.Color);
+
+            if (filter.Status != null)
+                query = query.Where(p => p.Status == filter.Status);
+
+            if (filter.CreateDate.HasValue)
+                query = query.Where(p => p.CreateDate == filter.CreateDate.Value);
+
+            if (filter.CollectionId.HasValue)
+            {
+                query = query.Where(p => p.CollectionProducts.Any(cp => cp.CollectionId == filter.CollectionId.Value));
+            }
+
+            if (!string.IsNullOrEmpty(filter.SortBy))
+            {
+                switch (filter.SortBy)
+                {
+                    case nameof(Product.ProductName):
+                        query = filter.IsAscending ? query.OrderBy(p => p.ProductName) : query.OrderByDescending(p => p.ProductName);
+                        break;
+                    case nameof(Product.Price):
+                        query = filter.IsAscending ? query.OrderBy(p => p.Price) : query.OrderByDescending(p => p.Price);
+                        break;
+                    case nameof(Product.Size):
+                        query = filter.IsAscending ? query.OrderBy(p => p.Size) : query.OrderByDescending(p => p.Size);
+                        break;
+                    case nameof(Product.Color):
+                        query = filter.IsAscending ? query.OrderBy(p => p.Color) : query.OrderByDescending(p => p.Color);
+                        break;
+                    case nameof(Product.StockQuantity):
+                        query = filter.IsAscending ? query.OrderBy(p => p.StockQuantity) : query.OrderByDescending(p => p.StockQuantity);
+                        break;
+                    case nameof(Product.CreateDate):
+                        query = filter.IsAscending ? query.OrderBy(p => p.CreateDate) : query.OrderByDescending(p => p.CreateDate);
+                        break;
+                    case nameof(Product.Status):
+                        query = filter.IsAscending ? query.OrderBy(p => p.Status) : query.OrderByDescending(p => p.Status);
+                        break;
+                        
+                }
+            }
+            var listProducts = await query.ToListAsync();
+
+            if (listProducts != null)
+            {
+                var listProductModel = _mapper.Map<List<ProductModel>>(listProducts);
+                return listProductModel;
+            }
+            else
+            {
+                return null;
+            }
         }
 
+        #endregion
     }
 }
     
