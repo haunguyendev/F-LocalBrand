@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Campaign;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
@@ -52,6 +53,13 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
         }
+        #region Utils
+        public async Task<bool> IsCampaignInUseAsync(int campaignId)
+        {
+            return await _unitOfWork.Collections.AnyAsync(c => c.CampaignId == campaignId);
+        }
+        #endregion
+
 
         #region create campaign
         public async Task<Campaign?> CreateCampaignAsync(CampaignCreateModel model)
@@ -151,5 +159,40 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         #endregion
+        #region update status campaign
+        public async Task<bool> UpdateCampaignStatusAsync(int campaignId, string status)
+        {
+            var campaign = await _unitOfWork.Campaigns.FindAsync(c => c.Id == campaignId);
+
+            if (campaign == null)
+            {
+                return false;
+            }
+
+            campaign.Status = status;
+            await _unitOfWork.Campaigns.UpdateAsync(campaign);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+        #endregion
+        #region update stauts deleted campaign
+        public async Task<bool> DeleteCampaignAsync(int campaignId)
+        {
+            var campaign = await _unitOfWork.Campaigns.FindAsync(c => c.Id == campaignId);
+
+            if (campaign == null)
+            {
+                return false;
+            }
+
+            campaign.Status = CollectionStatusTypeEnum.Deleted;
+            await _unitOfWork.Campaigns.UpdateAsync(campaign);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+        #endregion
+
     }
 }

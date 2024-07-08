@@ -45,6 +45,8 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
 
         public IOrderHistoryRepository OrderHistories { get; }
 
+        public ICollectionProductRepository CollectionProducts { get; }
+
         // ICampaignRepository campaignRepository,
         //ICategoryRepository categoryRepository, ICollectionRepository collectionRepository,
         //    ICustomerRepository customerRepository, IOrderDetailRepository orderDetailRepository,

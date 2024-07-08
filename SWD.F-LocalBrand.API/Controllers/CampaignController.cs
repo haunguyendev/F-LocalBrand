@@ -167,5 +167,81 @@ namespace SWD.F_LocalBrand.API.Controllers
             }));
         }
         #endregion
+
+        #region api update status 
+        [HttpPut("{campaignId}/status")]
+        [SwaggerOperation(
+        Summary = "Update campaign status",
+        Description = "Updates the status of an existing campaign."
+    )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Campaign status updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Campaign not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the campaign status", typeof(ApiResult<object>))]
+        public async Task<IActionResult> UpdateCampaignStatus(int campaignId, [FromBody] UpdateCampaignStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+            {
+                { "Errors", errors.ToArray() }
+            }));
+            }
+
+            try
+            {
+                var updateResult = await _campaignService.UpdateCampaignStatusAsync(campaignId, request.Status);
+
+                if (!updateResult)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Campaign not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Campaign status updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+        #region api deleted campagin
+        [HttpDelete("{campaignId}")]
+        [SwaggerOperation(
+       Summary = "Delete a campaign",
+       Description = "Deletes a campaign by updating its status to 'Deleted' if no collections are using it."
+   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Campaign deleted successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Campaign not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Campaign is in use by one or more collections", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while deleting the campaign", typeof(ApiResult<object>))]
+        public async Task<IActionResult> DeleteCampaign(int campaignId)
+        {
+            try
+            {
+                if (await _campaignService.IsCampaignInUseAsync(campaignId))
+                {
+                    return Conflict(ApiResult<object>.Error(new { Message = "Campaign is in use by one or more collections" }));
+                }
+
+                var deleteResult = await _campaignService.DeleteCampaignAsync(campaignId);
+
+                if (!deleteResult)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Campaign not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Campaign deleted successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
     }
 }
