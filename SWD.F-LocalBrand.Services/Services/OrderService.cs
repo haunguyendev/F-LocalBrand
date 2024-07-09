@@ -127,11 +127,11 @@ namespace SWD.F_LocalBrand.Business.Services
 
                 await _unitOfWork.Payments.CreateAsync(payment);
                 await _unitOfWork.CommitAsync();
-               
+
             }
             catch
             {
-                await _unitOfWork.RollbackAsync(); 
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -190,7 +190,7 @@ namespace SWD.F_LocalBrand.Business.Services
                                 CustomerId = order.CustomerId,
                                 ProductId = orderDetail.ProductId,
                                 BuyDate = DateOnly.FromDateTime(DateTime.Now),
-                                Status = true 
+                                Status = true
                             };
 
                             await _unitOfWork.CustomerProducts.CreateAsync(customerProduct);
@@ -228,7 +228,7 @@ namespace SWD.F_LocalBrand.Business.Services
         public async Task<List<OrderModel>> GetAllOrdersWithFilterAsync(OrderFilterModel filter)
         {
             var query = _unitOfWork.Orders.FindAll();
-                
+
 
             if (filter.CustomerId.HasValue)
                 query = query.Where(o => o.CustomerId == filter.CustomerId.Value);
@@ -280,6 +280,30 @@ namespace SWD.F_LocalBrand.Business.Services
             }
         }
 
+        #endregion
+
+        #region get order filter for role shipper and customer
+        public async Task<List<OrderModel>> GetOrdersWithFilterAsync(int? customerId, string statusOrderHistory)
+        {
+
+            var query = _unitOfWork.OrderHistories.FindByCondition(oh => oh.Status == statusOrderHistory);
+
+            if (customerId.HasValue)
+            {
+                query = query.Where(oh => oh.Order.CustomerId == customerId.Value);
+            }
+
+            var orderIds = await query.Select(oh => oh.OrderId).Distinct().ToListAsync();
+            var orders = _unitOfWork.Orders.FindByCondition(o => orderIds.Contains(o.Id))
+                .Include(o => o.OrderHistories)
+                .Include(o => o.OrderDetails)
+                .Include(o => o.Payments)
+                .OrderByDescending(o => o.OrderDate);
+            var listOrders = await orders.ToListAsync();
+            var listOrderModel = _mapper.Map<List<OrderModel>>(listOrders);
+
+            return listOrderModel;
+        }
         #endregion
 
 
