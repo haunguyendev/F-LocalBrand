@@ -22,7 +22,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         //post push notification
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> PushNOti([FromBody] NotificationRequest notificationRequest)
+        public async Task<IActionResult> PushNoti([FromBody] NotificationRequest notificationRequest)
         {
             var response = await _notificationService.SendNotification(notificationRequest.Token, notificationRequest.Title, notificationRequest.Body);
             return Ok(response);

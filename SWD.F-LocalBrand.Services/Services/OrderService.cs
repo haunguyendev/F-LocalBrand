@@ -172,6 +172,8 @@ namespace SWD.F_LocalBrand.Business.Services
 
                     await _unitOfWork.OrderHistories.CreateAsync(orderHistory);
 
+
+
                     var orderDetails = await _unitOfWork.OrderDetails.FindAllAsync(od => od.OrderId == order.Id);
                     foreach (var orderDetail in orderDetails)
                     {
