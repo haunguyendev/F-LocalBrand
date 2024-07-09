@@ -202,5 +202,81 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
+        #region api update status collection 
+        [HttpPut("status")]
+        [SwaggerOperation(
+       Summary = "Update collection status",
+       Description = "Updates the status of a collection to 'Active' or 'Inactive'."
+   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Collection status updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Collection not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the collection status", typeof(ApiResult<object>))]
+        public async Task<IActionResult> UpdateCollectionStatus([FromQuery] int collectionId, [FromBody] UpdateCollectionStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+            {
+                { "Errors", errors.ToArray() }
+            }));
+            }
+
+            try
+            {
+                var updateResult = await _collectionService.UpdateCollectionStatusAsync(collectionId, request.Status);
+
+                if (!updateResult)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Collection not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Collection status updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+        #region api delete collection
+        [HttpDelete("{collectionId}")]
+        [SwaggerOperation(
+       Summary = "Delete a collection",
+       Description = "Deletes a collection by updating its status to 'Deleted' if no products are using it."
+   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Collection deleted successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Collection not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Collection is in use by one or more products", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while deleting the collection", typeof(ApiResult<object>))]
+        public async Task<IActionResult> DeleteCollection(int collectionId)
+        {
+            try
+            {
+                if (await _collectionService.IsCollectionInUseAsync(collectionId))
+                {
+                    return Conflict(ApiResult<object>.Error(new { Message = "Collection is in use by one or more products" }));
+                }
+
+                var deleteResult = await _collectionService.DeleteCollectionAsync(collectionId);
+
+                if (!deleteResult)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Collection not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Collection deleted successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
     }
 }

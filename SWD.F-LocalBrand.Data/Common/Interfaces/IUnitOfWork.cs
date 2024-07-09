@@ -22,6 +22,7 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         IProductRepository Products { get; }
         ICompapilityRepository Compapilities { get; }
         IOrderHistoryRepository OrderHistories { get; }
+        ICollectionProductRepository CollectionProducts { get; }
 
         ICustomerProductRepository CustomerProducts { get; }
         

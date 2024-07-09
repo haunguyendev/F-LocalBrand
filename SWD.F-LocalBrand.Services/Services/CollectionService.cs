@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Collection;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
@@ -42,6 +43,10 @@ namespace SWD.F_LocalBrand.Business.Services
             {
                 return null;
             }
+        }
+        public async Task<bool> IsCollectionInUseAsync(int collectionId)
+        {
+            return await _unitOfWork.CollectionProducts.AnyAsync(cp => cp.CollectionId == collectionId);
         }
         #region create collection
 
@@ -152,6 +157,40 @@ namespace SWD.F_LocalBrand.Business.Services
             }
         }
 
+        #endregion
+        #region update collection category
+        public async Task<bool> UpdateCollectionStatusAsync(int collectionId, string status)
+        {
+            var collection = await _unitOfWork.Collections.FindAsync(c => c.Id == collectionId);
+
+            if (collection == null)
+            {
+                return false;
+            }
+
+            collection.Status = status;
+            await _unitOfWork.Collections.UpdateAsync(collection);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+        #endregion
+        #region delete collection 
+        public async Task<bool> DeleteCollectionAsync(int collectionId)
+        {
+            var collection = await _unitOfWork.Collections.FindAsync(c => c.Id == collectionId);
+
+            if (collection == null)
+            {
+                return false;
+            }
+
+            collection.Status = CollectionStatusTypeEnum.Deleted;
+            await _unitOfWork.Collections.UpdateAsync(collection);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
         #endregion
     }
 }
