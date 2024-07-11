@@ -9,7 +9,7 @@ namespace SWD.F_LocalBrand.API.Validation
             var file = value as IFormFile;
             if (file != null)
             {
-                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp" };
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg", "image/gif", "image/bmp" };
                 if (!allowedTypes.Contains(file.ContentType))
                 {
                     return new ValidationResult("Invalid file type. Only JPEG, PNG, GIF, and BMP are allowed.");

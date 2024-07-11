@@ -9,6 +9,7 @@ using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Business.Services;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
@@ -247,6 +248,65 @@ namespace SWD.F_LocalBrand.API.Controllers
                 return StatusCode(500, ApiResult<object>.Fail(ex));
             }
         }
+        #endregion
+
+        #region get order with role shipper, customer filter
+        [HttpGet("orders/{status}")]
+        [Authorize]
+        [SwaggerOperation(
+    Summary = "Get orders with role",
+    Description = "Retrieves a list of orders based on the user's role."
+)]
+        [SwaggerResponse(StatusCodes.Status200OK, "Orders retrieved successfully", typeof(ApiResult<ListOrderResponse>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        public async Task<IActionResult> GetOrdersByRole(string status)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+            {
+                { "Errors", errors.ToArray() }
+            }));
+                }
+
+                var role = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (role == null)
+                {
+                    return Unauthorized(ApiResult<string>.Error("Unauthorized: No role found in token."));
+                }
+
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int customerId))
+                {
+                    return Unauthorized(ApiResult<string>.Error("Unauthorized: Invalid user ID."));
+                }
+
+                if (role == "Customer")
+                {
+                    var orders = await _orderService.GetOrdersWithFilterAsync(customerId, status);
+                    return Ok(ApiResult<ListOrderResponse>.Succeed(new ListOrderResponse { Orders = orders }));
+                }
+                else if (role == "Shipper")
+                {
+                    var orders = await _orderService.GetOrdersWithFilterAsync(null, status);
+                    return Ok(ApiResult<ListOrderResponse>.Succeed(new ListOrderResponse { Orders = orders }));
+                }
+                else
+                {
+                    return Unauthorized(ApiResult<string>.Error("Unauthorized: Invalid role."));
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+
         #endregion
     }
 }

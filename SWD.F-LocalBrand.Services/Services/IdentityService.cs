@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Options;
@@ -349,10 +349,86 @@ public class IdentityService
         };
     }
 
-    
+    //Login for Customer
+    public LoginResult LoginMobile(string username, string password)
+    {
+        // Tìm trong bảng User
+        var user = _unitOfWork.Users.FindByCondition(u => u.UserName == username).FirstOrDefault();
 
-    //Generate JWT Resfresh Token for Customer
-    private SecurityToken CreateJwtRefreshTokenCustomer(Customer user)
+        // Tìm trong bảng Customer
+        var customer = _unitOfWork.Customers.FindByCondition(c => c.UserName == username).FirstOrDefault();
+
+        // Kiểm tra xem username có tồn tại trong cả hai bảng hay không
+        if (user == null && customer == null)
+        {
+            return new LoginResult
+            {
+                Authenticated = false,
+                Token = null,
+                RefreshToken = null,
+                Message = "Username does not exit"
+            };
+        }
+
+        // Nếu username tồn tại trong bảng User
+        if (user != null)
+        {
+            var userHash = SecurityUtil.Hash(password);
+            if (user.Password.Equals(userHash))
+            {
+                var role = _unitOfWork.Roles.FindByCondition(r => r.Id == user.RoleId).FirstOrDefault();
+                if (role.RoleName.Equals("Shipper"))
+                {
+                    return new LoginResult
+                    {
+                        Authenticated = true,
+                        Token = CreateJwtToken(user),
+                        RefreshToken = CreateJwtRefreshToken(user)
+                    };
+                }
+                else
+                {
+                    return new LoginResult
+                    {
+                        Authenticated = false,
+                        Token = null,
+                        RefreshToken = null,
+                        Message = "Not allow"
+                    };
+                }
+            }
+        }
+
+        // if username exit in table Customer
+        if (customer != null)
+        {
+            var customerHash = SecurityUtil.Hash(password);
+            if (customer.Password.Equals(customerHash))
+            {
+                return new LoginResult
+                {
+                    Authenticated = true,
+                    Token = CreateJwtTokenCustomer(customer),
+                    RefreshToken = CreateJwtRefreshTokenCustomer(customer)
+                };
+            }
+        }
+
+        // if password is wrong in both table
+        return new LoginResult
+        {
+            Authenticated = false,
+            Token = null,
+            RefreshToken = null,
+            Message = "Password is wrong"
+        };
+
+    }
+
+
+
+//Generate JWT Resfresh Token for Customer
+private SecurityToken CreateJwtRefreshTokenCustomer(Customer user)
     {
         var utcNow = DateTime.UtcNow;
         var authClaims = new List<Claim>

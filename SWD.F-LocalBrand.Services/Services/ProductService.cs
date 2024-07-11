@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using SWD.F_LocalBrand.Business.Attributes;
 using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Campaign;
@@ -8,12 +10,7 @@ using SWD.F_LocalBrand.Business.DTO.Product;
 using SWD.F_LocalBrand.Business.Utils;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
-using SWD.F_LocalBrand.Data.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace SWD.F_LocalBrand.Business.Services
 {
@@ -21,11 +18,13 @@ namespace SWD.F_LocalBrand.Business.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IResponseCacheService _cache;
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IResponseCacheService cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _cache = cache;
         }
 
 
@@ -87,6 +86,32 @@ namespace SWD.F_LocalBrand.Business.Services
         #region Get product by id and compapility of them ( only get product by id and recommend of them, do not have reverse)
         public async Task<ProductModel?> GetProductWithRecommendationsAsync(int productId)
         {
+            var cacheKey = $"ProductWithRecommendations-{productId}";
+            var cachedProduct = await _cache.GetCachedResponseAsync(cacheKey);
+            if (cachedProduct != null)
+            {
+                try
+                {
+                    // Check if the string needs multiple deserializations
+                    while (cachedProduct.StartsWith("\"") && cachedProduct.EndsWith("\""))
+                    {
+                        cachedProduct = JsonConvert.DeserializeObject<string>(cachedProduct);
+                    }
+
+                    var deserializedProduct = JsonConvert.DeserializeObject<ProductModel>(cachedProduct);
+                    if (deserializedProduct == null)
+                    {
+                        throw new Exception("Deserialization resulted in null.");
+                    }
+                    return deserializedProduct;
+                }
+                catch (JsonSerializationException ex)
+                {
+                    // Log or handle the exception
+                    Console.WriteLine(ex.Message);
+                    throw;
+                }
+            }
             // Tải sản phẩm cùng với các sản phẩm được đề xuất và các bộ sưu tập liên quan
             var product = await _unitOfWork.Products.FindByCondition(
                 p => p.Id == productId,
@@ -112,6 +137,10 @@ namespace SWD.F_LocalBrand.Business.Services
             var productModel = _mapper.Map<ProductModel>(product);
             productModel.Recommendations = _mapper.Map<List<ProductModel>>(recommendations.DistinctBy(p => p.Id).ToList());
             productModel.Collections = _mapper.Map<List<CollectionModel>>(product.CollectionProducts.Select(cp => cp.Collection).ToList());
+            var serializedProduct = JsonConvert.SerializeObject(productModel);
+            await _cache.SetCacheResponseAsync(cacheKey, serializedProduct, TimeSpan.FromMinutes(30));
+
+
 
             return productModel;
         }
