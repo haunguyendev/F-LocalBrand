@@ -25,6 +25,9 @@ public partial class OrderHistory : EntityBase
 
     [Column("changeTime", TypeName = "datetime")]
     public DateTime? ChangeTime { get; set; }
+    [Column("isCurrent")]
+    public bool IsCurrent { get; set; } = false;
+
 
     [ForeignKey("OrderId")]
     [InverseProperty("OrderHistories")]

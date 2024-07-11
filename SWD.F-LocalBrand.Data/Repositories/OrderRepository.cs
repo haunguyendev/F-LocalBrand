@@ -20,5 +20,10 @@ namespace SWD.F_LocalBrand.Data.Repositories
         {
             return _dbContext.Orders.Include(x => x.OrderDetails).FirstOrDefaultAsync(x => x.CustomerId == customerId && x.OrderStatus.Equals("Cart"));
         }
+
+        public async Task<Order?> GetOrderByIdAsync(int orderId)
+        {
+             return await _dbContext.Orders.Include(x=>x.OrderHistories).FirstOrDefaultAsync(x=>x.Id==orderId);
+        }
     }
 }

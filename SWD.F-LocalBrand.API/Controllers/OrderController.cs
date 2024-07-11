@@ -5,6 +5,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.API.Payloads.Requests.Order;
+using SWD.F_LocalBrand.API.Payloads.Requests.OrderHistory;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Business.Services;
@@ -18,10 +19,12 @@ namespace SWD.F_LocalBrand.API.Controllers
     public class OrderController : ControllerBase
     {
         private readonly OrderService _orderService;
+        private readonly OrderHistoryService _orderHistoryService;
 
-        public OrderController(OrderService orderService)
+        public OrderController(OrderService orderService,OrderHistoryService orderHistoryService)
         {
             _orderService = orderService;
+            _orderHistoryService = orderHistoryService;
         }
 
         //get product by order id
@@ -307,6 +310,55 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
 
+        #endregion
+
+        #region api update history order
+        [HttpPut("/order/{orderId}/status")]
+        [SwaggerOperation(
+        Summary = "Update order status",
+        Description = "Updates the status of an order following the defined status transition rules."
+    )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Order status updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Order not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Invalid status transition", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the order status", typeof(ApiResult<object>))]
+        public async Task<IActionResult> UpdateOrderStatus(int orderId, [FromBody] UpdateOrderHistoryStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                               .Select(e => e.ErrorMessage)
+                                               .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+            {
+                { "Errors", errors.ToArray() }
+            }));
+            }
+
+            try
+            {
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+                if (string.IsNullOrEmpty(userRole))
+                {
+                    return Unauthorized(ApiResult<object>.Error(new { Message = "User role is not defined" }));
+                }
+
+                var updateResult = await _orderHistoryService.UpdateOrderStatusAsync(orderId, request.Status, userRole);
+
+                if (!updateResult)
+                {
+                    return Conflict(ApiResult<object>.Error(new { Message = "Invalid status transition or order not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "Order status updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
         #endregion
     }
 }
