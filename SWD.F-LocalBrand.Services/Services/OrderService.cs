@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using SWD.F_LocalBrand.Business.Attributes;
 using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Cart;
@@ -19,11 +21,17 @@ namespace SWD.F_LocalBrand.Business.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ProductService _productService;
+        private readonly RedisQueueService _queueService;
+        private readonly IResponseCacheService _responseCacheService;
 
-        public OrderService(IUnitOfWork unitOfWork, IMapper mapper)
+        public OrderService(IUnitOfWork unitOfWork, IMapper mapper, ProductService productService, RedisQueueService queueService, IResponseCacheService responseCacheService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _productService = productService;
+            _queueService = queueService;
+            _responseCacheService = responseCacheService;
         }
 
         //get list order have payment status is true
@@ -308,6 +316,263 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+        #region create with payment with transaction and queue
+
+        public async Task<bool> CheckStockAvailabilityAsync(List<CartProductModel> products)
+        {
+            foreach (var product in products)
+            {
+                var cacheKey = $"product:{product.ProductId}";
+                var cachedProduct = await _responseCacheService.GetCachedResponseAsync(cacheKey);
+
+                ProductModel productEntity;
+                if (cachedProduct != null)
+                {
+                    while (cachedProduct.StartsWith("\"") && cachedProduct.EndsWith("\""))
+                    {
+                        cachedProduct = JsonConvert.DeserializeObject<string>(cachedProduct);
+                    }
+                    productEntity = JsonConvert.DeserializeObject<ProductModel>(cachedProduct);
+                    if (productEntity == null)
+                    {
+                        throw new Exception($"Product with ID {product.ProductId} not found in cache");
+                    }
+                }
+                else
+                {
+                    var productModel = await _unitOfWork.Products.FindAsync(p => p.Id == product.ProductId);
+                    if (productModel == null)
+                    {
+                        return false; // Product not found in database
+                    }
+                    productEntity = _mapper.Map<ProductModel>(productModel);
+                    await _responseCacheService.SetCacheResponseAsync(cacheKey, productEntity, TimeSpan.FromMinutes(30));
+                }
+
+                if (productEntity.StockQuantity < product.Quantity)
+                {
+                    return false; // Insufficient stock
+                }
+            }
+
+            return true;
+        }
+        public async Task CreateOrderQueueAsync(int customerId, List<CartProductModel> products, string paymentMethod)
+        {
+            var orderQueueItem = new OrderQueueItem
+            {
+                CustomerId = customerId,
+                Products = products,
+                PaymentMethod = paymentMethod
+            };
+
+            await _queueService.EnqueueOrderAsync(orderQueueItem);
+        }
+        public async Task ProcessOrderAsync(OrderQueueItem orderQueueItem)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                
+                // Tạo đối tượng Order
+                var order = new Order
+                {
+                    CustomerId = orderQueueItem.CustomerId,
+                    OrderDate = DateOnly.FromDateTime(DateTime.Now),
+                    TotalAmount = 0m,
+                    OrderStatus = OrderStatusTypeEnum.Pending
+                };
+
+                await _unitOfWork.Orders.CreateAsync(order);
+                await _unitOfWork.CommitAsync();
+
+                decimal totalAmount = 0m;
+
+                // Xử lý từng sản phẩm trong đơn hàng
+                foreach (var product in orderQueueItem.Products)
+                {
+                    var cacheKey = $"product:{product.ProductId}";
+                    var cachedProduct = await _responseCacheService.GetCachedResponseAsync(cacheKey);
+
+                    ProductModel productEntity;
+                    if (cachedProduct != null)
+                    {
+                        while (cachedProduct.StartsWith("\"") && cachedProduct.EndsWith("\""))
+                        {
+                            cachedProduct = JsonConvert.DeserializeObject<string>(cachedProduct);
+                        }
+                        productEntity = JsonConvert.DeserializeObject<ProductModel>(cachedProduct);
+                        if (productEntity == null)
+                        {
+                            throw new Exception($"Product with ID {product.ProductId} not found in cache");
+                        }
+                    }
+                    else
+                    {
+                        var productModel = await _unitOfWork.Products.FindAsync(p => p.Id == product.ProductId);
+                        if (productModel == null)
+                        {
+                            throw new Exception($"Product with ID {product.ProductId} not found in database");
+                        }
+                        productEntity = _mapper.Map<ProductModel>(productModel);
+                    }
+
+                    var orderDetail = new OrderDetail
+                    {
+                        OrderId = order.Id,
+                        ProductId = product.ProductId,
+                        Quantity = product.Quantity,
+                        Price = productEntity.Price.GetValueOrDefault()
+                    };
+
+                    totalAmount += product.Quantity * productEntity.Price.GetValueOrDefault();
+                    productEntity.StockQuantity -= product.Quantity;
+
+                    var productUpdate = new Product
+                    {
+                        Id = productEntity.Id, // Thêm ID vào Product để cập nhật chính xác
+                        ProductName = productEntity.ProductName,
+                        CategoryId = productEntity.CategoryId,
+                        CampaignId = productEntity.CampaignId,
+                        Gender = productEntity.Gender,
+                        Price = productEntity.Price.GetValueOrDefault(),
+                        Description = productEntity.Description,
+                        StockQuantity = productEntity.StockQuantity,
+                        ImageUrl = productEntity.ImageUrl,
+                        Size = productEntity.Size,
+                        Color = productEntity.Color,
+                        Status = productEntity.Status
+                    };
+
+                    await _unitOfWork.OrderDetails.CreateAsync(orderDetail);
+                    await _unitOfWork.Products.UpdateAsync(productUpdate);
+
+                    await _responseCacheService.SetCacheResponseAsync(cacheKey, productEntity, TimeSpan.FromMinutes(30));
+                }
+
+                order.TotalAmount = totalAmount;
+                await _unitOfWork.Orders.UpdateAsync(order);
+
+                var payment = new Payment
+                {
+                    OrderId = order.Id,
+                    PaymentDate = DateOnly.FromDateTime(DateTime.Now),
+                    PaymentMethod = orderQueueItem.PaymentMethod,
+                    PaymentStatus = PaymentStatusTypeEnum.Pending
+                };
+
+                await _unitOfWork.Payments.CreateAsync(payment);
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task ProcessOrderAsync()
+        {
+            var orderQueueItem = await _queueService.DequeueOrderAsync();
+            if (orderQueueItem == null) return;
+
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var order = new Order
+                {
+                    CustomerId = orderQueueItem.CustomerId,
+                    OrderDate = DateOnly.FromDateTime(DateTime.Now),
+                    TotalAmount = 0m,
+                    OrderStatus = OrderStatusTypeEnum.Pending
+                };
+
+                await _unitOfWork.Orders.CreateAsync(order);
+                await _unitOfWork.CommitAsync();
+
+                var totalAmount = 0m;
+
+                foreach (var product in orderQueueItem.Products)
+                {
+                    var cacheKey = $"product:{product.ProductId}";
+                    var cachedProduct = await _responseCacheService.GetCachedResponseAsync(cacheKey);
+
+                    ProductModel productEntity;
+                    if (cachedProduct != null)
+                    {
+                        while (cachedProduct.StartsWith("\"") && cachedProduct.EndsWith("\""))
+                        {
+                            cachedProduct = JsonConvert.DeserializeObject<string>(cachedProduct);
+                        }
+                        productEntity = JsonConvert.DeserializeObject<ProductModel>(cachedProduct);
+                        if (productEntity == null)
+                        {
+                            throw new Exception($"Product with ID {product.ProductId} not found in cache");
+                        }
+                    }
+                    else
+                    {
+                        var  productModel = await _unitOfWork.Products.FindAsync(p => p.Id == product.ProductId);
+                        if (productModel == null)
+                        {
+                            throw new Exception($"Product with ID {product.ProductId} not found in database");
+                        }
+                        productEntity = _mapper.Map<ProductModel>(productModel);
+                    }
+
+                    var orderDetail = new OrderDetail
+                    {
+                        OrderId = order.Id,
+                        ProductId = product.ProductId,
+                        Quantity = product.Quantity,
+                        Price = productEntity.Price
+                    };
+
+                    totalAmount += product.Quantity * productEntity.Price.GetValueOrDefault();
+                    productEntity.StockQuantity -= product.Quantity;
+
+                    var productUpdate = new Product
+                    {
+                        ProductName = productEntity.ProductName,
+                        CategoryId = productEntity.CategoryId,
+                        CampaignId = productEntity.CampaignId,
+                        Gender = productEntity.Gender,
+                        Price = productEntity.Price.GetValueOrDefault(),
+                        Description = productEntity.Description,
+                        StockQuantity = productEntity.StockQuantity,
+                        ImageUrl = productEntity.ImageUrl,
+                        Size = productEntity.Size,
+                        Color = productEntity.Color,
+                        Status = productEntity.Status
+                    };
+
+                    await _unitOfWork.OrderDetails.CreateAsync(orderDetail);
+                    await _unitOfWork.Products.UpdateAsync(productUpdate);
+
+                    await _responseCacheService.SetCacheResponseAsync(cacheKey, productEntity, TimeSpan.FromMinutes(30));
+                }
+
+                order.TotalAmount = totalAmount;
+                await _unitOfWork.Orders.UpdateAsync(order);
+
+                var payment = new Payment
+                {
+                    OrderId = order.Id,
+                    PaymentDate = DateOnly.FromDateTime(DateTime.Now),
+                    PaymentMethod = orderQueueItem.PaymentMethod,
+                    PaymentStatus = PaymentStatusTypeEnum.Pending
+                };
+
+                await _unitOfWork.Payments.CreateAsync(payment);
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+        #endregion
 
     }
 }

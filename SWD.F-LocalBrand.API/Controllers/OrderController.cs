@@ -170,7 +170,15 @@ namespace SWD.F_LocalBrand.API.Controllers
                 }
 
                 var customerId = int.Parse(customerClaim.Value);
-                await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
+                // Kiểm tra hàng tồn kho
+                var isStockAvailable = await _orderService.CheckStockAvailabilityAsync(request.Products);
+                if (!isStockAvailable)
+                {
+                    return BadRequest(ApiResult<string>.Error("Insufficient stock for one or more products."));
+                }
+                //await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
+                await _orderService.CreateOrderQueueAsync(customerId, request.Products, request.PaymentMethod);
+
 
                 return Ok(ApiResult<string>.Succeed("Order created successfully"));
             }

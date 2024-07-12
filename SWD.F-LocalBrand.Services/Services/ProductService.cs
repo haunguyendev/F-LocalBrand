@@ -86,7 +86,7 @@ namespace SWD.F_LocalBrand.Business.Services
         #region Get product by id and compapility of them ( only get product by id and recommend of them, do not have reverse)
         public async Task<ProductModel?> GetProductWithRecommendationsAsync(int productId)
         {
-            var cacheKey = $"ProductWithRecommendations-{productId}";
+            var cacheKey = $"product:{productId}";
             var cachedProduct = await _cache.GetCachedResponseAsync(cacheKey);
             if (cachedProduct != null)
             {
@@ -222,6 +222,8 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         #endregion
+
+
         #region deleted product by changed status
 
         public async Task DeleteProductAsync(int productId)
@@ -238,6 +240,8 @@ namespace SWD.F_LocalBrand.Business.Services
             await _unitOfWork.CommitAsync();
         }
         #endregion
+
+
         #region add list product recommend for product 
         public async Task AddRecommendedProductsAsync(int productId, List<int> recommendedProductIds)
         {
@@ -268,6 +272,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+
         #region get list product which best seller
         public async Task<List<ProductModel>> GetBestSellerProductsAsync(int limit)
         {
@@ -293,6 +298,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+
         #region get list product have lastest
         public async Task<List<ProductModel>> GetLatestProductsAsync(int limit)
         {
@@ -305,6 +311,7 @@ namespace SWD.F_LocalBrand.Business.Services
             return _mapper.Map<List<ProductModel>>(latestProducts);
         }
         #endregion
+
 
         #region get products with filter
         public async Task<List<ProductModel>> GetAllProductsWithFilterAsync(ProductFilterModel filter)
@@ -392,7 +399,6 @@ namespace SWD.F_LocalBrand.Business.Services
                 return null;
             }
         }
-
         #endregion
     }
 }

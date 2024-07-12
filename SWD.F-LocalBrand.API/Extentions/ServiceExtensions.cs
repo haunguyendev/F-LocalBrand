@@ -156,6 +156,17 @@ namespace SWD.F_LocalBrand.API.Extentions
 
 
                }));
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = $"{redisConnection.Host}:{redisConnection.Port}";
+                // options.ConfigurationOptions = new ConfigurationOptions
+                // {
+                //     EndPoints = { $"{redisConnection.Host}:{redisConnection.Port}" },
+                //     //Ssl = redisConnection.IsSSL,
+                //     //Password = redisConnection.Password
+                // };
+            });
             services.AddSingleton<MessageHub>();
 
             // Add StackExchangeRedisCache as the IDistributedCache implementation
@@ -263,7 +274,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddScoped<CategoryService>()
                 .AddScoped<CampaignService>()
                 .AddScoped<CollectionService>()
-                .AddScoped<OrderService>()
+                //.AddScoped<OrderService>()
                 .AddScoped<NotificationService>()
                 .AddScoped<FirebaseService>()
                 .AddScoped<PaymentService>()
@@ -272,6 +283,10 @@ namespace SWD.F_LocalBrand.API.Extentions
 
                 // Register ResponseCacheService
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()
+                .AddTransient<OrderService>()
+                .AddSingleton<RedisQueueService>()
+                .AddSingleton<ResponseCacheService>()
+                .AddHostedService<OrderProcessingService>()
 
 
                 //Add Validation
