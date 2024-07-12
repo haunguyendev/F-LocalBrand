@@ -8,6 +8,7 @@ using SWD.F_LocalBrand.API.Payloads.Requests.Order;
 using SWD.F_LocalBrand.API.Payloads.Requests.OrderHistory;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Order;
+using SWD.F_LocalBrand.Business.DTO.VNPay;
 using SWD.F_LocalBrand.Business.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -124,7 +125,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         #region api create order with payment
 
 
-        [HttpPost("create-order")]
+        [HttpPost("order")]
         [Authorize]
         [SwaggerOperation(
             Summary = "Create a new order and initiate payment",
@@ -177,10 +178,13 @@ namespace SWD.F_LocalBrand.API.Controllers
                     return BadRequest(ApiResult<string>.Error("Insufficient stock for one or more products."));
                 }
                 //await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
-                await _orderService.CreateOrderQueueAsync(customerId, request.Products, request.PaymentMethod);
+                // await _orderService.CreateOrderQueueAsync(customerId, request.Products, request.PaymentMethod);
+                var urlPayment = await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
 
-
-                return Ok(ApiResult<string>.Succeed("Order created successfully"));
+                return Ok(ApiResult<CreateOrderResponse>.Succeed(new CreateOrderResponse
+                {
+                    UrlPayment = urlPayment
+                }));
             }
             catch (Exception ex)
             {
@@ -189,7 +193,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
         #region api update payment status 
-        [HttpPost("update-payment-status")]
+        [HttpPost("order/check-payment")]
         [Authorize]
         [SwaggerOperation(
            Summary = "Update payment status",
@@ -198,7 +202,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         [SwaggerResponse(200, "Payment status updated successfully", typeof(ApiResult<object>))]
         [SwaggerResponse(400, "Invalid request")]
         [SwaggerResponse(500, "An error occurred while updating the payment status")]
-        public async Task<IActionResult> UpdatePaymentStatus([FromBody] UpdatePaymentStatusRequest request)
+        public async Task<IActionResult> UpdatePaymentStatus([FromForm] UpdateVNPayModel request)
         {
             try
             {
@@ -213,7 +217,7 @@ namespace SWD.F_LocalBrand.API.Controllers
                     }));
                 }
 
-                await _orderService.UpdatePaymentStatusAsync(request.PaymentId, request.Status, request.StatusCode);
+                await _orderService.UpdatePaymentStatusAsync(request);
 
                 return Ok(ApiResult<string>.Succeed("Payment status updated successfully"));
             }
