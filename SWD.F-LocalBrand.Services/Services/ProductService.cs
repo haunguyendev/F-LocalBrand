@@ -145,7 +145,7 @@ namespace SWD.F_LocalBrand.Business.Services
             return productModel;
         }
 
-        private void GetRecommendations(Product product, HashSet<int> visitedProducts, List<Product> recommendations)
+        public void GetRecommendations(Product product, HashSet<int> visitedProducts, List<Product> recommendations)
         {
             if (product == null || visitedProducts.Contains(product.Id)) return;
 

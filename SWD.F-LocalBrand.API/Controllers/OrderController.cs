@@ -10,6 +10,7 @@ using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Business.DTO.VNPay;
 using SWD.F_LocalBrand.Business.Services;
+using SWD.F_LocalBrand.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -69,6 +70,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
 
+
         //get order or list order have status from request
         [HttpGet("order/status/{status}")]
         public async Task<IActionResult> GetOrdersByStatus(string status)
@@ -86,6 +88,8 @@ namespace SWD.F_LocalBrand.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+
         #region api order status
         [HttpPut("order/status")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResult<object>))]
@@ -122,6 +126,8 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region api create order with payment
 
 
@@ -171,20 +177,15 @@ namespace SWD.F_LocalBrand.API.Controllers
                 }
 
                 var customerId = int.Parse(customerClaim.Value);
-                // Kiểm tra hàng tồn kho
-                var isStockAvailable = await _orderService.CheckStockAvailabilityAsync(request.Products);
-                if (!isStockAvailable)
-                {
-                    return BadRequest(ApiResult<string>.Error("Insufficient stock for one or more products."));
-                }
-                //await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
-                // await _orderService.CreateOrderQueueAsync(customerId, request.Products, request.PaymentMethod);
-                var urlPayment = await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
+                
+                var result = await _orderService.CreateOrderQueuePaymentAsync(customerId, request.Products, request.PaymentMethod);
 
-                return Ok(ApiResult<CreateOrderResponse>.Succeed(new CreateOrderResponse
+                if (!result.Success)
                 {
-                    UrlPayment = urlPayment
-                }));
+                    return BadRequest(ApiResult<string>.Error(result.ErrorMessage));
+                }
+
+                return Ok(ApiResult<string>.Succeed(result.PaymentUrl));
             }
             catch (Exception ex)
             {
@@ -192,8 +193,10 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region api update payment status 
-        [HttpPost("order/check-payment")]
+        [HttpGet("order/check-payment")]
         [Authorize]
         [SwaggerOperation(
            Summary = "Update payment status",
@@ -202,7 +205,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         [SwaggerResponse(200, "Payment status updated successfully", typeof(ApiResult<object>))]
         [SwaggerResponse(400, "Invalid request")]
         [SwaggerResponse(500, "An error occurred while updating the payment status")]
-        public async Task<IActionResult> UpdatePaymentStatus([FromForm] UpdateVNPayModel request)
+        public async Task<IActionResult> UpdatePaymentStatus([FromQuery] UpdateVNPayModel request)
         {
             try
             {
@@ -217,9 +220,9 @@ namespace SWD.F_LocalBrand.API.Controllers
                     }));
                 }
 
-                await _orderService.UpdatePaymentStatusAsync(request);
+                var res = await _orderService.UpdatePaymentStatusAsync(request);
 
-                return Ok(ApiResult<string>.Succeed("Payment status updated successfully"));
+                return Ok(ApiResult<string>.Succeed(res));
             }
             catch (Exception ex)
             {
@@ -227,6 +230,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
 
         #region get orders with filter
         [HttpGet("orders/filter")]
@@ -264,6 +268,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
 
         #region get order with role shipper, customer filter
         [HttpGet("orders/{status}")]
@@ -323,6 +328,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         #endregion
+
 
         #region api update history order
         [HttpPut("/order/{orderId}/status")]

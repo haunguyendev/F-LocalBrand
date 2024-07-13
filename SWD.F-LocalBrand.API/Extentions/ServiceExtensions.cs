@@ -84,7 +84,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 config.ReturnUrl = Environment.GetEnvironmentVariable("VNPaySettings__ReturnUrl");
                 config.PaymentUrl = Environment.GetEnvironmentVariable("VNPaySettings__PaymentUrl");
             });
-            
+
 
 
             var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
@@ -185,7 +185,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 options.Configuration = $"{redisConnection.Host}:{redisConnection.Port}";
             });
 
-            
+
 
             services.AddInfrastructureServices();
             // Add Mapper Services to Container injection
@@ -267,7 +267,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddTransient<IOrderDetailRepository, OrderDetailRepository>()
                 .AddTransient<IPaymentRepository, PaymentRepository>()
                 .AddTransient<IOrderRepository, OrderRepository>()
-                .AddTransient<ICompapilityRepository,CompapilityRepository>()
+                .AddTransient<ICompapilityRepository, CompapilityRepository>()
                 .AddTransient<IRoleRepository, RoleRepository>()
                 .AddTransient<IOrderHistoryRepository, OrderHistoryRepository>()
                 .AddTransient<IUnitOfWork, UnitOfWork>()
@@ -275,29 +275,24 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddSingleton<ConfigEnv>()
                 .AddScoped<UserService>()
                 .AddScoped<JwtSettings>()
-
                 .AddScoped<GoogleAuthSettings>()
-
                 .AddScoped<EmailService>()
                 .AddScoped<CustomerService>()
                 .AddScoped<ProductService>()
                 .AddScoped<CategoryService>()
                 .AddScoped<CampaignService>()
                 .AddScoped<CollectionService>()
-                //.AddScoped<OrderService>()
                 .AddScoped<NotificationService>()
                 .AddScoped<FirebaseService>()
                 .AddScoped<PaymentService>()
                 .AddScoped<CartService>()
                 .AddScoped<OrderHistoryService>()
-                .AddScoped<VNPayService>()
-
-                // Register ResponseCacheService
+                .AddSingleton<VNPayService>()
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()
                 .AddTransient<OrderService>()
                 .AddSingleton<RedisQueueService>()
-                .AddSingleton<ResponseCacheService>()
-                .AddHostedService<OrderProcessingService>()
+                .AddSingleton<ProcessingWorker>()
+                //.AddHostedService<OrderProcessingService>()
 
 
                 //Add Validation

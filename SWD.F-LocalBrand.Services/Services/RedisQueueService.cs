@@ -1,33 +1,37 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.DependencyInjection;
 using SWD.F_LocalBrand.Business.DTO;
-using System;
+using SWD.F_LocalBrand.Business.Services;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SWD.F_LocalBrand.Business.Services
+public class RedisQueueService
 {
-    public class RedisQueueService
+    private readonly ConcurrentQueue<OrderQueueItem> _queue;
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    public RedisQueueService(IServiceScopeFactory scopeFactory)
     {
-        private readonly ConcurrentQueue<OrderQueueItem> _queue;
+        _queue = new ConcurrentQueue<OrderQueueItem>();
+        _scopeFactory = scopeFactory;
+    }
 
-        public RedisQueueService()
-        {
-            _queue = new ConcurrentQueue<OrderQueueItem>();
-        }
+    public Task EnqueueOrderAsync(OrderQueueItem order)
+    {
+        _queue.Enqueue(order);
+        return Task.CompletedTask;
+    }
 
-        public Task EnqueueOrderAsync(OrderQueueItem order)
-        {
-            _queue.Enqueue(order);
-            return Task.CompletedTask;
-        }
+    public Task<OrderQueueItem> DequeueOrderAsync()
+    {
+        _queue.TryDequeue(out var order);
+        return Task.FromResult(order);
+    }
 
-        public Task<OrderQueueItem> DequeueOrderAsync()
+    public async Task<(bool Success, string ErrorMessage, string PaymentUrl)> ProcessOrderPaymentAsync(OrderQueueItem orderQueueItem)
+    {
+        using (var scope = _scopeFactory.CreateScope())
         {
-            _queue.TryDequeue(out var order);
-            return Task.FromResult(order);
+            var processingWorker = scope.ServiceProvider.GetRequiredService<ProcessingWorker>();
+            return await processingWorker.ProcessOrderPaymentAsync(orderQueueItem);
         }
     }
 }
