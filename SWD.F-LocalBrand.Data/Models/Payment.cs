@@ -26,7 +26,23 @@ public partial class Payment : EntityBase
     [StringLength(50)]
     public string? PaymentStatus { get; set; }
     [Column("statusResponseCode")]
-    public int? StatusResponseCode { get; set; }    
+    public int? StatusResponseCode { get; set; }
+    [Column("vnp_TxnRef")]
+    public string Vnp_TxnRef { get; set; } = string.Empty;
+    [Column("vnp_TransactionStatus")]
+    public string Vnp_TransactionStatus { get; set; } = string.Empty;
+    [Column("vnp_ResponseCode")]
+    public string Vnp_ResponseCode { get; set; } = string.Empty;
+
+    [Column("vnp_BankCode")]
+    public string Vnp_BankCode { get; set; } = string.Empty;
+    [Column("vnp_BankTranNo")]
+    public string Vnp_BankTranNo { get; set; } = string.Empty;
+    [Column("vnd_CardType")]
+    public string Vnd_CardType { get; set; } = string.Empty;
+
+
+
 
     [ForeignKey("OrderId")]
     [InverseProperty("Payments")]

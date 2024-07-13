@@ -4,6 +4,7 @@ using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Cart;
 using SWD.F_LocalBrand.Business.DTO.Order;
+using SWD.F_LocalBrand.Business.DTO.Report;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 using SWD.F_LocalBrand.Data.Repositories;
@@ -167,7 +168,9 @@ namespace SWD.F_LocalBrand.Business.Services
                         OrderId = order.Id,
                         Status = OrderHistoryStatusTypeEnum.Preparing,
                         ChangeTime = DateTime.Now,
-                        Description = "Order is being prepared"
+                        Description = "Order is being prepared",
+                        IsCurrent = true
+                        
                     };
 
                     await _unitOfWork.OrderHistories.CreateAsync(orderHistory);
@@ -303,6 +306,83 @@ namespace SWD.F_LocalBrand.Business.Services
             var listOrderModel = _mapper.Map<List<OrderModel>>(listOrders);
 
             return listOrderModel;
+        }
+        #endregion
+
+        #region  get daily report data async
+
+        public async Task<ReportData> GetDailyReportDataAsync(DateOnly reportDate)
+        {
+            var startDate = reportDate;
+            var endDate = startDate.AddDays(1);
+
+            var totalOrders = await GetTotalOrdersAsync(startDate, endDate);
+            var totalRevenue = await GetTotalRevenueAsync(startDate, endDate);
+            var orderStatusCounts = await GetOrderStatusCountsAsync(startDate, endDate);
+            var paymentStatusCounts = await GetPaymentStatusCountsAsync(startDate, endDate);
+            var shippingStatusCounts = await GetShippingStatusCountsAsync(DateTime.Now.Date, DateTime.Now.Date.AddDays(1));
+            var topSellingProducts = await GetTopSellingProductsAsync(startDate, endDate);
+
+            return new ReportData
+            {
+                TotalOrders = totalOrders,
+                TotalRevenue = totalRevenue,
+                OrderStatusCounts = orderStatusCounts,
+                TopSellingProducts = topSellingProducts,
+                PaymentStatusCounts = paymentStatusCounts,
+                ShippingStatusCounts = shippingStatusCounts
+            };
+        }
+        public async Task<int> GetTotalOrdersAsync(DateOnly startDate, DateOnly endDate)
+        {
+            return await _unitOfWork.Orders
+                .FindByCondition(o => o.OrderDate >= startDate && o.OrderDate < endDate)
+                .CountAsync();
+        }
+
+        public async Task<decimal> GetTotalRevenueAsync(DateOnly startDate, DateOnly endDate)
+        {
+            return await _unitOfWork.Orders
+                .FindByCondition(o => o.OrderDate >= startDate && o.OrderDate < endDate && o.OrderStatus.Equals(OrderStatusTypeEnum.Completed))
+                .SumAsync(o => o.TotalAmount ?? 0);
+        }
+
+        public async Task<Dictionary<string, int>> GetOrderStatusCountsAsync(DateOnly startDate, DateOnly endDate)
+        {
+            return await _unitOfWork.Orders
+                .FindByCondition(o => o.OrderDate >= startDate && o.OrderDate < endDate)
+                .GroupBy(o => o.OrderStatus)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.Status, g => g.Count);
+        }
+
+        public async Task<Dictionary<string, int>> GetPaymentStatusCountsAsync(DateOnly startDate, DateOnly endDate)
+        {
+            return await _unitOfWork.Payments
+                .FindByCondition(p => p.PaymentDate >= startDate && p.PaymentDate < endDate)
+                .GroupBy(p => p.PaymentStatus)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.Status, g => g.Count);
+        }
+
+        public async Task<Dictionary<string, int>> GetShippingStatusCountsAsync(DateTime startDate, DateTime endDate)
+        {
+            return await _unitOfWork.OrderHistories
+                .FindByCondition(h => h.ChangeTime >= startDate && h.ChangeTime < endDate&&h.IsCurrent==true)
+                .GroupBy(h => h.Status)
+                .Select(g => new { Status = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(g => g.Status, g => g.Count);
+        }
+
+        public async Task<List<string>> GetTopSellingProductsAsync(DateOnly startDate, DateOnly endDate)
+        {
+            return await _unitOfWork.OrderDetails
+                .FindByCondition(d => d.Order.OrderDate >= startDate && d.Order.OrderDate < endDate)
+                .GroupBy(d => d.Product.ProductName)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .Take(5)
+                .ToListAsync();
         }
         #endregion
 

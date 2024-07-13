@@ -53,7 +53,10 @@ namespace SWD.F_LocalBrand.Data.UnitOfWorks
         //    IOrderHistoryRepository orderHistoryRepository, IOrderRepository orderRepository,
         //    IPaymentRepository paymentRepository, IRoleRepository roleRepository,
         //    IUserRepository userRepository
-
+         public SwdFlocalBrandContext GetDbContext()
+        {
+            return _context;
+        }
         public UnitOfWork(SwdFlocalBrandContext context ,
             IUserRepository userRepository,
             ICustomerRepository

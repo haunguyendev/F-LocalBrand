@@ -20,5 +20,10 @@ namespace SWD.F_LocalBrand.Data.Repositories
         {
             return await _dbContext.Users.Include(x=>x.Role).ToListAsync();
         }
+
+        public async Task<List<User>> GetUsersByRoleAsync(string role)
+        {
+            return await _dbContext.Users.Include(x => x.Role).Where(x => x.Role.RoleName.Equals(role)).ToListAsync();
+        }
     }
 }
