@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SWD.F-LocalBrand.BackgroundJob\SWD.F-LocalBrand.BackgroundJob.csproj" />
     <ProjectReference Include="..\SWD.F-LocalBrand.Data\SWD.F-LocalBrand.Data.csproj" />
     <ProjectReference Include="..\SWD.F-LocalBrand.Services\SWD.F-LocalBrand.Business.csproj" />
   </ItemGroup>

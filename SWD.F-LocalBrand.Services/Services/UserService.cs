@@ -186,6 +186,11 @@ namespace SWD.F_LocalBrand.Business.Services
             return await _unitOfWork.Users.AnyAsync(u => u.Email == email);
         }
 
+        public async Task<List<User>> GetUserByRoleAsync(string role)
+        {
+            return await _unitOfWork.Users.GetUsersByRoleAsync(role);
+        }
+
 
     }
 }

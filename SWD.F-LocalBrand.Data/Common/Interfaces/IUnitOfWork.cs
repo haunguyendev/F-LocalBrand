@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
+using SWD.F_LocalBrand.Data.DataAccess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,6 +26,7 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
         ICollectionProductRepository CollectionProducts { get; }
 
         ICustomerProductRepository CustomerProducts { get; }
+        SwdFlocalBrandContext GetDbContext();
         
         Task<int> CommitAsync();
         Task BeginTransactionAsync();
