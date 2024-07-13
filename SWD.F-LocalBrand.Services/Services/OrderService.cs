@@ -168,7 +168,9 @@ namespace SWD.F_LocalBrand.Business.Services
                         OrderId = order.Id,
                         Status = OrderHistoryStatusTypeEnum.Preparing,
                         ChangeTime = DateTime.Now,
-                        Description = "Order is being prepared"
+                        Description = "Order is being prepared",
+                        IsCurrent = true
+                        
                     };
 
                     await _unitOfWork.OrderHistories.CreateAsync(orderHistory);
@@ -366,7 +368,7 @@ namespace SWD.F_LocalBrand.Business.Services
         public async Task<Dictionary<string, int>> GetShippingStatusCountsAsync(DateTime startDate, DateTime endDate)
         {
             return await _unitOfWork.OrderHistories
-                .FindByCondition(h => h.ChangeTime >= startDate && h.ChangeTime < endDate)
+                .FindByCondition(h => h.ChangeTime >= startDate && h.ChangeTime < endDate&&h.IsCurrent==true)
                 .GroupBy(h => h.Status)
                 .Select(g => new { Status = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(g => g.Status, g => g.Count);
