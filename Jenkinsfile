@@ -9,7 +9,7 @@ pipeline {
 
             steps {
                 
-                sh 'docker build --pull --rm -f Dockerfile -t flocalbrandapi:latest .'
+                sh 'docker build --pull -f Dockerfile -t flocalbrandapi:latest .'
                 
             }
         }

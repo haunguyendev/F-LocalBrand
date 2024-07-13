@@ -12,6 +12,7 @@ WORKDIR /src
 COPY ["SWD.F-LocalBrand.API/SWD.F-LocalBrand.API.csproj", "SWD.F-LocalBrand.API/"]
 COPY ["SWD.F-LocalBrand.Data/SWD.F-LocalBrand.Data.csproj", "SWD.F-LocalBrand.Data/"]
 COPY ["SWD.F-LocalBrand.Services/SWD.F-LocalBrand.Business.csproj", "SWD.F-LocalBrand.Services/"]
+COPY ["SWD.F-LocalBrand.BackgroundJob/SWD.F-LocalBrand.BackgroundJob.csproj", "SWD.F-LocalBrand.BackgroundJob/"]
 RUN dotnet restore "./SWD.F-LocalBrand.API/./SWD.F-LocalBrand.API.csproj"
 COPY . .
 WORKDIR "/src/SWD.F-LocalBrand.API"
