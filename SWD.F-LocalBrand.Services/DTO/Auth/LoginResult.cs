@@ -8,4 +8,6 @@ public class LoginResult
     public SecurityToken? Token { get; set; }
 
     public SecurityToken? RefreshToken { get; set; }
+
+    public string? Message { get; set; }
 }
