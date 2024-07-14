@@ -1,4 +1,5 @@
-﻿using SWD.F_LocalBrand.API.Hubs;
+﻿using Hangfire;
+using SWD.F_LocalBrand.API.Hubs;
 using SWD.F_LocalBrand.API.Middlewares;
 using SWD.F_LocalBrand.Data.DataAccess;
 
@@ -47,6 +48,13 @@ namespace SWD.F_LocalBrand.API.Extentions
             app.MapHub<MessageHub>("/messagehub");
 
             app.MapControllers();
+            app.UseHangfireDashboard("/jobs",new DashboardOptions
+            {
+                Authorization= new[] { new MyAuthorizationFilter() },
+                IgnoreAntiforgeryToken=true,
+                
+
+            });
 
 
         }

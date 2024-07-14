@@ -18,6 +18,36 @@ namespace SWD.F_LocalBrand.Business.Services
             _unitOfWork = unitOfWork;
     
         }
+        #region get customer cart
+
+        public async Task<CartResponseModel> GetCartByCustomerIdAsync(int customerId)
+        {
+            var cart = await _unitOfWork.Orders.GetCartByCustomerId(customerId);
+
+            if (cart == null || !cart.OrderDetails.Any())
+            {
+                return null; // Giỏ hàng trống hoặc không tồn tại
+            }
+
+            var cartResponse = new CartResponseModel
+            {
+                TotalCartValue = cart.TotalAmount ?? 0m,
+                TotalItems = cart.OrderDetails.Sum(od => od.Quantity ?? 0),
+                Items = cart.OrderDetails.Select(od => new CartItemResponseModel
+                {
+                    ProductId = od.ProductId ?? 0,
+                    ProductName = od.Product?.ProductName,
+                    ProductPrice = od.Price ?? 0m,
+                    Quantity = od.Quantity ?? 0,
+                    ProductImage = od.Product?.ImageUrl,
+                    TotalPrice = (od.Price ?? 0m) * (od.Quantity ?? 0)
+                }).ToList()
+            };
+
+            return cartResponse;
+        }
+        #endregion
+
         #region add to cart service
         public async Task AddToCartAsync(int customerId, int productId, int quantity)
         {

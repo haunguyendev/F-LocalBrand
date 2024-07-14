@@ -9,6 +9,7 @@ using SWD.F_LocalBrand.API.Payloads.Requests.OrderHistory;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Business.DTO.VNPay;
+using SWD.F_LocalBrand.Business.DTO.Report;
 using SWD.F_LocalBrand.Business.Services;
 using SWD.F_LocalBrand.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -375,6 +376,21 @@ namespace SWD.F_LocalBrand.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+        #region test
+        [HttpGet("orders/daily-report")]
+        public async Task<IActionResult> GetDailyReport()
+        {
+            try
+            {
+                var report = await _orderService.GetDailyReportDataAsync(DateOnly.FromDateTime(DateTime.Now));
+                return Ok(ApiResult<ReportData>.Succeed(report));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
         #endregion

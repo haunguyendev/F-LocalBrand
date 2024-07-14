@@ -1,5 +1,6 @@
 ﻿using F_LocalBrand.Services;
 using FluentValidation;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,14 @@ namespace SWD.F_LocalBrand.API.Extentions
             //{
             //    val.Key = jwtSettings.Key;
             //});
+            services.AddHangfire((sp, config) =>
+            {
+                var connectionString = sp.GetRequiredService<IConfiguration>().GetConnectionString("DbConnection");
+                config.UseSqlServerStorage(connectionString);
+
+            });
+            services.AddHangfireServer();
+
 
             var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY");
             if (string.IsNullOrEmpty(secretKey))
@@ -132,11 +141,17 @@ namespace SWD.F_LocalBrand.API.Extentions
                     options.ClientSecret = clientSecret;
                 });
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("HangfireAccess", policy =>
+                    policy.RequireRole("Admin"));
+            });
             services.Configure<CookiePolicyOptions>(options =>
             {
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
+            
             services.ConfigureDbContext(configuration);
 
             //Get config mail form environment
