@@ -1,5 +1,7 @@
-﻿using Microsoft.VisualBasic;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using SWD.F_LocalBrand.Business.Common.Shared;
+using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
 using System;
@@ -13,9 +15,11 @@ namespace SWD.F_LocalBrand.Business.Services
     public class OrderHistoryService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public OrderHistoryService(IUnitOfWork unitOfWork)
+        private readonly NotificationService _notificationService;
+        public OrderHistoryService(IUnitOfWork unitOfWork, NotificationService notificationService)
         {
                 _unitOfWork = unitOfWork;
+                _notificationService = notificationService;
             
         }
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string newStatus, string userRole)
@@ -48,6 +52,33 @@ namespace SWD.F_LocalBrand.Business.Services
                 ChangeTime = DateTime.UtcNow,
                 IsCurrent = true
             };
+            if(newStatus == "Prepared")
+            {
+                // Send notification to Admin
+                var roles = await _unitOfWork.Roles.FindByCondition(r => r.RoleName == "Shipper").ToListAsync();
+                foreach (var role in roles)
+                {
+                    var userList = await _unitOfWork.Users.FindByCondition(u => u.RoleId == role.Id).FirstOrDefaultAsync();
+                    if (userList.DeviceId != null)
+                        await _notificationService.SendNotification(userList.DeviceId, "F-LocalBrand", $"Have order by {order.CustomerId}, please check and ship!");
+                    await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is created", "Prepared");
+                }
+                
+                
+            }
+            if(newStatus == "Delivered")
+            {
+                // Send notification to Customer
+                var customer = await _unitOfWork.Customers.FindByCondition(u => u.Id == order.CustomerId).FirstOrDefaultAsync();
+                await _notificationService.SendNotification(customer.DeviceId, "F-LocalBrand", $"Order {order.Id} is delivered!");
+                await _notificationService.PushNotificationToRedis(customer.Id, order.Id, $"Order {order.Id} is delivered", "Delivered");
+            }
+            if(newStatus == "ShipperReceived")
+            {
+                var customer = await _unitOfWork.Customers.FindByCondition(u => u.Id == order.CustomerId).FirstOrDefaultAsync();
+                await _notificationService.SendNotification(customer.DeviceId, "F-LocalBrand", $"Shipper received the order {order.Id}");
+                await _notificationService.PushNotificationToRedis(customer.Id, order.Id, $"Shipper received the order {order.Id}", "ShipperReceived");
+            }
             await _unitOfWork.OrderHistories.UpdateAsync(currentStatus);
             await _unitOfWork.OrderHistories.CreateAsync(newOrderHistory);
             await _unitOfWork.CommitAsync();

@@ -10,6 +10,7 @@ namespace SWD.F_LocalBrand.Business.Common.Shared
     {
         public const string Pending = "Pending";
         public const string Completed = "Completed";
+        public const string SomgethingError = "SomgethingError";
         public const string Failed = "Failed";
         public const string Expired = "Expired";
     }

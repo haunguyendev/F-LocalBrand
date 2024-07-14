@@ -4,6 +4,7 @@ using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StackExchange.Redis;
@@ -18,6 +19,7 @@ using SWD.F_LocalBrand.Business.Helpers;
 using SWD.F_LocalBrand.Business.Mapper;
 using SWD.F_LocalBrand.Business.Services;
 using SWD.F_LocalBrand.Business.Settings;
+using SWD.F_LocalBrand.Business.Settings.VNPay;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.DataAccess;
 using SWD.F_LocalBrand.Data.Repositories;
@@ -30,8 +32,9 @@ namespace SWD.F_LocalBrand.API.Extentions
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            
 
+            var cloudMessage = new CloudMessageConfig();
+            cloudMessage.InstallServices(services, configuration);
             services.AddScoped<ExceptionMiddleware>();
             services.AddControllers();
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
@@ -81,7 +84,16 @@ namespace SWD.F_LocalBrand.API.Extentions
                 config.AuthPassword = Environment.GetEnvironmentVariable("FIREBASE_AUTH_PASSWORD");
                 config.Bucket = Environment.GetEnvironmentVariable("FIREBASE_BUCKET");
             });
-            
+
+            services.Configure<VNPaySettings>(config =>
+            {
+                config.Version = Environment.GetEnvironmentVariable("VNPaySettings__Version");
+                config.TmnCode = Environment.GetEnvironmentVariable("VNPaySettings__TmnCode");
+                config.HashSecret = Environment.GetEnvironmentVariable("VNPaySettings__HashSecret");
+                config.ReturnUrl = Environment.GetEnvironmentVariable("VNPaySettings__ReturnUrl");
+                config.PaymentUrl = Environment.GetEnvironmentVariable("VNPaySettings__PaymentUrl");
+            });
+
 
 
             var clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
@@ -169,6 +181,17 @@ namespace SWD.F_LocalBrand.API.Extentions
 
 
                }));
+
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = $"{redisConnection.Host}:{redisConnection.Port}";
+                // options.ConfigurationOptions = new ConfigurationOptions
+                // {
+                //     EndPoints = { $"{redisConnection.Host}:{redisConnection.Port}" },
+                //     //Ssl = redisConnection.IsSSL,
+                //     //Password = redisConnection.Password
+                // };
+            });
             services.AddSingleton<MessageHub>();
 
             // Add StackExchangeRedisCache as the IDistributedCache implementation
@@ -177,7 +200,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 options.Configuration = $"{redisConnection.Host}:{redisConnection.Port}";
             });
 
-            
+
 
             services.AddInfrastructureServices();
             // Add Mapper Services to Container injection
@@ -259,7 +282,7 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddTransient<IOrderDetailRepository, OrderDetailRepository>()
                 .AddTransient<IPaymentRepository, PaymentRepository>()
                 .AddTransient<IOrderRepository, OrderRepository>()
-                .AddTransient<ICompapilityRepository,CompapilityRepository>()
+                .AddTransient<ICompapilityRepository, CompapilityRepository>()
                 .AddTransient<IRoleRepository, RoleRepository>()
                 .AddTransient<IOrderHistoryRepository, OrderHistoryRepository>()
                 .AddTransient<IUnitOfWork, UnitOfWork>()
@@ -267,23 +290,24 @@ namespace SWD.F_LocalBrand.API.Extentions
                 .AddSingleton<ConfigEnv>()
                 .AddScoped<UserService>()
                 .AddScoped<JwtSettings>()
-
                 .AddScoped<GoogleAuthSettings>()
-
                 .AddScoped<EmailService>()
                 .AddScoped<CustomerService>()
                 .AddScoped<ProductService>()
                 .AddScoped<CategoryService>()
                 .AddScoped<CampaignService>()
                 .AddScoped<CollectionService>()
-                .AddScoped<OrderService>()
+                .AddScoped<NotificationService>()
                 .AddScoped<FirebaseService>()
                 .AddScoped<PaymentService>()
                 .AddScoped<CartService>()
                 .AddScoped<OrderHistoryService>()
-
-                // Register ResponseCacheService
+                .AddSingleton<VNPayService>()
                 .AddSingleton<IResponseCacheService, ResponseCacheService>()
+                .AddTransient<OrderService>()
+                .AddSingleton<RedisQueueService>()
+                .AddSingleton<ProcessingWorker>()
+                //.AddHostedService<OrderProcessingService>()
 
 
                 //Add Validation

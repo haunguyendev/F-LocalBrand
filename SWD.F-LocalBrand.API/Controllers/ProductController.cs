@@ -164,6 +164,7 @@ namespace SWD.F_LocalBrand.API.Controllers
          */
         #endregion
 
+
         #region api update product detail 
         [HttpPut("product")]
         [SwaggerOperation(
@@ -241,6 +242,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         #endregion
 
+
         #region api delete-product
         [HttpDelete("product/{productId}")]
         [SwaggerOperation(
@@ -263,6 +265,8 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region add product recommend api
         [HttpPost("product/recommended-products")]
         [SwaggerOperation(
@@ -300,6 +304,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
+
         #region get list product which best seller
         [HttpGet("products/best-seller/{limit}")]
         [SwaggerOperation(
@@ -323,6 +328,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
 
         #region get list product have lastest
         [HttpGet("products/latest/{limit}")]

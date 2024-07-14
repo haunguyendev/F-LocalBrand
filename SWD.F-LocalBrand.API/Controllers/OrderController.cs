@@ -8,8 +8,10 @@ using SWD.F_LocalBrand.API.Payloads.Requests.Order;
 using SWD.F_LocalBrand.API.Payloads.Requests.OrderHistory;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Order;
+using SWD.F_LocalBrand.Business.DTO.VNPay;
 using SWD.F_LocalBrand.Business.DTO.Report;
 using SWD.F_LocalBrand.Business.Services;
+using SWD.F_LocalBrand.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -69,6 +71,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
 
+
         //get order or list order have status from request
         [HttpGet("order/status/{status}")]
         public async Task<IActionResult> GetOrdersByStatus(string status)
@@ -86,6 +89,8 @@ namespace SWD.F_LocalBrand.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+
         #region api order status
         [HttpPut("order/status")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ApiResult<object>))]
@@ -122,10 +127,12 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region api create order with payment
 
 
-        [HttpPost("create-order")]
+        [HttpPost("order")]
         [Authorize]
         [SwaggerOperation(
             Summary = "Create a new order and initiate payment",
@@ -171,9 +178,15 @@ namespace SWD.F_LocalBrand.API.Controllers
                 }
 
                 var customerId = int.Parse(customerClaim.Value);
-                await _orderService.CreateOrderAsync(customerId, request.Products, request.PaymentMethod);
+                
+                var result = await _orderService.CreateOrderQueuePaymentAsync(customerId, request.Products, request.PaymentMethod);
 
-                return Ok(ApiResult<string>.Succeed("Order created successfully"));
+                if (!result.Success)
+                {
+                    return BadRequest(ApiResult<string>.Error(result.ErrorMessage));
+                }
+
+                return Ok(ApiResult<string>.Succeed(result.PaymentUrl));
             }
             catch (Exception ex)
             {
@@ -181,8 +194,10 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region api update payment status 
-        [HttpPost("update-payment-status")]
+        [HttpGet("order/check-payment")]
         [Authorize]
         [SwaggerOperation(
            Summary = "Update payment status",
@@ -191,7 +206,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         [SwaggerResponse(200, "Payment status updated successfully", typeof(ApiResult<object>))]
         [SwaggerResponse(400, "Invalid request")]
         [SwaggerResponse(500, "An error occurred while updating the payment status")]
-        public async Task<IActionResult> UpdatePaymentStatus([FromBody] UpdatePaymentStatusRequest request)
+        public async Task<IActionResult> UpdatePaymentStatus([FromQuery] UpdateVNPayModel request)
         {
             try
             {
@@ -206,9 +221,9 @@ namespace SWD.F_LocalBrand.API.Controllers
                     }));
                 }
 
-                await _orderService.UpdatePaymentStatusAsync(request.PaymentId, request.Status, request.StatusCode);
+                var res = await _orderService.UpdatePaymentStatusAsync(request);
 
-                return Ok(ApiResult<string>.Succeed("Payment status updated successfully"));
+                return Ok(ApiResult<string>.Succeed(res));
             }
             catch (Exception ex)
             {
@@ -216,6 +231,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
 
         #region get orders with filter
         [HttpGet("orders/filter")]
@@ -253,6 +269,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
 
         #region get order with role shipper, customer filter
         [HttpGet("orders/{status}")]
@@ -312,6 +329,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
 
         #endregion
+
 
         #region api update history order
         [HttpPut("/order/{orderId}/status")]
