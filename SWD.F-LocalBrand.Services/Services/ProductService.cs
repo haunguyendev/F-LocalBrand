@@ -197,6 +197,14 @@ namespace SWD.F_LocalBrand.Business.Services
         #region update product detail
         public async Task<ProductUpdateModel?> UpdateProductAsync(ProductUpdateModel model)
         {
+            var cacheKey = $"product:{model.Id}";
+            var cachedProduct = await _cache.GetCachedResponseAsync(cacheKey);
+
+            if (cachedProduct != null)
+            {
+                await _cache.RemoveCacheRepsonseAsync(cacheKey);
+            }
+
             var product = await _unitOfWork.Products.GetByIdAsync(model.Id);
             if (product == null)
             {
