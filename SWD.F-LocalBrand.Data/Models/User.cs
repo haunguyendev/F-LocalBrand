@@ -38,7 +38,11 @@ public partial class User : EntityBase
     public string? Image { get; set; }
     [Column("status")]
     public string? Status { get; set; }
-    
+
+    [Column("deviceId")]
+    [StringLength(255)]
+    public string? DeviceId { get; set; }
+
     [Column("role_id")]
     public int? RoleId { get; set; }
 

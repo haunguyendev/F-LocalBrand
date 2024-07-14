@@ -56,7 +56,12 @@ pipeline {
             string(credentialsId: 'FIREBASE_API_KEY', variable: 'FIREBASE_API_KEY'),
             string(credentialsId: 'FIREBASE_AUTH_EMAIL', variable: 'FIREBASE_AUTH_EMAIL'),
             string(credentialsId: 'FIREBASE_AUTH_PASSWORD', variable: 'FIREBASE_AUTH_PASSWORD'),
-            string(credentialsId: 'FIREBASE_BUCKET', variable: 'FIREBASE_BUCKET')
+            string(credentialsId: 'FIREBASE_BUCKET', variable: 'FIREBASE_BUCKET'),
+            string(credentialsId: 'VNPaySettings__ReturnUrl', variable: 'VNPaySettings__ReturnUrl'),
+            string(credentialsId: 'VNPaySettings__PaymentUrl', variable: 'VNPaySettings__PaymentUrl'),
+            string(credentialsId: 'VNPaySettings__TmnCode', variable: 'VNPaySettings__TmnCode'),
+            string(credentialsId: 'VNPaySettings__HashSecret', variable: 'VNPaySettings__HashSecret'),
+            string(credentialsId: 'VNPaySettings__Version', variable: 'VNPaySettings__Version')
         ]) {
             echo 'Deploying and cleaning'
             sh 'docker container stop flocalbrandapi || echo "this container does not exist"'
@@ -92,7 +97,12 @@ pipeline {
                 -e FIREBASE_AUTH_EMAIL="${FIREBASE_AUTH_EMAIL}" \
                 -e FIREBASE_AUTH_PASSWORD="${FIREBASE_AUTH_PASSWORD}" \
                 -e FIREBASE_BUCKET="${FIREBASE_BUCKET}" \
-                -d --rm --name flocalbrandapi -p 8082:8080 -p 8083:8081 chalsfptu/flocalbrandapi'''
+                -e VNPaySettings__ReturnUrl="${VNPaySettings__ReturnUrl}" \
+                -e VNPaySettings__PaymentUrl="${VNPaySettings__PaymentUrl}" \
+                -e VNPaySettings__TmnCode="${VNPaySettings__TmnCode}" \
+                -e VNPaySettings__HashSecret="${VNPaySettings__HashSecret}" \
+                -e VNPaySettings__Version="${VNPaySettings__Version}" \
+                -d --name flocalbrandapi -p 8082:8080 -p 8083:8081 chalsfptu/flocalbrandapi'''
         }
     }
 }
