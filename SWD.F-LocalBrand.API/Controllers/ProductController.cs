@@ -164,6 +164,7 @@ namespace SWD.F_LocalBrand.API.Controllers
          */
         #endregion
 
+
         #region api update product detail 
         [HttpPut("product")]
         [SwaggerOperation(
@@ -241,6 +242,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         #endregion
 
+
         #region api delete-product
         [HttpDelete("product/{productId}")]
         [SwaggerOperation(
@@ -263,6 +265,8 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region add product recommend api
         [HttpPost("product/recommended-products")]
         [SwaggerOperation(
@@ -300,6 +304,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
+
         #region get list product which best seller
         [HttpGet("products/best-seller/{limit}")]
         [SwaggerOperation(
@@ -323,6 +328,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
 
         #region get list product have lastest
         [HttpGet("products/latest/{limit}")]
@@ -363,6 +369,37 @@ namespace SWD.F_LocalBrand.API.Controllers
                 return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
                 {
                     Products = products
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
+        #region get products with unique by name
+
+        [HttpGet("products/unique-name")]
+        [SwaggerOperation(
+                                  Summary = "Get products unique by name",
+                                  Description = "Retrieves a product by its name.")]
+        [SwaggerResponse(200, "Product retrieved successfully", typeof(ApiResult<List<ProductResponse>>))]
+        [SwaggerResponse(404, "Product not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(500, "An error occurred while retrieving the product", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetProductByName()
+        {
+            try
+            {
+                var product = await productService.GetUniqueProductsByNameAsync();
+                if (product == null)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "Product not found" }));
+                }
+
+                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                {
+                    Products = product
                 }));
             }
             catch (Exception ex)

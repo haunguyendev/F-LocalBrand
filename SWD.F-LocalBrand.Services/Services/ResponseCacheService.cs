@@ -16,9 +16,26 @@ namespace SWD.F_LocalBrand.Business.Attributes
             _distributedCache = distributedCache;
             _connectionMultiplexer = connectionMultiplexer;
         }
-        public async Task SetCacheResponseAsync(string cacheKey, object response, TimeSpan timeOut)
+        //public async Task SetCacheResponseAsync(string cacheKey, object response, TimeSpan timeOut)
+        //{
+        //    if(response == null)
+        //    {
+        //        return;
+        //    }
+        //    var serializedResponse = JsonConvert.SerializeObject(response, new JsonSerializerSettings()
+        //    {
+        //        ContractResolver = new CamelCasePropertyNamesContractResolver()
+        //    });
+
+        //    await _distributedCache.SetStringAsync(cacheKey, serializedResponse, new DistributedCacheEntryOptions
+        //    {
+        //        AbsoluteExpirationRelativeToNow = timeOut
+        //    });
+        //}
+
+        public async Task SetCacheResponseAsync(string cacheKey, object response, TimeSpan? timeOut = null)
         {
-            if(response == null)
+            if (response == null)
             {
                 return;
             }
@@ -27,10 +44,17 @@ namespace SWD.F_LocalBrand.Business.Attributes
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             });
 
-            await _distributedCache.SetStringAsync(cacheKey, serializedResponse, new DistributedCacheEntryOptions
+            if (timeOut.HasValue)
             {
-                AbsoluteExpirationRelativeToNow = timeOut
-            });
+                await _distributedCache.SetStringAsync(cacheKey, serializedResponse, new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = timeOut
+                });
+            }
+            else
+            {
+                await _distributedCache.SetStringAsync(cacheKey, serializedResponse);
+            }
         }
 
         public async Task<string> GetCachedResponseAsync(string cacheKey)
