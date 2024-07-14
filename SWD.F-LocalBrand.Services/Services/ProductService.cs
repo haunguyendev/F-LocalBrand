@@ -408,6 +408,55 @@ namespace SWD.F_LocalBrand.Business.Services
             }
         }
         #endregion
+
+
+        #region get list product with distinst by product name
+        public async Task<List<ProductModel>> GetUniqueProductsByNameAsync()
+        {
+            // Define the cache key for this query
+            var cacheKey = "product:unique_products_by_name";
+            var cachedProducts = await _cache.GetCachedResponseAsync(cacheKey);
+            if (cachedProducts != null)
+            {
+                try
+                {
+                    while (cachedProducts.StartsWith("\"") && cachedProducts.EndsWith("\""))
+                    {
+                        cachedProducts = JsonConvert.DeserializeObject<string>(cachedProducts);
+                    }
+                    // Deserialize the cached response
+                    var deserializedProducts = JsonConvert.DeserializeObject<List<ProductModel>>(cachedProducts);
+                    if (deserializedProducts == null)
+                    {
+                        throw new Exception("Deserialization resulted in null.");
+                    }
+                    return deserializedProducts;
+                }
+                catch (JsonSerializationException ex)
+                {
+                    // Log or handle the exception
+                    Console.WriteLine(ex.Message);
+                    throw;
+                }
+            }
+
+            // Query the database to get unique products by name
+            var uniqueProducts = await _unitOfWork.Products.FindAll(trackChanges: false)
+                .GroupBy(p => p.ProductName)
+                .Select(g => g.FirstOrDefault())
+                .ToListAsync();
+
+            // Map the data to ProductModel
+            var productModels = _mapper.Map<List<ProductModel>>(uniqueProducts);
+
+            // Serialize the result and set cache
+            var serializedProducts = JsonConvert.SerializeObject(productModels);
+            await _cache.SetCacheResponseAsync(cacheKey, serializedProducts, TimeSpan.FromMinutes(30));
+
+            return productModels;
+        }
+
+        #endregion
     }
 }
     
