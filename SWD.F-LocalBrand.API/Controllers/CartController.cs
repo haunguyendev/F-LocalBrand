@@ -6,6 +6,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Exceptions;
 using SWD.F_LocalBrand.API.Payloads.Requests.Cart;
+using SWD.F_LocalBrand.Business.DTO.Cart;
 using SWD.F_LocalBrand.Business.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -20,8 +21,62 @@ namespace SWD.F_LocalBrand.API.Controllers
         public CartController(CartService cartService)
         {
             _cartService = cartService;
-            
+            }
+
+
+        #region api get customer cart
+        [HttpGet("get-customer-cart")]
+        [SwaggerOperation(
+        Summary = "Get customer cart",
+        Description = "Retrieves the cart for the logged-in customer."
+    )]
+        [SwaggerResponse(200, "Cart retrieved successfully", typeof(ApiResult<CartResponseModel>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(401, "Unauthorized")]
+        [SwaggerResponse(500, "An error occurred while retrieving the cart")]
+        public async Task<ActionResult<ApiResult<CartResponseModel>>> GetCustomerCart()
+        {
+            try
+            {
+                if (!Request.Headers.TryGetValue("Authorization", out var token))
+                {
+                    return Unauthorized(ApiResult<string>.Error("Authorization header is missing or invalid."));
+                }
+
+                token = token.ToString().Split()[1];
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    return Unauthorized(ApiResult<string>.Error("Authorization header is missing or invalid."));
+                }
+
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var customerClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.NameId);
+
+                if (customerClaim == null)
+                {
+                    return Unauthorized(ApiResult<string>.Error("Unauthorized: No customer ID found in token."));
+                }
+
+                var customerId = int.Parse(customerClaim.Value);
+                var cart = await _cartService.GetCartByCustomerIdAsync(customerId);
+
+                if (cart == null)
+                {
+                    return Ok(ApiResult<string>.Succeed("Your cart has no items"));
+                }
+
+                return Ok(ApiResult<CartResponseModel>.Succeed(cart));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
         }
+
+        #endregion
+
         #region api add-to-cart
         [HttpPost("add-to-cart")]
         

@@ -11,5 +11,6 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
     {
         Task<Order?> GetCartByCustomerId(int customerId);
         Task<Order?> GetOrderByIdAsync(int orderId);
+        
     }
 }
