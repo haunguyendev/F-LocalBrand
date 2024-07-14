@@ -70,6 +70,7 @@ namespace SWD.F_LocalBrand.Business.Services
                         TotalAmount = 0m
                     };
                     await _unitOfWork.Orders.CreateAsync(cartOrder);
+                    await _unitOfWork.CommitAsync();
                 }
 
                 var orderDetail = cartOrder.OrderDetails.FirstOrDefault(od => od.ProductId == productId);

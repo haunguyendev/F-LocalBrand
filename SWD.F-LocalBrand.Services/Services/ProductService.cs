@@ -282,28 +282,61 @@ namespace SWD.F_LocalBrand.Business.Services
 
 
         #region get list product which best seller
+        //public async Task<List<ProductModel>> GetBestSellerProductsAsync(int limit)
+        //{
+        //    var bestSellerProductIds = await _unitOfWork.OrderDetails
+        //        .FindAll()
+        //        .GroupBy(od => od.ProductId)
+        //        .OrderByDescending(g => g.Sum(od => od.Quantity ?? 0))
+        //        .Select(g => g.Key)
+        //        .Take(limit)
+        //        .ToListAsync();
+        //    Console.WriteLine("Best Seller Product IDs: " + string.Join(", ", bestSellerProductIds));
+        //    var bestSellerProducts = await _unitOfWork.Products
+        //        .FindAll()
+        //        .Where(p => bestSellerProductIds.Contains(p.Id))
+        //        .ToListAsync();
+
+        //    //sort best seller products by bestSellerProductIds
+        //    bestSellerProducts = bestSellerProducts
+        //        .OrderBy(p => bestSellerProductIds.IndexOf(p.Id))
+        //        .ToList();
+
+        //    return _mapper.Map<List<ProductModel>>(bestSellerProducts);
+        //}
         public async Task<List<ProductModel>> GetBestSellerProductsAsync(int limit)
         {
+            // Group by both ProductId and ProductName to find the best-seller products
             var bestSellerProductIds = await _unitOfWork.OrderDetails
                 .FindAll()
-                .GroupBy(od => od.ProductId)
-                .OrderByDescending(g => g.Sum(od => od.Quantity ?? 0))
-                .Select(g => g.Key)
+                .GroupBy(od => new { od.ProductId, od.Product.ProductName })
+                .Select(g => new
+                {
+                    ProductId = g.Key.ProductId,
+                    ProductName = g.Key.ProductName,
+                    QuantitySum = g.Sum(od => od.Quantity ?? 0)
+                })
+                .GroupBy(g => g.ProductName)
+                .Select(g => g.OrderByDescending(p => p.QuantitySum).First().ProductId)
                 .Take(limit)
                 .ToListAsync();
+
             Console.WriteLine("Best Seller Product IDs: " + string.Join(", ", bestSellerProductIds));
+
+            // Fetch the products from the database
             var bestSellerProducts = await _unitOfWork.Products
                 .FindAll()
                 .Where(p => bestSellerProductIds.Contains(p.Id))
                 .ToListAsync();
 
-            //sort best seller products by bestSellerProductIds
+            // Sort the best seller products by bestSellerProductIds
             bestSellerProducts = bestSellerProducts
                 .OrderBy(p => bestSellerProductIds.IndexOf(p.Id))
                 .ToList();
 
             return _mapper.Map<List<ProductModel>>(bestSellerProducts);
         }
+
         #endregion
 
 
