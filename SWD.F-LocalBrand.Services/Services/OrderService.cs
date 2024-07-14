@@ -200,6 +200,15 @@ namespace SWD.F_LocalBrand.Business.Services
 
                 if (order.TotalAmount != (updateVNPayModel.vnp_Amount / 100))
                 {
+                    paymentCheck.Vnd_CardType = updateVNPayModel.vnp_CardType;
+                    paymentCheck.Vnp_BankCode = updateVNPayModel.vnp_BankCode;
+                    paymentCheck.Vnp_BankTranNo = updateVNPayModel.vnp_BankTranNo;
+                    paymentCheck.Vnp_ResponseCode = updateVNPayModel.vnp_ResponseCode;
+                    paymentCheck.Vnp_TransactionStatus = updateVNPayModel.vnp_TransactionStatus;
+                    paymentCheck.Vnp_TxnRef = updateVNPayModel.vnp_TxnRef;
+                    paymentCheck.PaymentStatus = PaymentStatusTypeEnum.Failed;
+                    await _unitOfWork.Payments.UpdateAsync(paymentCheck);
+                    await _unitOfWork.CommitAsync(); // Commit changes including the payment update
                     return "Amount mismatch"; // "RspCode":"04"
                 }
 
@@ -212,6 +221,12 @@ namespace SWD.F_LocalBrand.Business.Services
                 if (updateVNPayModel.vnp_ResponseCode == "00" && updateVNPayModel.vnp_TransactionStatus == "00")
                 {
                     order.OrderStatus = OrderStatusTypeEnum.Completed;
+                    paymentCheck.Vnd_CardType = updateVNPayModel.vnp_CardType;
+                    paymentCheck.Vnp_BankCode = updateVNPayModel.vnp_BankCode;
+                    paymentCheck.Vnp_BankTranNo = updateVNPayModel.vnp_BankTranNo;
+                    paymentCheck.Vnp_ResponseCode = updateVNPayModel.vnp_ResponseCode;
+                    paymentCheck.Vnp_TransactionStatus = updateVNPayModel.vnp_TransactionStatus;
+                    paymentCheck.Vnp_TxnRef = updateVNPayModel.vnp_TxnRef;
                     paymentCheck.PaymentStatus = PaymentStatusTypeEnum.Completed;
                     var orderHistory = new OrderHistory
                     {
@@ -265,6 +280,12 @@ namespace SWD.F_LocalBrand.Business.Services
                 else
                 {
                     order.OrderStatus = OrderStatusTypeEnum.Failed;
+                    paymentCheck.Vnd_CardType = updateVNPayModel.vnp_CardType;
+                    paymentCheck.Vnp_BankCode = updateVNPayModel.vnp_BankCode;
+                    paymentCheck.Vnp_BankTranNo = updateVNPayModel.vnp_BankTranNo;
+                    paymentCheck.Vnp_ResponseCode = updateVNPayModel.vnp_ResponseCode;
+                    paymentCheck.Vnp_TransactionStatus = updateVNPayModel.vnp_TransactionStatus;
+                    paymentCheck.Vnp_TxnRef = updateVNPayModel.vnp_TxnRef;
                     paymentCheck.PaymentStatus = PaymentStatusTypeEnum.Failed;
                     await _unitOfWork.Orders.UpdateAsync(order);
                     await _unitOfWork.Payments.UpdateAsync(paymentCheck);
@@ -279,7 +300,6 @@ namespace SWD.F_LocalBrand.Business.Services
                 throw; // Re-throwing the exception
             }
         }
-
         #endregion
 
 
@@ -385,6 +405,7 @@ namespace SWD.F_LocalBrand.Business.Services
             return listOrderModel;
         }
         #endregion
+
 
         #region create with payment with transaction and queue
 
@@ -644,6 +665,7 @@ namespace SWD.F_LocalBrand.Business.Services
         //}
         #endregion
 
+
         #region create order with payment with transaction payment
         public async Task<(bool Success, string ErrorMessage, string PaymentUrl)> CreateOrderQueuePaymentAsync(int customerId, List<CartProductModel> products, string paymentMethod)
         {
@@ -658,6 +680,7 @@ namespace SWD.F_LocalBrand.Business.Services
             return await _queueService.ProcessOrderPaymentAsync(orderQueueItem);
         }
         #endregion
+
 
         #region  get daily report data async
 
