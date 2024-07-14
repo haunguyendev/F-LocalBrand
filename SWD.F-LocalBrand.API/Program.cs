@@ -34,6 +34,7 @@ try
 }
 catch (Exception ex)
 {
+    Console.WriteLine(ex.Message);
     string type = ex.GetType().Name;
     if (type.Equals("StopTheHostException", StringComparison.Ordinal))
     {
