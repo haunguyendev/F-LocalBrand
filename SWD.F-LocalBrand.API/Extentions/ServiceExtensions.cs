@@ -129,11 +129,17 @@ namespace SWD.F_LocalBrand.API.Extentions
                     options.ClientSecret = clientSecret;
                 });
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("HangfireAccess", policy =>
+                    policy.RequireRole("Admin"));
+            });
             services.Configure<CookiePolicyOptions>(options =>
             {
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
+            
             services.ConfigureDbContext(configuration);
 
             //Get config mail form environment
