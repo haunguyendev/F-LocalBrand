@@ -33,7 +33,7 @@ public partial class Order : EntityBase
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
     [InverseProperty("Order")]
-    public virtual ICollection<OrderHistory> OrderHistories { get; set; } = new List<OrderHistory>();
+    public virtual ICollection<OrderHistory> OrderHistories { get; set; } = new List<OrderHistory>();   
 
     [InverseProperty("Order")]
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
