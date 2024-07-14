@@ -48,7 +48,13 @@ namespace SWD.F_LocalBrand.API.Extentions
             app.MapHub<MessageHub>("/messagehub");
 
             app.MapControllers();
-            app.UseHangfireDashboard();
+            app.UseHangfireDashboard("/jobs",new DashboardOptions
+            {
+                Authorization= new[] { new MyAuthorizationFilter() },
+                IgnoreAntiforgeryToken=true,
+                
+
+            });
 
 
         }

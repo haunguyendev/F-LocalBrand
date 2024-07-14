@@ -18,7 +18,9 @@ namespace SWD.F_LocalBrand.Data.Repositories
 
         public Task<Order?> GetCartByCustomerId(int customerId)
         {
-            return _dbContext.Orders.Include(x => x.OrderDetails).FirstOrDefaultAsync(x => x.CustomerId == customerId && x.OrderStatus.Equals("Cart"));
+            return _dbContext.Orders.Include(x => x.OrderDetails)
+                .ThenInclude(x=>x.Product)
+                .FirstOrDefaultAsync(x => x.CustomerId == customerId && x.OrderStatus.Equals("Cart"));
         }
 
         public async Task<Order?> GetOrderByIdAsync(int orderId)
