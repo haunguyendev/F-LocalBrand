@@ -181,6 +181,7 @@ namespace SWD.F_LocalBrand.Business.Services
                     _vnPaySettings.TmnCode, DateTime.Now, "127.0.0.1" ?? string.Empty, order.TotalAmount ?? 0, "VND",
                         "other", $"Thanh toan don hang {order.Id}", _vnPaySettings.ReturnUrl, order.Id!.ToString() ?? string.Empty);
                     paymentUrl = _vnPayService.GetLink(_vnPaySettings.PaymentUrl, _vnPaySettings.HashSecret, vnPayRequest);
+                    Console.WriteLine(paymentUrl);
                 }
                 return (true, null, paymentUrl);
             }
