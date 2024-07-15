@@ -3,8 +3,10 @@ using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests.Product;
 using SWD.F_LocalBrand.API.Payloads.Responses;
+using SWD.F_LocalBrand.API.Payloads.Responses.Product;
 using SWD.F_LocalBrand.Business.DTO.Product;
 using SWD.F_LocalBrand.Business.Services;
+using SWD.F_LocalBrand.Data.Models;
 using System.Collections.Generic;
 
 namespace SWD.F_LocalBrand.API.Controllers
@@ -366,7 +368,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             try
             {
                 var products = await productService.GetAllProductsWithFilterAsync(request);
-                return Ok(ApiResult<ListProductResponse>.Succeed(new ListProductResponse
+                return Ok(ApiResult<ListProductFilterResponse>.Succeed(new ListProductFilterResponse
                 {
                     Products = products
                 }));
