@@ -39,7 +39,6 @@ namespace SWD.F_LocalBrand.Business.Services
                 {
                     data.Append(WebUtility.UrlEncode(kv.Key) + "=" + WebUtility.UrlEncode(kv.Value) + "&");
                 }
-                Console.WriteLine(data);
             }
 
             string result = baseUrl + "?" + data.ToString();
@@ -50,8 +49,7 @@ namespace SWD.F_LocalBrand.Business.Services
         //Check data if it is not null then add to requestData
         public void MakeRequestData(CreateVNPayModel createVNPayModel)
         {
-            Console.WriteLine(createVNPayModel);
-            Console.WriteLine("Done");
+            requestData.Clear();
             if (createVNPayModel.vnp_Amount != null)
                 requestData.Add("vnp_Amount", createVNPayModel.vnp_Amount.ToString() ?? string.Empty);
             if (createVNPayModel.vnp_Command != null)
@@ -80,7 +78,6 @@ namespace SWD.F_LocalBrand.Business.Services
                 requestData.Add("vnp_TxnRef", createVNPayModel.vnp_TxnRef);
             if (createVNPayModel.vnp_Version != null)
                 requestData.Add("vnp_Version", createVNPayModel.vnp_Version);
-            Console.WriteLine(requestData);
         }
 
         //Check Signature response from VNPAY
