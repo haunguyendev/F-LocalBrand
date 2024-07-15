@@ -40,7 +40,9 @@ namespace SWD.F_LocalBrand.Business.Services
                     ProductPrice = od.Price ?? 0m,
                     Quantity = od.Quantity ?? 0,
                     ProductImage = od.Product?.ImageUrl,
-                    TotalPrice = (od.Price ?? 0m) * (od.Quantity ?? 0)
+                    TotalPrice = (od.Price ?? 0m) * (od.Quantity ?? 0),
+                    Size=(int)od.Product?.Size,
+                    Color=od.Product?.Color
                 }).ToList()
             };
 
