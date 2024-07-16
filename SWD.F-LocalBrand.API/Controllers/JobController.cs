@@ -23,12 +23,13 @@ namespace SWD.F_LocalBrand.API.Controllers
             TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
             DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneInfo);
 
-            int hour = 21; // 6 PM
+            int hour = 18; // 6 PM
             int minute = 00;
 
             string cronExpression = $"{minute} {hour} * * *";
 
-            RecurringJob.AddOrUpdate<SendMailJob>("RecurringJob1", x => x.PushMail(), cronExpression, timeZoneInfo);
+            //RecurringJob.AddOrUpdate<SendMailJob>("RecurringJob1", x => x.PushMail(), cronExpression, timeZoneInfo);
+            RecurringJob.AddOrUpdate<SendMailJob>("RecurringJob1", x => x.PushMail(), "*/15 * * * * *", TimeZoneInfo.Local);
 
             return Ok();
         }
