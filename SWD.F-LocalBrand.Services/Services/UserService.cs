@@ -197,6 +197,23 @@ namespace SWD.F_LocalBrand.Business.Services
             return await _unitOfWork.Users.GetUsersByRoleAsync(role);
         }
 
+        public async Task<bool> UpdateDeviceId(int userId, string deviceId)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.DeviceId = deviceId;
+
+            await _unitOfWork.Users.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
+
 
     }
 }

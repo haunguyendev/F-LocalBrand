@@ -124,6 +124,50 @@ namespace SWD.F_LocalBrand.API.Controllers
                 return StatusCode(500, ApiResult<object>.Fail(ex));
             }
         }
+
+
+        #endregion
+
+        #region update device id for user
+        [Authorize]
+        [HttpPut("update/deviceId/{deviceId}")]
+        [SwaggerOperation(
+                       Summary = "Update device ID",
+                       Description = "Updates the device ID of the current user."
+                   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Device ID updated successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the user account", typeof(ApiResult<object>))]
+        public async Task<IActionResult> UpdateDeviceId(string deviceId)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                var result = await _userService.UpdateDeviceId(userId, deviceId);
+                if (!result)
+                {
+                    return NotFound(ApiResult<object>.Error(new { Message = "User not found" }));
+                }
+
+                return Ok(ApiResult<object>.Succeed(new { Message = "User account updated successfully" }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+
         #endregion
     }
 

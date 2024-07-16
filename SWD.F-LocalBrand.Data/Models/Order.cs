@@ -25,6 +25,10 @@ public partial class Order : EntityBase
     [StringLength(50)]
     public string? OrderStatus { get; set; }
 
+    [Column("image")]
+    [StringLength(255)]
+    public string? Image { get; set; }
+
     [ForeignKey("CustomerId")]
     [InverseProperty("Orders")]
     public virtual Customer? Customer { get; set; }
