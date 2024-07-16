@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SWD.F_LocalBrand.API.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace SWD.F_LocalBrand.API.Payloads.Requests.OrderHistory
 {
@@ -7,5 +8,7 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.OrderHistory
         [Required(ErrorMessage = "Status is required.")]
         [RegularExpression("^(Preparing|Prepared|ShipperReceived|InTransit|Delivered|Cancelled)$", ErrorMessage = "Invalid status.")]
         public string Status { get; set; }
+
+        
     }
 }

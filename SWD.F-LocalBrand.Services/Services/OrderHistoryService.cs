@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
@@ -16,11 +17,12 @@ namespace SWD.F_LocalBrand.Business.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly NotificationService _notificationService;
-        public OrderHistoryService(IUnitOfWork unitOfWork, NotificationService notificationService)
+        private readonly FirebaseService _firebaseService;
+        public OrderHistoryService(IUnitOfWork unitOfWork, NotificationService notificationService, FirebaseService firebaseService)
         {
-                _unitOfWork = unitOfWork;
-                _notificationService = notificationService;
-            
+            _unitOfWork = unitOfWork;
+            _notificationService = notificationService;
+            _firebaseService = firebaseService;
         }
         public async Task<bool> UpdateOrderStatusAsync(int orderId, string newStatus, string userRole)
         {
@@ -109,6 +111,51 @@ namespace SWD.F_LocalBrand.Business.Services
             }
 
             return false;
+        }
+        //update status payment delivered
+        public async Task<bool> UpdatePaymentStatusDeliveredAsync(int orderId, IFormFile image)
+        {
+            var order = await _unitOfWork.Orders.GetOrderByIdAsync(orderId);
+
+            if (order == null)
+            {
+                return false;
+            }
+
+            var currentStatus = order.OrderHistories.FirstOrDefault(oh => oh.IsCurrent);
+
+            if (currentStatus == null)
+            {
+                return false;
+            }
+
+            currentStatus.IsCurrent = false;
+
+            var newOrderHistory = new OrderHistory
+            {
+                OrderId = orderId,
+                Status = OrderHistoryStatusTypeEnum.Delivered,
+                ChangeTime = DateTime.UtcNow,
+                IsCurrent = true
+            };
+            Random random = new Random();
+            int randomNumber = random.Next(1000, 10000);
+            var imageUrl = $"ORDER/{randomNumber}";
+            var pathUrl = await _firebaseService.UploadFileToFirebase(image, imageUrl);
+            order.Image = pathUrl;
+
+            // Send notification to Customer
+            var customer = await _unitOfWork.Customers.FindByCondition(u => u.Id == order.CustomerId).FirstOrDefaultAsync();
+                await _notificationService.SendNotification(customer.DeviceId, "F-LocalBrand", $"Order {order.Id} is delivered!");
+                await _notificationService.PushNotificationToRedis(customer.Id, order.Id, $"Order {order.Id} is delivered", "Delivered");
+
+
+            await _unitOfWork.OrderHistories.UpdateAsync(currentStatus);
+            await _unitOfWork.OrderHistories.CreateAsync(newOrderHistory);
+            await _unitOfWork.Orders.UpdateAsync(order);
+            await _unitOfWork.CommitAsync();
+
+            return true;
         }
     }
 }
