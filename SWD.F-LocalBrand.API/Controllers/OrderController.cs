@@ -448,5 +448,58 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+        #region api get order in progress
+        [HttpGet("in-progress")]
+        [SwaggerOperation(
+            Summary = "Get in-progress orders",
+            Description = "Gets the orders that are completed but have in-progress statuses in order history for the logged-in customer."
+        )]
+        [SwaggerResponse(200, "In-progress orders retrieved successfully", typeof(ApiResult<List<InProgressOrderResponseModel>>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(401, "Unauthorized")]
+        [SwaggerResponse(500, "An error occurred while retrieving the orders")]
+        public async Task<IActionResult> GetInProgressOrders()
+        {
+            try
+            {
+                if (!Request.Headers.TryGetValue("Authorization", out var token))
+                {
+                    return Unauthorized(ApiResult<string>.Error("Authorization header is missing or invalid."));
+                }
+
+                token = token.ToString().Split()[1];
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    return Unauthorized(ApiResult<string>.Error("Authorization header is missing or invalid."));
+                }
+
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var customerClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.NameId);
+
+                if (customerClaim == null)
+                {
+                    return Unauthorized(ApiResult<string>.Error("Unauthorized: No customer ID found in token."));
+                }
+
+                var customerId = int.Parse(customerClaim.Value);
+                
+                var orders = await _orderService.GetInProgressOrdersAsync(customerId);
+
+                if (orders == null || !orders.Any())
+                {
+                    return Ok(ApiResult<string>.Succeed("Your cart has no items"));
+                }
+
+                return Ok(ApiResult<List<InProgressOrderResponseModel>>.Succeed(orders));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
     }
 }
