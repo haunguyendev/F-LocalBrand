@@ -758,5 +758,47 @@ namespace SWD.F_LocalBrand.Business.Services
                 .ToListAsync();
         }
         #endregion
+
+        #region get order in progress
+        public async Task<List<InProgressOrderResponseModel>> GetInProgressOrdersAsync(int customerId)
+        {
+            var inProgressStatuses = new List<string>
+            {
+                OrderHistoryStatusTypeEnum.Preparing,
+                OrderHistoryStatusTypeEnum.Prepared,
+                OrderHistoryStatusTypeEnum.ShipperReceived,
+                OrderHistoryStatusTypeEnum.InTransit
+            };
+
+            
+                var orders = await _unitOfWork.Orders
+                    .FindOrderAsync(o => o.CustomerId == customerId && o.OrderStatus == OrderStatusTypeEnum.Completed);
+
+                var inProgressOrders = orders
+                    .Where(o => o.OrderHistories.Any(oh => oh.IsCurrent && inProgressStatuses.Contains(oh.Status)))
+                    .Select(o => new InProgressOrderResponseModel
+                    {
+                        OrderId = o.Id,
+                        TotalAmount = o.TotalAmount ?? 0,
+                        OrderStatus = o.OrderStatus,
+                        OrderDate=(DateOnly)o.OrderDate,
+                        CurrentStatus = o.OrderHistories
+                            .Where(oh => oh.IsCurrent && inProgressStatuses.Contains(oh.Status))
+                            .Select(oh => oh.Status)
+                            .FirstOrDefault(),
+                        ChangeTime =(DateTime) o.OrderHistories
+                            .Where(oh => oh.IsCurrent && inProgressStatuses.Contains(oh.Status))
+                            .Select(oh => oh.ChangeTime)
+                            .FirstOrDefault()
+                    })
+                    .ToList();
+
+                return inProgressOrders;
+            
+            
+        }
+
+
+        #endregion
     }
 }
