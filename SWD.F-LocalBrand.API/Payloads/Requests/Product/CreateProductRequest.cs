@@ -35,9 +35,8 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Product
 
         [Required(ErrorMessage = "Image URL is required.")]
         [StringLength(255, ErrorMessage = "Image URL must not exceed 255 characters.")]
-        [Url(ErrorMessage = "Image URL must be a valid URL.")]
         [ImageFile(ErrorMessage = "Invalid file type. Only JPEG, PNG, GIF, and BMP are allowed.")]
-        public string ImageUrl { get; set; }
+        public IFormFile ImageUrl { get; set; }
 
         [Required(ErrorMessage = "Size is required.")]
         public int Size { get; set; }
@@ -60,7 +59,7 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Product
                 Price = Price,
                 Description = Description,
                 StockQuantity = StockQuantity,
-                ImageUrl = ImageUrl,
+               
                 Size = Size,
                 Color = Color,
 

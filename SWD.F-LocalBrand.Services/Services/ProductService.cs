@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SWD.F_LocalBrand.Business.Attributes;
@@ -10,6 +11,7 @@ using SWD.F_LocalBrand.Business.DTO.Product;
 using SWD.F_LocalBrand.Business.Utils;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Data.Models;
+using System.Text.RegularExpressions;
 
 
 namespace SWD.F_LocalBrand.Business.Services
@@ -19,12 +21,14 @@ namespace SWD.F_LocalBrand.Business.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IResponseCacheService _cache;
+        private readonly FirebaseService _firebaseService;
 
-        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IResponseCacheService cache)
+        public ProductService(IUnitOfWork unitOfWork, IMapper mapper, IResponseCacheService cache, FirebaseService firebaseService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _cache = cache;
+            _firebaseService = firebaseService;
         }
 
 
@@ -508,6 +512,62 @@ namespace SWD.F_LocalBrand.Business.Services
             return productModels;
         }
 
+        #endregion
+        #region Create product with mutl size and color
+        public async Task CreateProductMultiSizeAndColorAsync(CreateProductMultiSizeAndColorModel product)
+        {
+            var imagePathUrl = "";
+            if (!string.IsNullOrEmpty(product.ImageBase64))
+            {
+                var imageFile = ConvertBase64ToIFormFile(product.ImageBase64);
+                Random random = new Random();
+                int randomNumber = random.Next(1000, 10000);
+                var imageUrl = $"PRODUCT/{randomNumber}";
+                var pathUrl = await _firebaseService.UploadFileToFirebase(imageFile, imageUrl);
+                imagePathUrl = pathUrl;
+            }
+            foreach (var size in product.ProductSizes)
+            {
+                foreach (var color in size.Colors)
+                {
+                    var newProduct = new Product
+                    {
+                        ProductName = product.ProductName,
+                        CategoryId = product.CategoryId,
+                        CampaignId = product.CampaignId,
+                        Gender = product.Gender,
+                        Price = product.Price,
+                        Description = product.Description,
+                        ImageUrl = imagePathUrl,
+                        Status = product.Status,
+                        CreateDate = DateTime.Now,
+                        Size = size.Size,
+                        Color = color.ColorName,
+                        StockQuantity = color.Quantity
+
+                    };
+
+                    await _unitOfWork.Products.CreateAsync(newProduct);
+                }
+            }
+
+            await _unitOfWork.CommitAsync();
+        }
+
+        private IFormFile ConvertBase64ToIFormFile(string base64String)
+        {
+            var data = new Regex(@"data:image/(?<type>.+?),(?<data>.+)").Match(base64String);
+            var base64Data = data.Groups["data"].Value;
+            var binaryData = Convert.FromBase64String(base64Data);
+            var stream = new MemoryStream(binaryData);
+            var formFile = new FormFile(stream, 0, binaryData.Length, "file", "image.jpg")
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "image/jpeg"
+            };
+
+            return formFile;
+        }
         #endregion
     }
 }
