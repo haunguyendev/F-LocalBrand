@@ -46,10 +46,10 @@ namespace SWD.F_LocalBrand.API.Controllers
         {
             try
             {
-                if(notificationModel.Status == null)
-                {
-                    return BadRequest(ApiResult<string>.Error("Status is required"));
-                }
+                //if(notificationModel.Status == null)
+                //{
+                //    return BadRequest(ApiResult<string>.Error("Status is required"));
+                //}
                 var listNotification = await _notificationService.GetNotificationFromRedis(notificationModel);
                 return Ok(ApiResult<ListNotification>.Succeed(new ListNotification
                 {
