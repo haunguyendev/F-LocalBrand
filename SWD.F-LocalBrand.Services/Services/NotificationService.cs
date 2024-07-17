@@ -22,13 +22,11 @@ namespace SWD.F_LocalBrand.Business.Services
     {
         private readonly IConnectionMultiplexer _redis;
         private readonly IResponseCacheService _cache;
-        private readonly UnitOfWork _unitOfWork;
 
-        public NotificationService(IConnectionMultiplexer redis, IResponseCacheService cache, UnitOfWork unitOfWork)
+        public NotificationService(IConnectionMultiplexer redis, IResponseCacheService cache)
         {
             _redis = redis;
             _cache = cache;
-            _unitOfWork = unitOfWork;
         }
         public async Task<string> SendNotification(string token, string titile, string body)
         {
@@ -50,19 +48,18 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         //push notification to redis
-        public async Task<bool> PushNotificationToRedis(int customerId, int orderId, string message, string status)
+        public async Task<bool> PushNotificationToRedis(int customerId, int orderId, string message, string status, string? customerName, string? image)
         {
             try
             {
                 var db = _redis.GetDatabase();
                 var key = $"customer:{customerId}:notifications";
-                var customer = _unitOfWork.Customers.GetByIdAsync(customerId);
 
                 var notification = new NotificationModel
                 {
                     CustomerId = customerId,
-                    CustomerName = customer.Result.FullName,
-                    ImageUrl = customer.Result.Image,
+                    CustomerName = customerName,
+                    ImageUrl = image,
                     OrderId = orderId,
                     Message = message,
                     Status = status,
