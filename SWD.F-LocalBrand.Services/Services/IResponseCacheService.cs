@@ -6,5 +6,7 @@
         Task<string> GetCachedResponseAsync(string cacheKey);
 
         Task RemoveCacheRepsonseAsync(string partern);
+
+        IAsyncEnumerable<string> GetKeysAsync(string pattern);
     }
 }

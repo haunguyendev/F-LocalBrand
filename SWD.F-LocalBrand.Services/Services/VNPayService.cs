@@ -99,6 +99,7 @@ namespace SWD.F_LocalBrand.Business.Services
 
         public void MakeResponseData(UpdateVNPayModel updateVNPayModel)
         {
+            responseData.Clear();
             if (updateVNPayModel.vnp_Amount != null)
                 responseData.Add("vnp_Amount", updateVNPayModel.vnp_Amount.ToString() ?? string.Empty);
             if (!string.IsNullOrEmpty(updateVNPayModel.vnp_TmnCode))
