@@ -449,7 +449,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
         #region api get order in progress
-        [HttpGet("/order/in-progress")]
+        [HttpGet("order/in-progress")]
         [SwaggerOperation(
             Summary = "Get in-progress orders",
             Description = "Gets the orders that are completed but have in-progress statuses in order history for the logged-in customer."
