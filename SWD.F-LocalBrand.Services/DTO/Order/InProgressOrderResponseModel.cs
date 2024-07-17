@@ -10,6 +10,7 @@ namespace SWD.F_LocalBrand.Business.DTO.Order
     {
         public int OrderId { get; set; }
         public decimal TotalAmount { get; set; }
+        public int TotalItem { get; set; }
         public DateOnly OrderDate { get; set; }
         public string OrderStatus { get; set; }
         public string CurrentStatus { get; set; }

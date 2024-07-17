@@ -18,7 +18,7 @@ namespace SWD.F_LocalBrand.Data.Repositories
 
         public async Task<List<Order>?> FindOrderAsync(System.Linq.Expressions.Expression<Func<Order, bool>> predicate)
         {
-           return await _dbContext.Orders.Include(x=>x.OrderHistories).Where(predicate).ToListAsync();
+           return await _dbContext.Orders.Include(x=>x.OrderHistories).Include(x=>x.OrderDetails).Where(predicate).ToListAsync();
         }
 
         public Task<Order?> GetCartByCustomerId(int customerId)
