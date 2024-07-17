@@ -783,6 +783,7 @@ namespace SWD.F_LocalBrand.Business.Services
                     .Where(o => o.OrderHistories.Any(oh => oh.IsCurrent && inProgressStatuses.Contains(oh.Status)))
                     .Select(o => new InProgressOrderResponseModel
                     {
+                        TotalItem=o.OrderDetails.Count,
                         OrderId = o.Id,
                         TotalAmount = o.TotalAmount ?? 0,
                         OrderStatus = o.OrderStatus,
