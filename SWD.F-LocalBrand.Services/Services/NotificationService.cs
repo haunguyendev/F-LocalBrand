@@ -8,6 +8,7 @@ using SWD.F_LocalBrand.Business.Attributes;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.Settings;
 using SWD.F_LocalBrand.Data.Models;
+using SWD.F_LocalBrand.Data.UnitOfWorks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,11 +22,13 @@ namespace SWD.F_LocalBrand.Business.Services
     {
         private readonly IConnectionMultiplexer _redis;
         private readonly IResponseCacheService _cache;
+        private readonly UnitOfWork _unitOfWork;
 
-        public NotificationService(IConnectionMultiplexer redis, IResponseCacheService cache)
+        public NotificationService(IConnectionMultiplexer redis, IResponseCacheService cache, UnitOfWork unitOfWork)
         {
             _redis = redis;
             _cache = cache;
+            _unitOfWork = unitOfWork;
         }
         public async Task<string> SendNotification(string token, string titile, string body)
         {
@@ -53,10 +56,13 @@ namespace SWD.F_LocalBrand.Business.Services
             {
                 var db = _redis.GetDatabase();
                 var key = $"customer:{customerId}:notifications";
+                var customer = _unitOfWork.Customers.GetByIdAsync(customerId);
 
                 var notification = new NotificationModel
                 {
                     CustomerId = customerId,
+                    CustomerName = customer.Result.FullName,
+                    ImageUrl = customer.Result.Image,
                     OrderId = orderId,
                     Message = message,
                     Status = status,
