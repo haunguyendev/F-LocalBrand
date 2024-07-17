@@ -75,7 +75,7 @@ namespace SWD.F_LocalBrand.Business.Attributes
             }
         }
 
-        private async IAsyncEnumerable<string> GetKeysAsync(string pattern)
+        public async IAsyncEnumerable<string> GetKeysAsync(string pattern)
         {
             if (string.IsNullOrWhiteSpace(pattern))
             {

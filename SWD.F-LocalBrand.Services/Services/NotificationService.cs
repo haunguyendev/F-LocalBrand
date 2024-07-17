@@ -1,9 +1,12 @@
 ﻿using FirebaseAdmin.Messaging;
 using MailKit.Search;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using StackExchange.Redis;
 using SWD.F_LocalBrand.Business.Attributes;
 using SWD.F_LocalBrand.Business.DTO;
+using SWD.F_LocalBrand.Business.Settings;
 using SWD.F_LocalBrand.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -79,43 +82,84 @@ namespace SWD.F_LocalBrand.Business.Services
 
 
         //get notification from redis with notificationModel filter
-        public async Task<List<NotificationModel>> GetNotificationFromRedis(int customerId, NotificationModel? notificationModelFilter)
+        public async Task<List<NotificationModel>?> GetNotificationFromRedis(NotificationModel notificationModelFilter)
         {
-            //var db = _redis.GetDatabase();
-            var key = $"customer:{customerId}:notifications";
-            //var notifications = await db.ListRangeAsync(key);
             var result = new List<NotificationModel>();
-            //foreach (var notification in notifications)
-            //{
-            //    while (notification.HasValue)
-            //    {
-            //        var notification = JsonConvert.DeserializeObject<string>(notification);
-            //        result.Add(notificationModel);
-            //    }
-            //    var notificationModel = JsonConvert.DeserializeObject<NotificationModel>(notification);
-            //    result.Add(notificationModel);
-            //}
-            var cachedProduct = await _cache.GetCachedResponseAsync(key);
-            if (cachedProduct != null)
-            {
-                try
-                {
-                    // Check if the string needs multiple deserializations
-                    while (cachedProduct.StartsWith("\"") && cachedProduct.EndsWith("\""))
-                    {
-                        cachedProduct = JsonConvert.DeserializeObject<string>(cachedProduct);
-                    }
 
-                    var deserializedProduct = JsonConvert.DeserializeObject<List<NotificationModel>>(cachedProduct);
-                    result = deserializedProduct;
-                }
-                catch (JsonSerializationException ex)
+            if (notificationModelFilter.CustomerId != null)
+            {
+                var db = _redis.GetDatabase();
+                var key = $"customer:{notificationModelFilter.CustomerId}:notifications";
+                var cachedProducts = await db.ListRangeAsync(key);
+                if (cachedProducts != null)
                 {
-                    // Log or handle the exception
-                    Console.WriteLine(ex.Message);
-                    throw;
+                    try
+                    {
+                        var notifications = new List<NotificationModel>();
+                        foreach (var cachedProduct in cachedProducts)
+                        {
+                            var notificationStr = cachedProduct.ToString();
+
+                            // Check if the string needs multiple deserializations
+                            while (notificationStr.StartsWith("\"") && notificationStr.EndsWith("\""))
+                            {
+                                notificationStr = JsonConvert.DeserializeObject<string>(notificationStr);
+                            }
+
+                            var deserializedNotification = JsonConvert.DeserializeObject<NotificationModel>(notificationStr);
+                            notifications.Add(deserializedNotification);
+                        }
+
+                        result = notifications;
+                    }
+                    catch (JsonSerializationException ex)
+                    {
+                        // Log or handle the exception
+                        Console.WriteLine(ex.Message);
+                        throw;
+                    }
                 }
             }
+            else
+            {
+                await foreach (var key in _cache.GetKeysAsync("customer:*:notifications"))
+                {
+                    var db = _redis.GetDatabase();
+                    var cachedProducts = await db.ListRangeAsync(key);
+
+                    if (cachedProducts != null)
+                    {
+                        try
+                        {
+                            var notifications = new List<NotificationModel>();
+                            foreach (var cachedProduct in cachedProducts)
+                            {
+                                var notificationStr = cachedProduct.ToString();
+
+                                // Check if the string needs multiple deserializations
+                                while (notificationStr.StartsWith("\"") && notificationStr.EndsWith("\""))
+                                {
+                                    notificationStr = JsonConvert.DeserializeObject<string>(notificationStr);
+                                }
+
+                                var deserializedNotification = JsonConvert.DeserializeObject<NotificationModel>(notificationStr);
+                                notifications.Add(deserializedNotification);
+                            }
+
+                            result.AddRange(notifications);
+                        }
+                        catch (JsonSerializationException ex)
+                        {
+                            // Log or handle the exception
+                            Console.WriteLine(ex.Message);
+                            throw;
+                        }
+                    }
+                }
+
+            }
+
+            // Apply filters
             if (notificationModelFilter.CustomerId != null)
             {
                 result = result.Where(x => x.CustomerId == notificationModelFilter.CustomerId).ToList();
@@ -136,8 +180,11 @@ namespace SWD.F_LocalBrand.Business.Services
             {
                 result = result.Where(x => x.Timestamp == notificationModelFilter.Timestamp).ToList();
             }
+
             return result;
         }
-        
+
+
+
     }
 }
