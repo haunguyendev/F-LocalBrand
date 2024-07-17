@@ -247,7 +247,8 @@ namespace SWD.F_LocalBrand.Business.Services
                         if (user.DeviceId != null)
                             await _notificationService.SendNotification(user.DeviceId, "F-LocalBrand", $"Have order by {order.CustomerId}, please check and prepare!");
                     }
-                    await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is created", "Preparing");
+                    var customer = await _unitOfWork.Customers.FindByCondition(c => c.Id == order.CustomerId.GetValueOrDefault()).FirstOrDefaultAsync();
+                    await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is created", "Preparing", customer.FullName, customer.Image);
                     var orderDetails = await _unitOfWork.OrderDetails.FindAllAsync(od => od.OrderId == order.Id);
                     foreach (var orderDetail in orderDetails)
                     {
@@ -287,10 +288,13 @@ namespace SWD.F_LocalBrand.Business.Services
                     paymentCheck.Vnp_TransactionStatus = updateVNPayModel.vnp_TransactionStatus;
                     paymentCheck.Vnp_TxnRef = updateVNPayModel.vnp_TxnRef;
                     paymentCheck.PaymentStatus = PaymentStatusTypeEnum.Failed;
+                    var customer = await _unitOfWork.Customers.FindByCondition(c => c.Id == order.CustomerId.GetValueOrDefault()).FirstOrDefaultAsync();
                     await _unitOfWork.Orders.UpdateAsync(order);
                     await _unitOfWork.Payments.UpdateAsync(paymentCheck);
                     await _unitOfWork.CommitAsync(); // Commit changes including the order update
-                    await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is cancelled", "Cancelled");
+
+                    
+                    await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is cancelled", "Cancelled", customer.FullName, customer.Image);
                     return "Có lỗi xảy ra trong quá trình xử lý"; // Error during payment processing
                 }
             }

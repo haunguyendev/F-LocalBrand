@@ -9,6 +9,9 @@ namespace SWD.F_LocalBrand.Business.DTO
     public class NotificationModel
     {
         public int? CustomerId { get; set; }
+
+        public string? CustomerName { get; set; }
+        public string? ImageUrl { get; set; }
         public int? OrderId { get; set; }
         public string? Message { get; set; }
         public string? Status { get; set; }

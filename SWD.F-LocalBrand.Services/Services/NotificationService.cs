@@ -8,6 +8,7 @@ using SWD.F_LocalBrand.Business.Attributes;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.Settings;
 using SWD.F_LocalBrand.Data.Models;
+using SWD.F_LocalBrand.Data.UnitOfWorks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +48,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         //push notification to redis
-        public async Task<bool> PushNotificationToRedis(int customerId, int orderId, string message, string status)
+        public async Task<bool> PushNotificationToRedis(int customerId, int orderId, string message, string status, string? customerName, string? image)
         {
             try
             {
@@ -57,6 +58,8 @@ namespace SWD.F_LocalBrand.Business.Services
                 var notification = new NotificationModel
                 {
                     CustomerId = customerId,
+                    CustomerName = customerName,
+                    ImageUrl = image,
                     OrderId = orderId,
                     Message = message,
                     Status = status,
