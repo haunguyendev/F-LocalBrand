@@ -63,7 +63,7 @@ namespace SWD.F_LocalBrand.Business.Services
                     var userList = await _unitOfWork.Users.FindByCondition(u => u.RoleId == role.Id).FirstOrDefaultAsync();
                     if (userList.DeviceId != null)
                         await _notificationService.SendNotification(userList.DeviceId, "F-LocalBrand", $"Have order by {order.CustomerId}, please check and ship!");
-                    await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is created", "Prepared");
+                    await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is prepared", "Prepared");
                 }
                 
                 
@@ -80,6 +80,12 @@ namespace SWD.F_LocalBrand.Business.Services
                 var customer = await _unitOfWork.Customers.FindByCondition(u => u.Id == order.CustomerId).FirstOrDefaultAsync();
                 await _notificationService.SendNotification(customer.DeviceId, "F-LocalBrand", $"Shipper received the order {order.Id}");
                 await _notificationService.PushNotificationToRedis(customer.Id, order.Id, $"Shipper received the order {order.Id}", "ShipperReceived");
+            }
+            if (newStatus == "InTransit")
+            {
+                var customer = await _unitOfWork.Customers.FindByCondition(u => u.Id == order.CustomerId).FirstOrDefaultAsync();
+                await _notificationService.SendNotification(customer.DeviceId, "F-LocalBrand", $"Shipper transits the order {order.Id}");
+                await _notificationService.PushNotificationToRedis(customer.Id, order.Id, $"Shipper transits the order {order.Id}", "InTransit");
             }
             await _unitOfWork.OrderHistories.UpdateAsync(currentStatus);
             await _unitOfWork.OrderHistories.CreateAsync(newOrderHistory);
