@@ -13,9 +13,7 @@ namespace SWD.F_LocalBrand.Business.DTO.Product
 
         public int? CategoryId { get; set; }
 
-        public int? CampaignId { get; set; }
-
-        public string? SubCategory { get; set; }
+        public int? CampaignId { get; set; }        
 
         public string? Gender { get; set; }
 

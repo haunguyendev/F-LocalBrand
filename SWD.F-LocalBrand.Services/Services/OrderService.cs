@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SWD.F_LocalBrand.Business.DTO.Product;
 
 namespace SWD.F_LocalBrand.Business.Services
 {
@@ -804,6 +805,37 @@ namespace SWD.F_LocalBrand.Business.Services
             
         }
 
+
+        #endregion
+        #region get detail of order
+
+        public async Task<List<OrderDetailResponseModel>> GetOrderDetailsByOrderIdAsync(int orderId)
+        {
+            var orderDetails = await _unitOfWork.OrderDetails.FindOrderDetailAsync(x=>x.OrderId==orderId);
+                                             
+            return orderDetails.Select(od => new OrderDetailResponseModel
+            {
+                OrderId =(int) od.OrderId,
+                ProductId = (int)od.ProductId,
+                Quantity =(int) od.Quantity,
+                Price =(int) od.Price,
+                Product = new ProductWithInfoModel
+                {
+                    Id = od.Product.Id,
+                    ProductName = od.Product.ProductName,
+                    CategoryId = od.Product.CategoryId,
+                    CampaignId = od.Product.CampaignId,
+                    Gender = od.Product.Gender,
+                    Price = od.Product.Price,
+                    Description = od.Product.Description,
+                    StockQuantity = od.Product.StockQuantity,
+                    ImageUrl = od.Product.ImageUrl,
+                    Size = od.Product.Size,
+                    Color = od.Product.Color,
+                    CreateDate = od.Product.CreateDate
+                }
+            }).ToList();
+        }
 
         #endregion
     }

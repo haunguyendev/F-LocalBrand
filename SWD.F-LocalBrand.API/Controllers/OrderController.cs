@@ -14,6 +14,7 @@ using SWD.F_LocalBrand.Business.Services;
 using SWD.F_LocalBrand.Data.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using SWD.F_LocalBrand.API.Payloads.Responses.Order;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
@@ -497,6 +498,38 @@ namespace SWD.F_LocalBrand.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+        #region api get details of order
+        [HttpGet("order/{orderId}/details")]
+        [SwaggerOperation(
+           Summary = "Get order details by order ID",
+           Description = "Retrieves the list of order details for the specified order ID."
+       )]
+        [SwaggerResponse(200, "Order details retrieved successfully", typeof(ApiResult<ListOrderDetailResponse>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(404, "Order not found")]
+        [SwaggerResponse(500, "An error occurred while retrieving the order details")]
+        public async Task<IActionResult> GetOrderDetailsByOrderId(int orderId)
+        {
+            try
+            {
+                var orderDetails = await _orderService.GetOrderDetailsByOrderIdAsync(orderId);
+
+                if (orderDetails == null || !orderDetails.Any())
+                {
+                    return NotFound(ApiResult<string>.Error("Order not found"));
+                }
+
+                return Ok(ApiResult<ListOrderDetailResponse>.Succeed(new ListOrderDetailResponse()
+                {
+                    Details = orderDetails
+                }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<string>.Fail(ex));
             }
         }
         #endregion
