@@ -410,5 +410,40 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+        #region api create product with multile size and color
+        [HttpPost("product/create-multi-size-color")]
+        [SwaggerOperation(
+           Summary = "Create a new product",
+           Description = "Creates a new product with the provided details. The input model must contain valid data as specified in the constraints."
+       )]
+        [SwaggerResponse(200, "Product created successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(500, "An error occurred while creating the product")]
+        public async Task<IActionResult> CreateProduct([FromBody] CreateProductMultiSizeAndColorRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                   .Select(e => e.ErrorMessage)
+                                                   .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+                    {
+                        { "Errors", errors.ToArray() }
+                    }));
+                }
+
+                var productModel = request.MapToModel();
+                await productService.CreateProductMultiSizeAndColorAsync(productModel);
+
+                return Ok(ApiResult<string>.Succeed("Product created successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
     }
 }
