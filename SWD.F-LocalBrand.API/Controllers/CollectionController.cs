@@ -22,11 +22,11 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         //Get collection by id
         [HttpGet("collection/{collectionId}")]
-        public async Task<IActionResult> GetCollectionById(int id)
+        public async Task<IActionResult> GetCollectionById(int collectionId)
         {
             try
             {
-                var collection = await _collectionService.GetCollectionById(id);
+                var collection = await _collectionService.GetCollectionById(collectionId);
                 if (collection != null)
                 {
                     return Ok(ApiResult<CollectionResponse>.Succeed(new CollectionResponse
@@ -87,6 +87,8 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         #endregion
+
+
         #region api update collection
         [HttpPut("collection")]
         [SwaggerOperation(
@@ -129,6 +131,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
+
         #region get all collection
         [HttpGet("collections")]
         [SwaggerOperation(
@@ -158,6 +161,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
 
         #region get collections with filter
         [HttpGet("collections/filter")]
@@ -202,6 +206,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
+
         #region api update status collection 
         [HttpPut("status")]
         [SwaggerOperation(
@@ -242,6 +247,8 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region api delete collection
         [HttpDelete("{collectionId}")]
         [SwaggerOperation(
