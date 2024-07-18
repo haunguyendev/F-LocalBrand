@@ -301,5 +301,46 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
 
+        #region api update customer status
+        [HttpPut("customer/status")]
+        [SwaggerOperation(
+    Summary = "Update customer status",
+    Description = "Updates the status of a specified customer. The request must contain a valid customer ID and a valid status value.")]
+        [SwaggerResponse(200, "Customer status updated successfully")]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(404, "Customer not found")]
+        public async Task<IActionResult> UpdateCustomerStatus([FromBody] UpdateCustomerStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+
+            try
+            {
+                await _customerService.UpdateCustomerStatusAsync(request.CustomerId, request.Status);
+                return Ok(ApiResult<string>.Succeed("Customer status updated successfully"));
+            }
+            catch (EntryPointNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Fail(ex));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<object>.Fail(ex));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
+
     }
 }
