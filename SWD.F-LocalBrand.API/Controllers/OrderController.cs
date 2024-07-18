@@ -333,7 +333,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         #region api update history order
-        [HttpPut("/order/{orderId}/status")]
+        [HttpPut("order/{orderId}/status")]
         [SwaggerOperation(
         Summary = "Update order history status",
         Description = "Updates the status of an order following the defined status transition rules."
