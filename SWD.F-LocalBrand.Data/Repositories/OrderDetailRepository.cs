@@ -19,7 +19,8 @@ namespace SWD.F_LocalBrand.Data.Repositories
 
         public async Task<List<OrderDetail>?> FindOrderDetailAsync(Expression<Func<OrderDetail, bool>> predicate)
         {
-            return await _dbContext.OrderDetails.Include(x=>x.Product).Where(predicate).ToListAsync();
+            return await _dbContext.OrderDetails.Include(x=>x.Product)
+                .Include(x=>x.Order).ThenInclude(x=>x.OrderHistories).Where(predicate).ToListAsync();
         }
     }
 }

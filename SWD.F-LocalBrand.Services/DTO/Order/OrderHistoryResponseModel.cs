@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 namespace SWD.F_LocalBrand.Business.DTO.Order
 {
     public class OrderHistoryResponseModel
-    {
-        public int OrderHistoryId { get; set; }
-        public string? Status { get; set; }
-        public string? Description { get; set; }
+    {     
+        public string? CurrentStatus { get; set; }
         public DateTime? ChangeTime { get; set; }
     }
+
 }

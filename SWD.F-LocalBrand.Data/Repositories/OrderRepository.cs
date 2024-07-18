@@ -18,7 +18,7 @@ namespace SWD.F_LocalBrand.Data.Repositories
 
         public async Task<List<Order>?> FindOrderAsync(System.Linq.Expressions.Expression<Func<Order, bool>> predicate)
         {
-           return await _dbContext.Orders.Include(x=>x.OrderHistories).Include(x=>x.OrderDetails).Where(predicate).ToListAsync();
+           return await _dbContext.Orders.Include(x=>x.OrderHistories).Include(x=>x.OrderDetails).ThenInclude(x=>x.Product).Where(predicate).ToListAsync();
         }
 
         public Task<Order?> GetCartByCustomerId(int customerId)
@@ -30,7 +30,10 @@ namespace SWD.F_LocalBrand.Data.Repositories
 
         public async Task<Order?> GetOrderByIdAsync(int orderId)
         {
-             return await _dbContext.Orders.Include(x=>x.OrderHistories).FirstOrDefaultAsync(x=>x.Id==orderId);
+             return await _dbContext.Orders.Include(x=>x.OrderHistories)
+                .Include(x=>x.OrderDetails)
+                .ThenInclude(x=>x.Product)
+                .FirstOrDefaultAsync(x=>x.Id==orderId);
         }
 
         

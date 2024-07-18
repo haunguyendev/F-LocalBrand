@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SWD.F_LocalBrand.Business.DTO.Product;
+using StackExchange.Redis;
 
 namespace SWD.F_LocalBrand.Business.Services
 {
@@ -809,32 +810,52 @@ namespace SWD.F_LocalBrand.Business.Services
         #endregion
         #region get detail of order
 
-        public async Task<List<OrderDetailResponseModel>> GetOrderDetailsByOrderIdAsync(int orderId)
+        public async Task<List<OrderResponseModel>> GetOrderDetailsByOrderIdAsync(int orderId)
         {
-            var orderDetails = await _unitOfWork.OrderDetails.FindOrderDetailAsync(x=>x.OrderId==orderId);
-                                             
-            return orderDetails.Select(od => new OrderDetailResponseModel
+            var order = await _unitOfWork.Orders.GetOrderByIdAsync(orderId);
+
+            if (order == null)
             {
-                OrderId =(int) od.OrderId,
-                ProductId = (int)od.ProductId,
-                Quantity =(int) od.Quantity,
-                Price =(int) od.Price,
-                Product = new ProductWithInfoModel
+                throw new KeyNotFoundException($"Order with Id {orderId} not found.");
+            }
+
+            var currentHistory = order.OrderHistories.FirstOrDefault(x => x.IsCurrent);
+                                      
+
+            var orderResponse = new OrderResponseModel
+            {
+                OrderId = order.Id,
+                CustomerId = order.CustomerId,
+                OrderDate = order.OrderDate,
+                TotalAmount = order.TotalAmount,
+                CurrentHistory = new OrderHistoryResponseModel
                 {
-                    Id = od.Product.Id,
-                    ProductName = od.Product.ProductName,
-                    CategoryId = od.Product.CategoryId,
-                    CampaignId = od.Product.CampaignId,
-                    Gender = od.Product.Gender,
-                    Price = od.Product.Price,
-                    Description = od.Product.Description,
-                    StockQuantity = od.Product.StockQuantity,
-                    ImageUrl = od.Product.ImageUrl,
-                    Size = od.Product.Size,
-                    Color = od.Product.Color,
-                    CreateDate = od.Product.CreateDate
-                }
-            }).ToList();
+                    CurrentStatus = currentHistory?.Status,
+                    ChangeTime = currentHistory?.ChangeTime
+                },
+                Details = order.OrderDetails.Select(od => new OrderDetailResponseModel
+                {
+                    Quantity = od.Quantity ?? 0,
+                    Price = od.Price ?? 0,
+                    Product = new ProductWithInfoModel
+                    {
+                        Id = od.Product.Id,
+                        ProductName = od.Product.ProductName,
+                        CategoryId = od.Product.CategoryId,
+                        CampaignId = od.Product.CampaignId,
+                        Gender = od.Product.Gender,
+                        Price = od.Product.Price,
+                        Description = od.Product.Description,
+                        StockQuantity = od.Product.StockQuantity,
+                        ImageUrl = od.Product.ImageUrl,
+                        Size = od.Product.Size,
+                        Color = od.Product.Color,
+                        CreateDate = od.Product.CreateDate
+                    }
+                }).ToList()
+            };
+
+            return orderResponse;
         }
 
         #endregion
