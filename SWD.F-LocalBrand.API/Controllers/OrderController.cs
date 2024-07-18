@@ -335,7 +335,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         #region api update history order
         [HttpPut("/order/{orderId}/status")]
         [SwaggerOperation(
-        Summary = "Update order status",
+        Summary = "Update order history status",
         Description = "Updates the status of an order following the defined status transition rules."
     )]
         [SwaggerResponse(StatusCodes.Status200OK, "Order status updated successfully", typeof(ApiResult<object>))]
@@ -400,7 +400,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         #region update status order history
         [HttpPut("order/{orderId}/status-delivers")]
         [SwaggerOperation(
-                       Summary = "Update order status",
+                       Summary = "Update order history status deliver",
                        Description = "Updates the status of an order following the defined status transition rules."
                    )]
         [SwaggerResponse(StatusCodes.Status200OK, "Order status updated successfully", typeof(ApiResult<object>))]
@@ -449,6 +449,8 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region api get order in progress
         [HttpGet("order/in-progress")]
         [SwaggerOperation(
@@ -501,6 +503,8 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
         #region api get details of order
         [HttpGet("order/{orderId}/details")]
         [SwaggerOperation(
@@ -530,6 +534,42 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+
+
+        #region get order by order history status and customerId
+        [HttpGet("order/order-history-status")]
+        [SwaggerOperation(
+                       Summary = "get order by order history status",
+                       Description = "Get by the status of an order history following the defined status transition rules."
+                   )]
+        [SwaggerResponse(StatusCodes.Status200OK, "Order status get successfully", typeof(ApiResult<ListOrderResponse>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Order not found", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Invalid status transition", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the order status", typeof(ApiResult<object>))]
+        public async Task<IActionResult> GetOrderByOrderHistoryStatus([FromQuery] OrderHistoryStatusModel res)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                                  .Select(e => e.ErrorMessage)
+                                                  .ToList();
+                    return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+            {
+                { "Errors", errors.ToArray() }
+            }));
+                }
+                var orders = await _orderService.GetOrderByOrderHistoryStatus(res);
+                return Ok(ApiResult<ListOrderResponse>.Succeed(new ListOrderResponse { Orders = orders }));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+            #endregion
+        }
 
     }
 }

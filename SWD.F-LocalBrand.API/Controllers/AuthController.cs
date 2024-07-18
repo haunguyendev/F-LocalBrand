@@ -76,30 +76,38 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginRequest req)
     {
-        var validationResult = _loginValidator.Validate(req);
-        if (validationResult.IsValid)
+        try
         {
-            var loginResult = _identityService.Login(req.Username, req.Password);
-            if (!loginResult.Authenticated)
+            var validationResult = _loginValidator.Validate(req);
+            if (validationResult.IsValid)
             {
-                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Username or password is invalid"));
-                return BadRequest(result);
-            }
+                var loginResult = _identityService.Login(req.Username, req.Password);
+                if (!loginResult.Authenticated)
+                {
+                    var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Username or password is invalid"));
+                    return BadRequest(result);
+                }
 
-            var handler = new JwtSecurityTokenHandler();
-            var res = new LoginResponse
+                var handler = new JwtSecurityTokenHandler();
+                var res = new LoginResponse
+                {
+                    AccessToken = handler.WriteToken(loginResult.Token),
+                    RefreshToken = handler.WriteToken(loginResult.RefreshToken)
+                };
+                return Ok(ApiResult<LoginResponse>.Succeed(res));
+
+            }
+            else
             {
-                AccessToken = handler.WriteToken(loginResult.Token),
-                RefreshToken = handler.WriteToken(loginResult.RefreshToken)
-            };
-            return Ok(ApiResult<LoginResponse>.Succeed(res));
-            
+                var problemDetails = validationResult.ToProblemDetails();
+                return BadRequest(problemDetails);
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var problemDetails = validationResult.ToProblemDetails();
-            return BadRequest(problemDetails);
+            return BadRequest(ex.Message);
         }
+        
         
     }
     //Recive refresh token and return new access token
@@ -159,53 +167,67 @@ public class AuthController : ControllerBase
     [HttpPost("google-login")]
     public async Task<IActionResult> GoogleLogin([FromBody] LoginGoogleRequest request)
     {
-        var handler = new JwtSecurityTokenHandler();
-        var res = await _identityService.LoginGoolge(request.IdToken);
-        if (!res.Authenticated)
+        try
         {
-            var resultFail = new SignupResponse
+            var handler = new JwtSecurityTokenHandler();
+            var res = await _identityService.LoginGoolge(request.IdToken);
+            if (!res.Authenticated)
             {
-                AccessToken = "Sign up fail"
+                var resultFail = new SignupResponse
+                {
+                    AccessToken = "Sign up fail"
+                };
+                return BadRequest(ApiResult<SignupResponse>.Succeed(resultFail));
+            }
+            var result = new SignupResponse
+            {
+                AccessToken = handler.WriteToken(res.Token),
+                RefreshToken = handler.WriteToken(res.RefreshToken)
+
             };
-            return BadRequest(ApiResult<SignupResponse>.Succeed(resultFail));
+
+            return Ok(ApiResult<SignupResponse>.Succeed(result));
         }
-        var result = new SignupResponse
+        catch (Exception ex)
         {
-            AccessToken = handler.WriteToken(res.Token),
-            RefreshToken = handler.WriteToken(res.RefreshToken)
-
-        };
-
-        return Ok(ApiResult<SignupResponse>.Succeed(result));
+            return BadRequest(ex.Message);
+        }
     }
 
     [AllowAnonymous]
     [HttpPost("customer-login")]
     public IActionResult LoginCustomer([FromBody] LoginRequest req)
     {
-        var validationResult = _loginValidator.Validate(req);
-        if (validationResult.IsValid)
+        try
         {
-            var loginResult = _identityService.LoginCustomer(req.Username, req.Password);
-            if (!loginResult.Authenticated)
+            var validationResult = _loginValidator.Validate(req);
+            if (validationResult.IsValid)
             {
-                var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Username or password is invalid"));
-                return BadRequest(result);
+                var loginResult = _identityService.LoginCustomer(req.Username, req.Password);
+                if (!loginResult.Authenticated)
+                {
+                    var result = ApiResult<Dictionary<string, string[]>>.Fail(new Exception("Username or password is invalid"));
+                    return BadRequest(result);
+                }
+
+                var handler = new JwtSecurityTokenHandler();
+                var res = new LoginResponse
+                {
+                    AccessToken = handler.WriteToken(loginResult.Token),
+                    RefreshToken = handler.WriteToken(loginResult.RefreshToken)
+                };
+                return Ok(ApiResult<LoginResponse>.Succeed(res));
+
             }
-
-            var handler = new JwtSecurityTokenHandler();
-            var res = new LoginResponse
+            else
             {
-                AccessToken = handler.WriteToken(loginResult.Token),
-                RefreshToken = handler.WriteToken(loginResult.RefreshToken)
-            };
-            return Ok(ApiResult<LoginResponse>.Succeed(res));
-
+                var problemDetails = validationResult.ToProblemDetails();
+                return BadRequest(problemDetails);
+            }
         }
-        else
+        catch(Exception ex)
         {
-            var problemDetails = validationResult.ToProblemDetails();
-            return BadRequest(problemDetails);
+            return BadRequest(ex.Message);
         }
 
     }
