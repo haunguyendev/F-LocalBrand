@@ -18,6 +18,7 @@ using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
 using SWD.F_LocalBrand.Business.Config;
 using SWD.F_LocalBrand.Business.Services;
+using SWD.F_LocalBrand.Business.Common.Shared;
 
 
 namespace F_LocalBrand.Services;
@@ -112,6 +113,10 @@ public class IdentityService
         var userRole = _unitOfWork.Roles.FindByCondition(ur => ur.Id == user.RoleId).FirstOrDefault();
 
         user.Role = userRole!;
+        if(user.Status == UserStatusTypeEnum.Inactive)
+        {
+            throw new Exception("This account has been baned!");
+        }
 
         var hash = SecurityUtil.Hash(password);
         if (!user.Password.Equals(hash))
@@ -291,7 +296,10 @@ public class IdentityService
                 await _unitOfWork.Customers.CreateAsync(user);
                 await _unitOfWork.CommitAsync();
             }
-
+            if (user.Status == UserStatusTypeEnum.Inactive)
+            {
+                throw new Exception("This account has been baned!");
+            }
             var tokenResponse = CreateJwtTokenCustomer(user);
             var tokenRefreshResponse = CreateJwtRefreshTokenCustomer(user);
             return new LoginResult
@@ -328,6 +336,10 @@ public class IdentityService
                 Token = null,
                 RefreshToken = null
             };
+        }
+        if (user.Status == UserStatusTypeEnum.Inactive)
+        {
+            throw new Exception("This account has been baned!");
         }
 
         var hash = SecurityUtil.Hash(password);
