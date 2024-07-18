@@ -33,6 +33,7 @@ namespace SWD.F_LocalBrand.Data.Repositories
              return await _dbContext.Orders.Include(x=>x.OrderHistories)
                 .Include(x=>x.OrderDetails)
                 .ThenInclude(x=>x.Product)
+                .Include(x=>x.Customer)
                 .FirstOrDefaultAsync(x=>x.Id==orderId);
         }
 

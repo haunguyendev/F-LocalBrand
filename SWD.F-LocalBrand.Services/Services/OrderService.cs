@@ -843,6 +843,8 @@ namespace SWD.F_LocalBrand.Business.Services
             var statusHistoryString = string.Join(",", statusHistory.Select(kvp =>
                 $"{kvp.Key}:{(kvp.Value.HasValue ? kvp.Value.Value.ToString("yyyy-MM-ddTHH:mm:ss") : "N/A")}"));
 
+
+            var currentStatus = order.OrderHistories.FirstOrDefault(x => x.IsCurrent);
         
 
             var orderResponse = new OrderResponseModel
@@ -851,6 +853,7 @@ namespace SWD.F_LocalBrand.Business.Services
                 CustomerId = order.CustomerId,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
+                CurrentStatus=currentStatus.Status,
                 StatusHistory = statusHistoryString,
                 Details = order.OrderDetails.Select(od => new OrderDetailResponseModel
                 {
@@ -871,7 +874,23 @@ namespace SWD.F_LocalBrand.Business.Services
                         Color = od.Product.Color,
                         CreateDate = od.Product.CreateDate
                     }
-                }).ToList()
+                }).ToList(),
+                CustomerInfo=new DTO.Customer.CustomerInfoModel
+                {
+                    UserName=order.Customer.UserName,
+                    Address=order.Customer.Address,
+                    FullName=order.Customer.FullName,
+                    Email=order.Customer.Email,
+                    Status=order.Customer.Status,
+                    DeviceId=order.Customer.DeviceId,
+                    Image = order.Customer.Image,
+                    Phone= order.Customer.Phone,
+                    RegistrationDate=order.Customer.RegistrationDate,
+                    
+
+
+
+                }
             };
 
 
