@@ -127,6 +127,83 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         #endregion
+        #region api update status user 
+        [HttpPut("status")]
+        [SwaggerOperation(
+    Summary = "Update user status",
+    Description = "Updates the status of a specified user. The request must contain a valid user ID and a valid status value.")]
+        [SwaggerResponse(200, "User status updated successfully")]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(404, "User not found")]
+        public async Task<IActionResult> UpdateUserStatus([FromBody] UpdateUserStatusRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+
+            try
+            {
+                await _userService.UpdateUserStatusAsync(request.UserId, request.Status);
+                return Ok(ApiResult<string>.Succeed("User status updated successfully"));
+            }
+            catch (EntryPointNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Fail(ex));
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ApiResult<object>.Fail(ex));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+
+        #endregion
+        #region api update user role
+        [HttpPut("user/role")]
+        [SwaggerOperation(
+    Summary = "Change user role",
+    Description = "Changes the role of a specified user. The request must contain a valid user ID and a valid role ID.")]
+        [SwaggerResponse(200, "User role changed successfully")]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(404, "User or role not found")]
+        public async Task<IActionResult> ChangeUserRole([FromBody] ChangeUserRoleRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
+
+            try
+            {
+                await _userService.ChangeUserRoleAsync(request.UserId, request.RoleId);
+                return Ok(ApiResult<string>.Succeed("User role changed successfully"));
+            }
+            catch (EntryPointNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Fail(ex));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
 
         #region update device id for user
         [Authorize]

@@ -283,6 +283,47 @@ namespace SWD.F_LocalBrand.Business.Services
             await _unitOfWork.CommitAsync();
         }
         #endregion
+        #region update list product recommendation
+        public async Task UpdateRecommendedProductsAsync(int productId, List<int> recommendedProductIds)
+        {
+            var cacheKey = $"product:{productId}";
+            var cachedProduct = await _cache.GetCachedResponseAsync(cacheKey);
+
+            if (cachedProduct != null)
+            {
+                await _cache.RemoveCacheRepsonseAsync(cacheKey);
+            }
+            var product = await _unitOfWork.Products.GetByIdAsync(productId);
+            if (product == null)
+            {
+                throw new EntryPointNotFoundException("Product not found");
+            }
+
+           
+            var existingRecommendations = _unitOfWork.Compapilities.FindByCondition(c => c.ProductId == productId);
+            await _unitOfWork.Compapilities.DeleteListAsync(existingRecommendations);
+
+            
+            foreach (var recommendedProductId in recommendedProductIds)
+            {
+                var recommendedProduct = await _unitOfWork.Products.GetByIdAsync(recommendedProductId);
+                if (recommendedProduct == null)
+                {
+                    throw new EntryPointNotFoundException($"Recommended product with ID {recommendedProductId} not found");
+                }
+
+                var compapility = new Compapility
+                {
+                    ProductId = productId,
+                    RecommendedProductId = recommendedProductId
+                };
+
+                await _unitOfWork.Compapilities.CreateAsync(compapility);
+            }
+
+            await _unitOfWork.CommitAsync();
+        }
+        #endregion
 
 
         #region get list product which best seller
