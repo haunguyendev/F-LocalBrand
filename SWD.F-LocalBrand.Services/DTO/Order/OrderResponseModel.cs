@@ -12,7 +12,7 @@ namespace SWD.F_LocalBrand.Business.DTO.Order
         public int? CustomerId { get; set; }
         public DateOnly? OrderDate { get; set; }
         public decimal? TotalAmount { get; set; }
-        public OrderHistoryResponseModel CurrentHistory { get; set; }
-        public OrderDetailResponseModel Details { get; set; }
+        public string StatusHistory { get; set; }
+        public List<OrderDetailResponseModel> Details { get; set; }
     }
 }

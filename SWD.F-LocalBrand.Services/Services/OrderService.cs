@@ -810,7 +810,7 @@ namespace SWD.F_LocalBrand.Business.Services
         #endregion
         #region get detail of order
 
-        public async Task<List<OrderResponseModel>> GetOrderDetailsByOrderIdAsync(int orderId)
+        public async Task<OrderResponseModel> GetOrderDetailsByOrderIdAsync(int orderId)
         {
             var order = await _unitOfWork.Orders.GetOrderByIdAsync(orderId);
 
@@ -819,8 +819,28 @@ namespace SWD.F_LocalBrand.Business.Services
                 throw new KeyNotFoundException($"Order with Id {orderId} not found.");
             }
 
-            var currentHistory = order.OrderHistories.FirstOrDefault(x => x.IsCurrent);
-                                      
+            var statusHistory = new Dictionary<string, DateTime?>
+    {
+        { OrderHistoryStatusTypeEnum.Preparing, null },
+        { OrderHistoryStatusTypeEnum.Prepared, null },
+        { OrderHistoryStatusTypeEnum.ShipperReceived, null },
+        { OrderHistoryStatusTypeEnum.InTransit, null },
+        { OrderHistoryStatusTypeEnum.Delivered, null },
+        { OrderHistoryStatusTypeEnum.Cancelled, null }
+    };
+            foreach (var history in order.OrderHistories)
+            {
+                if (statusHistory.ContainsKey(history.Status))
+                {
+                    statusHistory[history.Status] = history.ChangeTime;
+                }
+            }
+
+            // Convert the dictionary to the desired string format
+            var statusHistoryString = string.Join(",", statusHistory.Select(kvp =>
+                $"{kvp.Key}:{(kvp.Value.HasValue ? kvp.Value.Value.ToString("yyyy-MM-ddTHH:mm:ss") : "N/A")}"));
+
+        
 
             var orderResponse = new OrderResponseModel
             {
@@ -828,11 +848,7 @@ namespace SWD.F_LocalBrand.Business.Services
                 CustomerId = order.CustomerId,
                 OrderDate = order.OrderDate,
                 TotalAmount = order.TotalAmount,
-                CurrentHistory = new OrderHistoryResponseModel
-                {
-                    CurrentStatus = currentHistory?.Status,
-                    ChangeTime = currentHistory?.ChangeTime
-                },
+                StatusHistory = statusHistoryString,
                 Details = order.OrderDetails.Select(od => new OrderDetailResponseModel
                 {
                     Quantity = od.Quantity ?? 0,
@@ -854,6 +870,7 @@ namespace SWD.F_LocalBrand.Business.Services
                     }
                 }).ToList()
             };
+
 
             return orderResponse;
         }
