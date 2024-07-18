@@ -57,6 +57,37 @@ namespace SWD.F_LocalBrand.Business.Services
             await _unitOfWork.BeginTransactionAsync();
             try
             {
+                var requiredCategories = new List<string> { "Quần", "Áo", "Giày" };
+                var categoryCount = new Dictionary<string, int> { { "Quần", 0 }, { "Áo", 0 }, { "Giày", 0 } };
+
+                foreach (var productCheck in orderQueueItem.Products)
+                {
+                    var productModelCheck = await _unitOfWork.Products.FindByCondition(p => p.Id == productCheck.ProductId && p.Status == ProductStatusEnum.Active)
+                        .Include(p => p.Category)
+                        .FirstOrDefaultAsync();
+
+                    if (productModelCheck != null)
+                    {
+                        var categoryName = productModelCheck.Category.CategoryName;
+                        if (categoryCount.ContainsKey(categoryName))
+                        {
+                            categoryCount[categoryName]++;
+                        }
+                    }
+                    else
+                    {
+                        return (false, $"Product with ID {productCheck.ProductId} not found in database", null);
+                    }
+                }
+
+                // Tạo danh sách các danh mục thiếu
+                var missingCategories = requiredCategories.Where(c => categoryCount[c] == 0).ToList();
+
+                if (missingCategories.Any())
+                {
+                    var missingCategoriesString = string.Join(", ", missingCategories);
+                    return (false, $"The order does not contain all required categories. Missing: {missingCategoriesString}.", null);
+                }
                 decimal totalAmount = 0m;
                 var productEntities = new List<ProductModel>();
 
