@@ -169,7 +169,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         #endregion
         #region api update user role
-        [HttpPut("user/role")]
+        [HttpPut("role")]
         [SwaggerOperation(
     Summary = "Change user role",
     Description = "Changes the role of a specified user. The request must contain a valid user ID and a valid role ID.")]
