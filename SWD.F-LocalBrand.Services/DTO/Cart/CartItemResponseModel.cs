@@ -16,5 +16,9 @@ namespace SWD.F_LocalBrand.Business.DTO.Cart
         public decimal TotalPrice { get; set; }
         public int Size { get; set; }
         public string Color { get; set; }
+
+        public string Status { get; set; }
+
+        public int StockQuantity { get; set; }
     }
 }
