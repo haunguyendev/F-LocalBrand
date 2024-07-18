@@ -886,11 +886,11 @@ namespace SWD.F_LocalBrand.Business.Services
         {
             try
             {
-                var listOrderHistory = _unitOfWork.OrderHistories.FindByCondition(oh => oh.IsCurrent && oh.Status == orderHistoryStatusModel.Status);
+                var listOrderHistory = await _unitOfWork.OrderHistories.FindByCondition(oh => oh.IsCurrent && oh.Status == orderHistoryStatusModel.Status).ToListAsync();
                 var listOrders = new List<OrderModel>();
                 foreach (var orderHistory in listOrderHistory)
                 {
-                    var order = _unitOfWork.Orders.GetByIdAsync(orderHistory.OrderId.GetValueOrDefault());
+                    var order = await _unitOfWork.Orders.FindByCondition(o => o.Id == orderHistory.OrderId.GetValueOrDefault()).FirstOrDefaultAsync();
                     if (order != null)
                     {
                         var orderMapper = _mapper.Map<OrderModel>(order);

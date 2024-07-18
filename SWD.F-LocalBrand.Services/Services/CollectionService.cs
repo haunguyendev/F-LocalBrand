@@ -119,8 +119,7 @@ namespace SWD.F_LocalBrand.Business.Services
         public async Task<List<CollectionModel>> GetAllCollectionsWithFilterAsync(CollectionFilterModel filter)
         {
             var query = _unitOfWork.Collections
-                .FindAll(true)
-                ;
+                .FindAll(true);
 
             if (filter.CollectionName != null)
                 query = query.Where(c => c.CollectionName.Contains(filter.CollectionName));
