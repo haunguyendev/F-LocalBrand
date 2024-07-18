@@ -766,6 +766,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
 
+
         #region get order in progress
         public async Task<List<InProgressOrderResponseModel>> GetInProgressOrdersAsync(int customerId)
         {
@@ -808,6 +809,8 @@ namespace SWD.F_LocalBrand.Business.Services
 
 
         #endregion
+
+
         #region get detail of order
 
         public async Task<OrderResponseModel> GetOrderDetailsByOrderIdAsync(int orderId)
@@ -875,6 +878,37 @@ namespace SWD.F_LocalBrand.Business.Services
             return orderResponse;
         }
 
+        #endregion
+
+
+        #region get order by order history status
+        public async Task<List<OrderModel>> GetOrderByOrderHistoryStatus(OrderHistoryStatusModel orderHistoryStatusModel)
+        {
+            try
+            {
+                var listOrderHistory = _unitOfWork.OrderHistories.FindByCondition(oh => oh.IsCurrent && oh.Status == orderHistoryStatusModel.Status);
+                var listOrders = new List<OrderModel>();
+                foreach (var orderHistory in listOrderHistory)
+                {
+                    var order = _unitOfWork.Orders.GetByIdAsync(orderHistory.OrderId.GetValueOrDefault());
+                    if (order != null)
+                    {
+                        var orderMapper = _mapper.Map<OrderModel>(order);
+                        listOrders.Add(orderMapper);
+                    }
+                }
+                if (orderHistoryStatusModel.CustomerId != null)
+                {
+                    listOrders = listOrders.Where(lo => lo.CustomerId == orderHistoryStatusModel.CustomerId).ToList();
+                }
+                return listOrders;
+            }
+            catch (Exception ex)
+            {
+                return new List<OrderModel>();
+            }
+            
+        }
         #endregion
     }
 }

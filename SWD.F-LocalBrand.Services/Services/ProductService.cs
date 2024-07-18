@@ -240,6 +240,13 @@ namespace SWD.F_LocalBrand.Business.Services
 
         public async Task DeleteProductAsync(int productId)
         {
+            var cacheKey = $"product:{productId}";
+            var cachedProduct = await _cache.GetCachedResponseAsync(cacheKey);
+
+            if (cachedProduct != null)
+            {
+                await _cache.RemoveCacheRepsonseAsync(cacheKey);
+            }
             var product = await _unitOfWork.Products.GetByIdAsync(productId);
             if (product == null)
             {
@@ -257,6 +264,13 @@ namespace SWD.F_LocalBrand.Business.Services
         #region add list product recommend for product 
         public async Task AddRecommendedProductsAsync(int productId, List<int> recommendedProductIds)
         {
+            var cacheKey = $"product:{productId}";
+            var cachedProduct = await _cache.GetCachedResponseAsync(cacheKey);
+
+            if (cachedProduct != null)
+            {
+                await _cache.RemoveCacheRepsonseAsync(cacheKey);
+            }
             var product = await _unitOfWork.Products.GetByIdAsync(productId);
             if (product == null)
             {
@@ -266,11 +280,15 @@ namespace SWD.F_LocalBrand.Business.Services
             foreach (var recommendedProductId in recommendedProductIds)
             {
                 var recommendedProduct = await _unitOfWork.Products.GetByIdAsync(recommendedProductId);
+                
                 if (recommendedProduct == null)
                 {
                     throw new EntryPointNotFoundException($"Recommended product with ID {recommendedProductId} not found");
                 }
-
+                if (product.CategoryId == recommendedProduct.CategoryId)
+                {
+                    throw new EntryPointNotFoundException($"Product ID {productId} has same category with product recommend ID {recommendedProductId}");
+                }
                 var compapility = new Compapility
                 {
                     ProductId = productId,
@@ -513,6 +531,8 @@ namespace SWD.F_LocalBrand.Business.Services
         }
 
         #endregion
+
+
         #region Create product with mutl size and color
         public async Task CreateProductMultiSizeAndColorAsync(CreateProductMultiSizeAndColorModel product)
         {
