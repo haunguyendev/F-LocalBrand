@@ -5,7 +5,9 @@ using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests.Collection;
 using SWD.F_LocalBrand.API.Payloads.Responses;
 using SWD.F_LocalBrand.Business.DTO.Collection;
+using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Business.Services;
+using SWD.F_LocalBrand.Data.Models;
 
 namespace SWD.F_LocalBrand.API.Controllers
 {
@@ -73,7 +75,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             {
                 var collectionModel = request.MapToModel();
                 var collectionName = await _collectionService.CreateCollectionAsync(collectionModel);
-                return CreatedAtAction(nameof(GetCollectionById), ApiResult<object>.Succeed(new { Message = "Collection created successfully", CollectionName = collectionName }));
+                return Ok(ApiResult<string>.Succeed($"Collection {collectionName} add successfully!"));
             }
             catch (ArgumentException ex)
             {
