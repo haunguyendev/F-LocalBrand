@@ -118,7 +118,9 @@ namespace SWD.F_LocalBrand.Business.Services
         #region get collections with filter
         public async Task<List<CollectionModel>> GetAllCollectionsWithFilterAsync(CollectionFilterModel filter)
         {
-            var query = _unitOfWork.Collections.FindAll();
+            var query = _unitOfWork.Collections
+                .FindAll(true)
+                ;
 
             if (filter.CollectionName != null)
                 query = query.Where(c => c.CollectionName.Contains(filter.CollectionName));
@@ -143,7 +145,7 @@ namespace SWD.F_LocalBrand.Business.Services
                         // Thêm các trường khác nếu cần
                 }
             }
-
+            query = query.Include(c => c.CollectionProducts).ThenInclude(cp => cp.Product);
             var listCollections = await query.ToListAsync();
 
             if (listCollections != null)
