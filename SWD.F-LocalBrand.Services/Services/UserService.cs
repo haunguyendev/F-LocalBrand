@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.User;
 using SWD.F_LocalBrand.Data.Common.Interfaces;
@@ -184,6 +185,47 @@ namespace SWD.F_LocalBrand.Business.Services
             }
 
             return null; // Trả về null nếu URL không hợp lệ
+        }
+        #endregion
+        #region update user status
+        public async Task UpdateUserStatusAsync(int userId, string status)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new EntryPointNotFoundException("User not found");
+            }
+
+            if (status != UserStatusTypeEnum.Active && status != UserStatusTypeEnum.Inactive)
+            {
+                throw new ArgumentException("Invalid status value");
+            }
+
+            user.Status = status;
+
+            await _unitOfWork.Users.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
+        }
+        #endregion
+        #region update user role
+        public async Task ChangeUserRoleAsync(int userId, int roleId)
+        {
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new EntryPointNotFoundException("User not found");
+            }
+
+            var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
+            if (role == null)
+            {
+                throw new EntryPointNotFoundException("Role not found");
+            }
+
+            user.RoleId = roleId;
+
+            await _unitOfWork.Users.UpdateAsync(user);
+            await _unitOfWork.CommitAsync();
         }
         #endregion
 

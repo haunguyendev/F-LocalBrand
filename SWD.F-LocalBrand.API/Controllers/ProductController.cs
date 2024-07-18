@@ -305,7 +305,42 @@ namespace SWD.F_LocalBrand.API.Controllers
             }
         }
         #endregion
+        #region api update product recommendation
+        [HttpPut("product/recommended-products")]
+        [SwaggerOperation(
+    Summary = "Update recommended products for a product",
+    Description = "Updates the recommended products for a specified product. The request must contain a valid product ID and a new list of recommended product IDs.")]
+        [SwaggerResponse(200, "Recommended products updated successfully")]
+        [SwaggerResponse(400, "Invalid request")]
+        [SwaggerResponse(404, "Product not found")]
+        public async Task<IActionResult> UpdateRecommendedProducts([FromBody] AddRecommendedProductsRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
+                                              .ToList();
+                return BadRequest(ApiResult<Dictionary<string, string[]>>.Error(new Dictionary<string, string[]>
+        {
+            { "Errors", errors.ToArray() }
+        }));
+            }
 
+            try
+            {
+                await productService.UpdateRecommendedProductsAsync(request.ProductId, request.RecommendedProductIds);
+                return Ok(ApiResult<string>.Succeed("Recommended products updated successfully"));
+            }
+            catch (EntryPointNotFoundException ex)
+            {
+                return NotFound(ApiResult<object>.Fail(ex));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ApiResult<object>.Fail(ex));
+            }
+        }
+        #endregion
 
         #region get list product which best seller
         [HttpGet("products/best-seller/{limit}")]

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Org.BouncyCastle.Crypto.Generators;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO;
 using SWD.F_LocalBrand.Business.DTO.Customer;
 using SWD.F_LocalBrand.Business.Helpers;
@@ -340,6 +341,27 @@ namespace SWD.F_LocalBrand.Business.Services
             }
         }
 
+        #endregion
+
+        #region update customer 
+        public async Task UpdateCustomerStatusAsync(int customerId, string status)
+        {
+            var customer = await _unitOfWork.Customers.GetByIdAsync(customerId);
+            if (customer == null)
+            {
+                throw new EntryPointNotFoundException("Customer not found");
+            }
+
+            if (status != UserStatusTypeEnum.Active && status != UserStatusTypeEnum.Inactive)
+            {
+                throw new ArgumentException("Invalid status value");
+            }
+
+            customer.Status = status;
+
+            await _unitOfWork.Customers.UpdateAsync(customer);
+            await _unitOfWork.CommitAsync();
+        }
         #endregion
     }
 
