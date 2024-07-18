@@ -507,7 +507,7 @@ namespace SWD.F_LocalBrand.API.Controllers
            Summary = "Get order details by order ID",
            Description = "Retrieves the list of order details for the specified order ID."
        )]
-        [SwaggerResponse(200, "Order details retrieved successfully", typeof(ApiResult<ListOrderDetailResponse>))]
+        [SwaggerResponse(200, "Order details retrieved successfully", typeof(ApiResult<OrderResponseModel>))]
         [SwaggerResponse(400, "Invalid request")]
         [SwaggerResponse(404, "Order not found")]
         [SwaggerResponse(500, "An error occurred while retrieving the order details")]
@@ -517,15 +517,12 @@ namespace SWD.F_LocalBrand.API.Controllers
             {
                 var orderDetails = await _orderService.GetOrderDetailsByOrderIdAsync(orderId);
 
-                if (orderDetails == null || !orderDetails.Any())
+                if (orderDetails == null )
                 {
                     return NotFound(ApiResult<string>.Error("Order not found"));
                 }
 
-                return Ok(ApiResult<ListOrderDetailResponse>.Succeed(new ListOrderDetailResponse()
-                {
-                    Details = orderDetails
-                }));
+                return Ok(ApiResult<OrderResponseModel>.Succeed(orderDetails));
             }
             catch (Exception ex)
             {
