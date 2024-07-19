@@ -61,6 +61,21 @@ namespace SWD.F_LocalBrand.Business.Services
                 CollectionName = model.CollectionName,
                 Status = model.Status
             };
+            if (model.CampaignId.HasValue)
+            {
+                collection.CampaignId = model.CampaignId;
+            }
+            if (model.CollectionProductIds != null && model.CollectionProductIds.Any())
+            {
+                var collectionProducts = model.CollectionProductIds.Select(id => new CollectionProduct
+                {
+                    CollectionId = collection.Id,
+                    ProductId = id
+                }).ToList();
+
+                collection.CollectionProducts = collectionProducts;
+            }
+
 
             await _unitOfWork.Collections.CreateAsync(collection);
             await _unitOfWork.CommitAsync();

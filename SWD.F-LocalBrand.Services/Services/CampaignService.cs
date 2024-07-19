@@ -69,8 +69,26 @@ namespace SWD.F_LocalBrand.Business.Services
                 CampaignName = model.CampaignName,
                 Status = model.Status
             };
-
             await _unitOfWork.Campaigns.CreateAsync(campaign);
+            await _unitOfWork.CommitAsync();
+
+            if (model.CollectionIds != null)
+            {
+                var collections = await _unitOfWork.Collections.GetByIdsAsync(model.CollectionIds);
+
+                foreach (var collection in collections)
+                {
+                    if (collection == null)
+                    {
+                        throw new ArgumentException($"One or more collections do not exist.");
+                    }
+                    collection.Campaign = campaign;
+                    collection.CampaignId = campaign.Id;
+                    await _unitOfWork.Collections.UpdateAsync(collection);
+                    campaign.Collections.Add(collection);
+                }
+            }
+
             await _unitOfWork.CommitAsync();
             return campaign;
         }

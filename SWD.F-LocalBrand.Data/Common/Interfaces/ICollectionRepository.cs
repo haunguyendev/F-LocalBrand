@@ -10,5 +10,6 @@ namespace SWD.F_LocalBrand.Data.Common.Interfaces
     public interface ICollectionRepository : IRepositoryBaseAsync<Collection>
     {
         Task<bool> CollectionNameExistsAsync(string collectionName);
+        Task<IEnumerable<Collection>> GetByIdsAsync(IEnumerable<int> ids);
     }
 }
