@@ -70,6 +70,14 @@ public class IdentityService
 
         var imagePath =  $"USER/{createUser.Id}";
         var imageUploadResult = await _firebaseService.UploadFileToFirebase(req.Imageurl, imagePath);
+        if (imageUploadResult is not null)
+        {
+            createUser.Image = imageUploadResult;
+        }
+        else
+        {
+            createUser.Image = null;
+        }
         await _unitOfWork.Users.UpdateAsync(createUser);
         var res = await _unitOfWork.CommitAsync();
 
