@@ -302,14 +302,14 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region api update customer status
-        [HttpPut("customer/status")]
+        [HttpPut("customer/{customerId}/status")]
         [SwaggerOperation(
     Summary = "Update customer status",
     Description = "Updates the status of a specified customer. The request must contain a valid customer ID and a valid status value.")]
         [SwaggerResponse(200, "Customer status updated successfully")]
         [SwaggerResponse(400, "Invalid request")]
         [SwaggerResponse(404, "Customer not found")]
-        public async Task<IActionResult> UpdateCustomerStatus([FromBody] UpdateCustomerStatusRequest request)
+        public async Task<IActionResult> UpdateCustomerStatus([FromBody] UpdateCustomerStatusRequest request,int customerId)
         {
             if (!ModelState.IsValid)
             {
@@ -324,7 +324,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
             try
             {
-                await _customerService.UpdateCustomerStatusAsync(request.CustomerId, request.Status);
+                await _customerService.UpdateCustomerStatusAsync(customerId, request.Status);
                 return Ok(ApiResult<string>.Succeed("Customer status updated successfully"));
             }
             catch (EntryPointNotFoundException ex)
