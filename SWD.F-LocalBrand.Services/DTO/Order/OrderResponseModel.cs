@@ -15,6 +15,8 @@ namespace SWD.F_LocalBrand.Business.DTO.Order
         public decimal? TotalAmount { get; set; }
         public string CurrentStatus { get; set; }
         public string StatusHistory { get; set; }
+
+        public string? Image { get; set; }
         public List<OrderDetailResponseModel> Details { get; set; }
         public CustomerInfoModel CustomerInfo { get; set; }
         
