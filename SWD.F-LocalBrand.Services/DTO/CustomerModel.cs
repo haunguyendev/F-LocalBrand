@@ -22,6 +22,8 @@ namespace SWD.F_LocalBrand.Business.DTO
 
         public string Image { get; set; }
 
+        public string Status { get; set; } = null!;
+
         public DateOnly RegistrationDate { get; set; }
 
         public List<CustomerProductModel> CustomerProducts { get; set; }
