@@ -14,6 +14,8 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Collection
 
         public List<int>? CollectionProductIds { get; set; }
 
+        public string? Status { get; set; }
+
         public CollectionUpdateModel MapToModel()
         {
             return new CollectionUpdateModel
@@ -21,7 +23,8 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Collection
                 Id = Id,
                 CollectionName = CollectionName,
                 CampaignId = CampaignId,
-                CollectionProductIds = CollectionProductIds
+                CollectionProductIds = CollectionProductIds,
+                Status = Status
             };
         }
     }

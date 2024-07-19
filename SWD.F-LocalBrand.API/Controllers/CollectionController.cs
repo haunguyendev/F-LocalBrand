@@ -4,6 +4,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using SWD.F_LocalBrand.API.Common;
 using SWD.F_LocalBrand.API.Payloads.Requests.Collection;
 using SWD.F_LocalBrand.API.Payloads.Responses;
+using SWD.F_LocalBrand.Business.Common.Shared;
 using SWD.F_LocalBrand.Business.DTO.Collection;
 using SWD.F_LocalBrand.Business.DTO.Order;
 using SWD.F_LocalBrand.Business.Services;
@@ -116,6 +117,10 @@ namespace SWD.F_LocalBrand.API.Controllers
 
             try
             {
+                if(request.Status != CollectionStatusTypeEnum.Active && request.Status != CollectionStatusTypeEnum.Inactive && request.Status != CollectionStatusTypeEnum.Deleted)
+                {
+                    return BadRequest(ApiResult<object>.Error(new { Message = "Invalid status" }));
+                }
                 var collectionModel = request.MapToModel();
                 var updatedCollection = await _collectionService.UpdateCollectionAsync(collectionModel);
 
