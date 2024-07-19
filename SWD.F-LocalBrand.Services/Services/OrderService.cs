@@ -927,6 +927,7 @@ namespace SWD.F_LocalBrand.Business.Services
                 TotalAmount = order.TotalAmount,
                 CurrentStatus=currentStatus.Status,
                 StatusHistory = statusHistoryString,
+                Image = order.Image,
                 Details = order.OrderDetails.Select(od => new OrderDetailResponseModel
                 {
                     Quantity = od.Quantity ?? 0,
