@@ -20,5 +20,12 @@ namespace SWD.F_LocalBrand.Data.Repositories
         {
             return await _dbContext.Collections.AnyAsync(c => c.CollectionName == collectionName);
         }
+
+        public async Task<IEnumerable<Collection>> GetByIdsAsync(IEnumerable<int> ids)
+        {
+            return await _dbContext.Collections
+                                   .Where(c => ids.Contains(c.Id))
+                                   .ToListAsync();
+        }
     }
 }

@@ -13,13 +13,16 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.Campaign
         [Required(ErrorMessage = "Status is required.")]
         [Status(ErrorMessage = "Invalid status.")]
         public string? Status { get; set; }
+        public List<int>? CollectionIds { get; set; }
 
         public CampaignCreateModel MapToModel()
         {
             return new CampaignCreateModel
             {
                 CampaignName = this.CampaignName,
-                Status = this.Status
+                Status = this.Status,
+                CollectionIds = this.CollectionIds
+                
             };
         }
     }

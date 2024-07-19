@@ -11,5 +11,6 @@ namespace SWD.F_LocalBrand.Business.DTO.Campaign
         public string? CampaignName { get; set; }
 
         public string? Status { get; set; }
+        public List<int>? CollectionIds { get; set; }
     }
 }

@@ -45,7 +45,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         [SwaggerOperation(
        Summary = "Create a new campaign",
        Description = "Creates a new campaign. Example of a valid request: {\"campaignName\":\"New Campaign Name\"}")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Campaign created successfully", typeof(ApiResult<object>))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Campaign created successfully", typeof(ApiResult<object>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
         [SwaggerResponse(StatusCodes.Status409Conflict, "Campaign name already exists", typeof(ApiResult<object>))]
         public async Task<IActionResult> CreateCampaign([FromBody] CampaignCreateRequest request)
@@ -69,7 +69,7 @@ namespace SWD.F_LocalBrand.API.Controllers
             var campaignModel = request.MapToModel();
             var createResult = await _campaignService.CreateCampaignAsync(campaignModel);
 
-            return CreatedAtAction(nameof(CreateCampaign), new { id = createResult.Id }, ApiResult<object>.Succeed(new { Message = "Campaign created successfully", CampaignId = createResult.Id }));
+            return Ok(ApiResult<string>.Succeed("Create campaign successfully!"));
         }
         #endregion
         #region update campaign api
