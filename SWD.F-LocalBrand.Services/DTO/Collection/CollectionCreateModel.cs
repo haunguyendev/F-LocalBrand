@@ -9,7 +9,8 @@ namespace SWD.F_LocalBrand.Business.DTO.Collection
     public class CollectionCreateModel
     {
         public string CollectionName { get; set; }
-
+        public int? CampaignId { get; set; }
         public string? Status { get; set; }
+        public List<int>? CollectionProductIds { get; set; }
     }
 }
