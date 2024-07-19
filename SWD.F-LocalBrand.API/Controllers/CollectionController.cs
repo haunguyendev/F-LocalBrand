@@ -210,7 +210,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         #region api update status collection 
-        [HttpPut("status")]
+        [HttpPut("collection/status")]
         [SwaggerOperation(
        Summary = "Update collection status",
        Description = "Updates the status of a collection to 'Active' or 'Inactive'."
@@ -252,7 +252,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         #region api delete collection
-        [HttpDelete("{collectionId}")]
+        [HttpDelete("collection/{collectionId}")]
         [SwaggerOperation(
        Summary = "Delete a collection",
        Description = "Deletes a collection by updating its status to 'Deleted' if no products are using it."
