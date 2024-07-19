@@ -215,7 +215,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
 
         #region api update status collection 
-        [HttpPut("collection/status")]
+        [HttpPut("collection/{collectionId}/status")]
         [SwaggerOperation(
        Summary = "Update collection status",
        Description = "Updates the status of a collection to 'Active' or 'Inactive'."
@@ -224,7 +224,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid request", typeof(ApiResult<Dictionary<string, string[]>>))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Collection not found", typeof(ApiResult<object>))]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "An error occurred while updating the collection status", typeof(ApiResult<object>))]
-        public async Task<IActionResult> UpdateCollectionStatus([FromQuery] int collectionId, [FromBody] UpdateCollectionStatusRequest request)
+        public async Task<IActionResult> UpdateCollectionStatus(int collectionId, [FromBody] UpdateCollectionStatusRequest request)
         {
             if (!ModelState.IsValid)
             {
