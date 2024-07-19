@@ -345,7 +345,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
         #region update device id for user
         [Authorize]
-        [HttpPut("update/deviceId/{deviceId}")]
+        [HttpPut("customer/update/deviceId/{deviceId}")]
         [SwaggerOperation(
                        Summary = "Update device ID",
                        Description = "Updates the device ID of the current customer."
