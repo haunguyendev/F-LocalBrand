@@ -60,14 +60,18 @@ namespace SWD.F_LocalBrand.Business.Services
                 var roles = await _unitOfWork.Roles.FindByCondition(r => r.RoleName == "Shipper").ToListAsync();
                 foreach (var role in roles)
                 {
-                    var userList = await _unitOfWork.Users.FindByCondition(u => u.RoleId == role.Id).FirstOrDefaultAsync();
+                    var userList = await _unitOfWork.Users.FindByCondition(u => u.RoleId == role.Id).ToListAsync();
                     var customer = await _unitOfWork.Customers.FindByCondition(c => c.Id == order.CustomerId.GetValueOrDefault()).FirstOrDefaultAsync();
-                    if (userList.DeviceId != null)
-                        await _notificationService.SendNotification(userList.DeviceId, "F-LocalBrand", $"Have order by {order.CustomerId}, please check and ship!");
-                    await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is prepared", "Prepared", customer.FullName, customer.Image);
+                    foreach (var user in userList)
+                    {
+                        if (user.DeviceId != null)
+                            await _notificationService.SendNotification(user.DeviceId, "F-LocalBrand", $"Have order by {order.CustomerId}, please check and ship!");
+                    }
+                        await _notificationService.PushNotificationToRedis(order.CustomerId.GetValueOrDefault(), order.Id, $"Order {order.Id} is prepared", "Prepared", customer.FullName, customer.Image);
+
                 }
-                
-                
+
+
             }
             if(newStatus == "Delivered")
             {

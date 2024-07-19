@@ -713,6 +713,78 @@ namespace SWD.F_LocalBrand.Business.Services
                 ShippingStatusCounts = shippingStatusCounts
             };
         }
+
+        public async Task<ReportData> GetMonthlyReportDataAsync(int year, int month)
+        {
+            var startDate = new DateOnly(year, month, 1);
+            var endDate = startDate.AddMonths(1);
+
+            var totalOrders = await GetTotalOrdersAsync(startDate, endDate);
+            var totalRevenue = await GetTotalRevenueAsync(startDate, endDate);
+            var orderStatusCounts = await GetOrderStatusCountsAsync(startDate, endDate);
+            var paymentStatusCounts = await GetPaymentStatusCountsAsync(startDate, endDate);
+            var shippingStatusCounts = await GetShippingStatusCountsAsync(startDate.ToDateTime(new TimeOnly()), endDate.ToDateTime(new TimeOnly()));
+            var topSellingProducts = await GetTopSellingProductsAsync(startDate, endDate);
+
+            return new ReportData
+            {
+                TotalOrders = totalOrders,
+                TotalRevenue = totalRevenue,
+                OrderStatusCounts = orderStatusCounts,
+                TopSellingProducts = topSellingProducts,
+                PaymentStatusCounts = paymentStatusCounts,
+                ShippingStatusCounts = shippingStatusCounts
+            };
+        }
+
+        public async Task<ReportData> GetQuarterlyReportDataAsync(int year, int quarter)
+        {
+            var startMonth = (quarter - 1) * 3 + 1;
+            var startDate = new DateOnly(year, startMonth, 1);
+            var endDate = startDate.AddMonths(3);
+
+            var totalOrders = await GetTotalOrdersAsync(startDate, endDate);
+            var totalRevenue = await GetTotalRevenueAsync(startDate, endDate);
+            var orderStatusCounts = await GetOrderStatusCountsAsync(startDate, endDate);
+            var paymentStatusCounts = await GetPaymentStatusCountsAsync(startDate, endDate);
+            var shippingStatusCounts = await GetShippingStatusCountsAsync(startDate.ToDateTime(new TimeOnly()), endDate.ToDateTime(new TimeOnly()));
+            var topSellingProducts = await GetTopSellingProductsAsync(startDate, endDate);
+
+            return new ReportData
+            {
+                TotalOrders = totalOrders,
+                TotalRevenue = totalRevenue,
+                OrderStatusCounts = orderStatusCounts,
+                TopSellingProducts = topSellingProducts,
+                PaymentStatusCounts = paymentStatusCounts,
+                ShippingStatusCounts = shippingStatusCounts
+            };
+        }
+
+        public async Task<ReportData> GetYearlyReportDataAsync(int year)
+        {
+            var startDate = new DateOnly(year, 1, 1);
+            var endDate = startDate.AddYears(1);
+
+            var totalOrders = await GetTotalOrdersAsync(startDate, endDate);
+            var totalRevenue = await GetTotalRevenueAsync(startDate, endDate);
+            var orderStatusCounts = await GetOrderStatusCountsAsync(startDate, endDate);
+            var paymentStatusCounts = await GetPaymentStatusCountsAsync(startDate, endDate);
+            var shippingStatusCounts = await GetShippingStatusCountsAsync(startDate.ToDateTime(new TimeOnly()), endDate.ToDateTime(new TimeOnly()));
+            var topSellingProducts = await GetTopSellingProductsAsync(startDate, endDate);
+
+            return new ReportData
+            {
+                TotalOrders = totalOrders,
+                TotalRevenue = totalRevenue,
+                OrderStatusCounts = orderStatusCounts,
+                TopSellingProducts = topSellingProducts,
+                PaymentStatusCounts = paymentStatusCounts,
+                ShippingStatusCounts = shippingStatusCounts
+            };
+        }
+
+
         public async Task<int> GetTotalOrdersAsync(DateOnly startDate, DateOnly endDate)
         {
             return await _unitOfWork.Orders
