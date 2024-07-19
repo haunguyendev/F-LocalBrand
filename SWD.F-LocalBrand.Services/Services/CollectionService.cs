@@ -99,6 +99,7 @@ namespace SWD.F_LocalBrand.Business.Services
 
                 collection.CollectionProducts = collectionProducts;
             }
+            collection.Status = model.Status;
 
             await _unitOfWork.Collections.UpdateAsync(collection);
             await _unitOfWork.CommitAsync();

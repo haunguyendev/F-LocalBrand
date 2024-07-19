@@ -363,6 +363,24 @@ namespace SWD.F_LocalBrand.Business.Services
             await _unitOfWork.CommitAsync();
         }
         #endregion
+
+
+        public async Task<bool> UpdateDeviceId(int customerId, string deviceId)
+        {
+            var customer = await _unitOfWork.Customers.GetByIdAsync(customerId);
+
+            if (customer == null)
+            {
+                return false;
+            }
+
+            customer.DeviceId = deviceId;
+
+            await _unitOfWork.Customers.UpdateAsync(customer);
+            await _unitOfWork.CommitAsync();
+
+            return true;
+        }
     }
 
 }
