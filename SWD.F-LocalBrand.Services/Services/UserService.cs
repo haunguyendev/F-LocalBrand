@@ -208,7 +208,7 @@ namespace SWD.F_LocalBrand.Business.Services
         }
         #endregion
         #region update user role
-        public async Task ChangeUserRoleAsync(int userId, int roleId)
+        public async Task ChangeUserRoleAsync(int userId, string roleName)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null)
@@ -216,13 +216,13 @@ namespace SWD.F_LocalBrand.Business.Services
                 throw new EntryPointNotFoundException("User not found");
             }
 
-            var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
+            var role = _unitOfWork.Roles.FindByCondition(x=>x.RoleName==roleName).FirstOrDefault();
             if (role == null)
             {
                 throw new EntryPointNotFoundException("Role not found");
             }
 
-            user.RoleId = roleId;
+            user.RoleId = role.Id;
 
             await _unitOfWork.Users.UpdateAsync(user);
             await _unitOfWork.CommitAsync();

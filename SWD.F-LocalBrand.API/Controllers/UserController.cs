@@ -191,7 +191,7 @@ namespace SWD.F_LocalBrand.API.Controllers
 
             try
             {
-                await _userService.ChangeUserRoleAsync(request.UserId, request.RoleId);
+                await _userService.ChangeUserRoleAsync(request.UserId, request.RoleName);
                 return Ok(ApiResult<string>.Succeed("User role changed successfully"));
             }
             catch (EntryPointNotFoundException ex)

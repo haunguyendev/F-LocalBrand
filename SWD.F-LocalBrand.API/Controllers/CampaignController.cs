@@ -169,7 +169,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         #endregion
 
         #region api update status 
-        [HttpPut("{campaignId}/status")]
+        [HttpPut("campaign/{campaignId}/status")]
         [SwaggerOperation(
         Summary = "Update campaign status",
         Description = "Updates the status of an existing campaign."
@@ -209,7 +209,7 @@ namespace SWD.F_LocalBrand.API.Controllers
         }
         #endregion
         #region api deleted campagin
-        [HttpDelete("{campaignId}")]
+        [HttpDelete("campaign/{campaignId}")]
         [SwaggerOperation(
        Summary = "Delete a campaign",
        Description = "Deletes a campaign by updating its status to 'Deleted' if no collections are using it."
