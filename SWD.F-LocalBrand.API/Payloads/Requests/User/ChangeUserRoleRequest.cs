@@ -8,6 +8,7 @@ namespace SWD.F_LocalBrand.API.Payloads.Requests.User
         public int UserId { get; set; }
 
         [Required]
-        public int RoleId { get; set; }
+        [RegularExpression("^(Admin|Shipper)$", ErrorMessage = "Role of user must be 'Admin' or 'Shipper'.")]
+        public string RoleName { get; set; }
     }
 }
