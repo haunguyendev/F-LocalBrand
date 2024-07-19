@@ -57,8 +57,8 @@ namespace SWD.F_LocalBrand.Business.Services
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                var requiredCategories = new List<string> { "Quần", "Áo", "Giày" };
-                var categoryCount = new Dictionary<string, int> { { "Quần", 0 }, { "Áo", 0 }, { "Giày", 0 } };
+                var requiredCategories = new List<string> { "Shirt", "Pants", "Shoes" };
+                var categoryCount = new Dictionary<string, int> { { "Shirt", 0 }, { "Pants", 0 }, { "Shoes", 0 } };
 
                 foreach (var productCheck in orderQueueItem.Products)
                 {
